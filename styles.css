@@ -208,6 +208,30 @@ input:focus, textarea:focus, select:focus, .button:focus-visible, summary:focus-
 .footer div { display: flex; gap: 1rem; flex-wrap: wrap; }
 .reveal { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
 .reveal.is-visible { opacity: 1; transform: none; }
+
+.reveal { 
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ADD THE NEW PODCAST CSS HERE */
+
+.podcast-player-wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.podcast-buttons {
+  margin-top: 0;
+  justify-content: center;
+}
+
 .featured-card iframe {
   width: 100%;
   border: 0;
