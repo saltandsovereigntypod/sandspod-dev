@@ -541,16 +541,42 @@ summary:focus-visible {
 }
 
 .blog-post-page {
-  width: min(1100px, calc(100% - 2rem));
+  width: min(1120px, calc(100% - 2rem));
   margin: 0 auto;
-  padding-top: clamp(4rem, 8vw, 7rem);
-  padding-bottom: clamp(4rem, 8vw, 7rem);
+  padding: clamp(3rem, 7vw, 6rem) 0;
 }
 
 .grimoire-page {
-  max-width: 860px;
+  position: relative;
+  max-width: 920px;
   margin: 0 auto;
-  padding: 0;
+  padding: clamp(2rem, 6vw, 5rem);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at 82% 10%, rgba(185, 160, 93, 0.14), transparent 12rem),
+    radial-gradient(circle at 15% 95%, rgba(111, 132, 101, 0.16), transparent 16rem),
+    linear-gradient(145deg, rgba(28, 24, 18, 0.94), rgba(10, 13, 10, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
+}
+
+.grimoire-page::before {
+  content: "";
+  position: absolute;
+  inset: 1.1rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 0.9rem;
+  pointer-events: none;
+}
+
+.grimoire-page::after {
+  content: "☽ ✦ ☾";
+  display: block;
+  margin: 3rem auto 0;
+  text-align: center;
+  color: var(--gold);
+  letter-spacing: 0.8rem;
+  opacity: 0.75;
 }
 
 .grimoire-page .eyebrow {
@@ -558,42 +584,60 @@ summary:focus-visible {
 }
 
 .grimoire-page h1 {
-  max-width: 11ch;
-  font-size: clamp(4rem, 10vw, 8rem);
-  line-height: 0.88;
+  max-width: 12ch;
+  font-size: clamp(4rem, 9vw, 7.5rem);
+  line-height: 0.9;
   margin-bottom: 1rem;
+}
+
+.grimoire-page h1 + p {
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
 }
 
 .grimoire-page h2 {
   max-width: none;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
   margin-top: 4rem;
-  margin-bottom: 1rem;
   color: var(--cream);
+  font-size: clamp(2.3rem, 5vw, 4rem);
 }
 
 .grimoire-page p {
-  max-width: 72ch;
+  max-width: 78ch;
   font-size: 1.12rem;
-  line-height: 1.9;
+  line-height: 1.95;
 }
 
 .grimoire-page blockquote {
-  max-width: 62ch;
-  margin: 2.25rem 0;
-  padding: 1.35rem 1.5rem;
+  max-width: 68ch;
+  margin: 3rem 0;
+  padding: 2rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
   border-left: 3px solid var(--gold);
-  background: rgba(185, 160, 93, 0.08);
-  border-radius: 0.75rem;
+  border-radius: 0.85rem;
+  background: rgba(185, 160, 93, 0.07);
+  font-style: italic;
 }
 
 .grimoire-page blockquote p {
   color: var(--cream);
 }
 
-.grimoire-page .button {
-  margin-top: 2rem;
+.grimoire-page > p:first-of-type::first-letter {
+  float: left;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 5.8rem;
+  line-height: 0.8;
+  padding-right: 0.6rem;
+  color: var(--gold);
 }
+
+.grimoire-page .button {
+  margin-top: 3rem;
+}
+
 @media (max-width: 900px) {
   .nav-toggle {
     display: block;
