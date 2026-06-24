@@ -560,7 +560,7 @@ summary:focus-visible {
   position: sticky;
   top: 6rem;
   align-self: start;
-  max-height: calc(100vh - 7rem);
+  max-height: calc(100vh - 8rem);
   overflow-y: auto;
   padding: 1rem;
   border: 1px solid rgba(185, 160, 93, 0.28);
@@ -568,6 +568,16 @@ summary:focus-visible {
   background: rgba(16, 33, 24, 0.72);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
+
+.grimoire-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grimoire-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(185, 160, 93, 0.35);
+  border-radius: 999px;
+}
+
 .grimoire-sidebar h2 {
   max-width: none;
   font-size: 1.6rem;
