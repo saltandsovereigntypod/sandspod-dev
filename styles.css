@@ -540,6 +540,25 @@ summary:focus-visible {
   transform: none;
 }
 
+.blog-post-page {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.blog-post {
+  padding: clamp(1.5rem, 5vw, 4rem);
+}
+
+.blog-post h1 {
+  max-width: none;
+  font-size: clamp(3rem, 8vw, 6rem);
+}
+
+.blog-post p {
+  font-size: 1.08rem;
+  line-height: 1.85;
+}
+
 @media (max-width: 900px) {
   .nav-toggle {
     display: block;
