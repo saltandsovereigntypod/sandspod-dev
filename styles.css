@@ -686,38 +686,114 @@ summary:focus-visible {
   grid-column: 1;
 }
 
-.grimoire-sidebar {
+.grimoire-layout {
+
+  display: grid;
+
+  grid-template-columns: 260px minmax(0, 1fr);
+
+  gap: clamp(2rem, 5vw, 4rem);
+
+}
+
+.grimoire-header {
+
+  grid-column: 1 / -1;
+
+}
+
+.grimoire-layout > :not(.grimoire-header):not(.grimoire-sidebar) {
+
   grid-column: 2;
-  grid-row: 2 / span 8;
+
+}
+
+.grimoire-sidebar {
+
+  grid-column: 1;
+
+  grid-row: 2 / span 999;
+
   align-self: start;
+
   position: sticky;
+
   top: 6rem;
+
   padding: 1.25rem;
+
   border: 1px solid rgba(185, 160, 93, 0.28);
+
   border-radius: 1rem;
+
   background: rgba(185, 160, 93, 0.06);
+
 }
 
 .grimoire-sidebar h2 {
-  font-size: 1.7rem;
+
   max-width: none;
+
+  font-size: 1.6rem;
+
+  margin-bottom: 1rem;
+
 }
 
 .grimoire-sidebar h3 {
-  font-size: 1.15rem;
+
+  font-size: 1rem;
+
   color: var(--gold);
+
   margin-bottom: 0.4rem;
+
+}
+
+.grimoire-sidebar p,
+
+.grimoire-sidebar li {
+
+  font-size: 0.95rem;
+
+  line-height: 1.6;
+
 }
 
 .grimoire-sidebar ul {
+
   padding-left: 1.2rem;
+
   color: var(--muted);
+
 }
 
 .sidebar-section {
+
   border-top: 1px solid rgba(185, 160, 93, 0.22);
+
   padding-top: 1rem;
+
   margin-top: 1rem;
+
+}
+
+@media (max-width: 900px) {
+
+  .grimoire-layout {
+
+    display: block;
+
+  }
+
+  .grimoire-sidebar {
+
+    position: static;
+
+    margin: 2rem 0;
+
+  }
+
 }
 
 @media (max-width: 900px) {
