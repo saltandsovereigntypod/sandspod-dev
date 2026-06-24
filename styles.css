@@ -541,42 +541,59 @@ summary:focus-visible {
 }
 
 .blog-post-page {
-  max-width: 980px;
+  width: min(1100px, calc(100% - 2rem));
   margin: 0 auto;
+  padding-top: clamp(4rem, 8vw, 7rem);
+  padding-bottom: clamp(4rem, 8vw, 7rem);
 }
 
-.blog-post {
-  padding: clamp(1.5rem, 5vw, 4rem);
+.grimoire-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0;
 }
 
-.blog-post h1 {
+.grimoire-page .eyebrow {
+  color: var(--gold);
+}
+
+.grimoire-page h1 {
+  max-width: 11ch;
+  font-size: clamp(4rem, 10vw, 8rem);
+  line-height: 0.88;
+  margin-bottom: 1rem;
+}
+
+.grimoire-page h2 {
   max-width: none;
-  font-size: clamp(3rem, 8vw, 6rem);
-}
-
-.blog-post h2 {
-  max-width: none;
-  margin-top: 3rem;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  margin-top: 4rem;
+  margin-bottom: 1rem;
   color: var(--cream);
 }
 
-.blog-post p {
-  font-size: 1.08rem;
-  line-height: 1.85;
+.grimoire-page p {
+  max-width: 72ch;
+  font-size: 1.12rem;
+  line-height: 1.9;
 }
 
-.blog-post blockquote {
-  margin: 2rem 0;
-  padding: 1.25rem 1.5rem;
+.grimoire-page blockquote {
+  max-width: 62ch;
+  margin: 2.25rem 0;
+  padding: 1.35rem 1.5rem;
   border-left: 3px solid var(--gold);
   background: rgba(185, 160, 93, 0.08);
   border-radius: 0.75rem;
 }
 
-.blog-post blockquote p {
+.grimoire-page blockquote p {
   color: var(--cream);
 }
 
+.grimoire-page .button {
+  margin-top: 2rem;
+}
 @media (max-width: 900px) {
   .nav-toggle {
     display: block;
