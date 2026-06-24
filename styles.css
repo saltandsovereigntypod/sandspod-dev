@@ -541,7 +541,7 @@ summary:focus-visible {
 }
 
 .blog-post-page {
-  max-width: 920px;
+  max-width: 980px;
   margin: 0 auto;
 }
 
@@ -554,9 +554,27 @@ summary:focus-visible {
   font-size: clamp(3rem, 8vw, 6rem);
 }
 
+.blog-post h2 {
+  max-width: none;
+  margin-top: 3rem;
+  color: var(--cream);
+}
+
 .blog-post p {
   font-size: 1.08rem;
   line-height: 1.85;
+}
+
+.blog-post blockquote {
+  margin: 2rem 0;
+  padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--gold);
+  background: rgba(185, 160, 93, 0.08);
+  border-radius: 0.75rem;
+}
+
+.blog-post blockquote p {
+  color: var(--cream);
 }
 
 @media (max-width: 900px) {
