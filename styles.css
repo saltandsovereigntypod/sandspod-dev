@@ -1278,10 +1278,8 @@ body.threshold-locked {
   border: 1px solid rgba(185, 160, 93, 0.28);
   border-radius: 1.25rem;
   padding: clamp(1rem, 3vw, 2rem);
-  background:
-    radial-gradient(circle at 50% 15%, rgba(185, 160, 93, 0.12), transparent 18rem),
-    linear-gradient(rgba(8, 10, 8, 0.34), rgba(8, 10, 8, 0.72)),
-    url("https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1800&q=80") center/cover;
+  background: url("assets/altar/backgrounds/forest-scene.png")
+    center center / cover no-repeat;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -1301,19 +1299,6 @@ body.threshold-locked {
   min-height: 610px;
   border-radius: 1rem;
   overflow: hidden;
-}
-
-.altar-stage::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 2%;
-  z-index: 1;
-  width: min(980px, 96%);
-  aspect-ratio: 16 / 9;
-  transform: translateX(-50%);
-  background: url("assets/altar/wooden-altar2.png") center bottom / contain no-repeat;
-  pointer-events: none;
 }
 
 .altar-stage::after {
