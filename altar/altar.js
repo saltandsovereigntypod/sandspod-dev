@@ -1,5 +1,5 @@
 const altarStage = document.querySelector("[data-altar-stage]");
-const altarTools = document.querySelectorAll("[data-object]");
+const altarTools = document.querySelectorAll(".altar-item[data-object]");
 const emptyMessage = document.querySelector("[data-empty-message]");
 
 let activeObject = null;
