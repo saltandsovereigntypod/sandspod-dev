@@ -878,6 +878,8 @@ summary:focus-visible {
   opacity: 1;
   visibility: visible;
   transition: opacity 1.2s ease, visibility 1.2s ease;
+  overflow-y: auto;
+  align-items: start;
 }
 
 .threshold-gate.is-hidden {
@@ -908,6 +910,7 @@ summary:focus-visible {
     linear-gradient(145deg, rgba(16, 33, 24, 0.82), rgba(8, 10, 8, 0.92));
   box-shadow: 0 30px 100px rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(8px);
+  margin: 2rem 0;
 }
 
 .threshold-card::before {
