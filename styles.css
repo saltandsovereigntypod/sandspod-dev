@@ -1303,3 +1303,19 @@ body.threshold-locked {
     grid-template-columns: 1fr;
   }
 }
+
+.altar-object {
+  background: none;
+  border: none;
+  box-shadow: none;
+  width: 80px;
+  aspect-ratio: 1;
+}
+
+.altar-object img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
