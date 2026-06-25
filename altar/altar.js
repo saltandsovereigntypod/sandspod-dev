@@ -31,6 +31,7 @@ if (altarStage) {
 
 function updateEmptyMessage() {
   if (!altarStage || !emptyMessage) return;
+
   emptyMessage.hidden = altarStage.querySelectorAll(".altar-object").length > 0;
 }
 
@@ -53,7 +54,6 @@ function selectObject(object) {
   selectedObject.classList.add("is-selected");
 
   toolbar.hidden = false;
-  positionToolbar();
 }
 
 function deselectObject() {
@@ -63,28 +63,6 @@ function deselectObject() {
 
   selectedObject = null;
   toolbar.hidden = true;
-}
-
-function positionToolbar() {
-  if (!selectedObject || !altarStage || toolbar.hidden) return;
-
-  const stageRect = altarStage.getBoundingClientRect();
-  const objectRect = selectedObject.getBoundingClientRect();
-
-  const toolbarWidth = toolbar.offsetWidth || 260;
-  const toolbarHeight = toolbar.offsetHeight || 44;
-
-  let left = objectRect.left - stageRect.left + objectRect.width / 2 - toolbarWidth / 2;
-  let top = objectRect.top - stageRect.top - toolbarHeight - 10;
-
-  left = Math.max(8, Math.min(left, altarStage.clientWidth - toolbarWidth - 8));
-
-  if (top < 8) {
-    top = objectRect.bottom - stageRect.top + 10;
-  }
-
-  toolbar.style.left = `${left}px`;
-  toolbar.style.top = `${top}px`;
 }
 
 function keepObjectInsideStage(object) {
@@ -111,69 +89,88 @@ function keepObjectInsideStage(object) {
 }
 
 function resizeObject(object, amount) {
+  if (!object || object.dataset.locked === "true") return;
+
   let scale = Number(object.dataset.scale || 1);
+
   scale += amount;
   scale = Math.max(0.35, Math.min(scale, 3));
 
   object.dataset.scale = String(scale);
+
   updateObjectTransform(object);
   keepObjectInsideStage(object);
-  positionToolbar();
 }
 
 function rotateObject(object) {
+  if (!object || object.dataset.locked === "true") return;
+
   let rotation = Number(object.dataset.rotation || 0);
   rotation += 15;
 
   object.dataset.rotation = String(rotation);
+
   updateObjectTransform(object);
-  positionToolbar();
 }
 
 function bringForward(object) {
+  if (!object) return;
+
   highestLayer += 1;
   object.style.zIndex = highestLayer;
-  positionToolbar();
 }
 
 function sendBackward(object) {
+  if (!object) return;
+
   let currentLayer = Number(object.style.zIndex || 10);
   currentLayer = Math.max(5, currentLayer - 1);
 
   object.style.zIndex = currentLayer;
-  positionToolbar();
 }
 
 function flipObject(object) {
+  if (!object || object.dataset.locked === "true") return;
+
   object.dataset.flipped = object.dataset.flipped === "true" ? "false" : "true";
+
   updateObjectTransform(object);
-  positionToolbar();
 }
 
 function toggleLock(object) {
+  if (!object) return;
+
   const isLocked = object.dataset.locked === "true";
+
   object.dataset.locked = isLocked ? "false" : "true";
   object.classList.toggle("is-locked", !isLocked);
-  positionToolbar();
 }
 
 function toggleGlow(object) {
+  if (!object) return;
+
   object.dataset.glowing = object.dataset.glowing === "true" ? "false" : "true";
   object.classList.toggle("has-glow", object.dataset.glowing === "true");
 }
 
 function toggleLight(object) {
+  if (!object) return;
+
   object.dataset.lit = object.dataset.lit === "true" ? "false" : "true";
   object.classList.toggle("is-lit", object.dataset.lit === "true");
 }
 
 function deleteObject(object) {
+  if (!object) return;
+
   object.remove();
   deselectObject();
   updateEmptyMessage();
 }
 
 function duplicateObject(object) {
+  if (!object) return;
+
   const clone = object.cloneNode(true);
 
   highestLayer += 1;
@@ -226,11 +223,14 @@ function makeDraggable(object) {
 
     object.style.left = `${x}px`;
     object.style.top = `${y}px`;
-
-    positionToolbar();
   });
 
   object.addEventListener("pointerup", () => {
+    object.classList.remove("is-dragging");
+    activeObject = null;
+  });
+
+  object.addEventListener("pointercancel", () => {
     object.classList.remove("is-dragging");
     activeObject = null;
   });
@@ -253,6 +253,7 @@ function placeObject(imagePath, fallbackSymbol, label) {
   if (!altarStage) return;
 
   const object = document.createElement("button");
+
   object.type = "button";
   object.className = "altar-object";
 
@@ -269,6 +270,7 @@ function placeObject(imagePath, fallbackSymbol, label) {
 
   if (imagePath) {
     const img = document.createElement("img");
+
     img.src = imagePath;
     img.alt = label;
     img.draggable = false;
@@ -290,6 +292,7 @@ function placeObject(imagePath, fallbackSymbol, label) {
   object.style.left = `${120 + column * 80}px`;
   object.style.top = `${280 + row * 70}px`;
 
+  updateObjectTransform(object);
   makeDraggable(object);
 
   altarStage.appendChild(object);
@@ -303,6 +306,7 @@ toolbar.addEventListener("pointerdown", (event) => {
 
 toolbar.addEventListener("click", (event) => {
   const button = event.target.closest("button");
+
   if (!button || !selectedObject) return;
 
   const action = button.dataset.action;
@@ -344,7 +348,6 @@ document.addEventListener("pointerdown", (event) => {
 window.addEventListener("resize", () => {
   if (selectedObject) {
     keepObjectInsideStage(selectedObject);
-    positionToolbar();
   }
 });
 
