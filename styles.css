@@ -1021,3 +1021,170 @@ body.threshold-locked {
     display: grid;
   }
 }
+
+.altar-page {
+  min-height: 100vh;
+}
+
+.altar-main {
+  padding: clamp(3rem, 7vw, 6rem) max(1rem, calc((100vw - 1180px) / 2));
+}
+
+.altar-hero {
+  max-width: 760px;
+  margin-bottom: 3rem;
+}
+
+.altar-hero h1 {
+  max-width: none;
+  font-size: clamp(4rem, 10vw, 8rem);
+}
+
+.altar-hero p {
+  max-width: 58ch;
+  color: var(--cream);
+  font-size: 1.15rem;
+}
+
+.altar-workspace {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: clamp(1rem, 4vw, 2rem);
+  align-items: stretch;
+}
+
+.altar-cabinet,
+.altar-stage-wrap {
+  border: 1px solid rgba(185, 160, 93, 0.3);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.1), transparent 16rem),
+    linear-gradient(145deg, rgba(38, 61, 46, 0.78), rgba(17, 21, 18, 0.94));
+  box-shadow: var(--shadow);
+}
+
+.altar-cabinet {
+  padding: 1.25rem;
+}
+
+.altar-cabinet h2 {
+  max-width: none;
+  font-size: 2.4rem;
+}
+
+.altar-tools {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.altar-tool {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  padding: 0.8rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.altar-tool:hover,
+.altar-tool:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.1);
+}
+
+.altar-tool span {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  font-size: 1.4rem;
+}
+
+.altar-note {
+  margin-top: 1.5rem;
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+.altar-stage-wrap {
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.altar-stage {
+  position: relative;
+  min-height: 540px;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(244, 236, 216, 0.08), transparent 15rem),
+    linear-gradient(rgba(8, 10, 8, 0.2), rgba(8, 10, 8, 0.6)),
+    linear-gradient(180deg, rgba(16, 33, 24, 0.95), rgba(9, 11, 9, 0.98));
+}
+
+.altar-stage::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 9%;
+  height: 42%;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 1rem 1rem 0.5rem 0.5rem;
+  background:
+    linear-gradient(90deg, rgba(244, 236, 216, 0.04), transparent, rgba(244, 236, 216, 0.04)),
+    linear-gradient(145deg, rgba(74, 45, 25, 0.88), rgba(31, 22, 15, 0.96));
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.28);
+}
+
+.altar-empty-message {
+  position: absolute;
+  left: 50%;
+  top: 32%;
+  z-index: 2;
+  width: min(26rem, calc(100% - 2rem));
+  transform: translateX(-50%);
+  color: rgba(244, 236, 216, 0.62);
+  text-align: center;
+  font-style: italic;
+}
+
+.altar-object {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 999px;
+  background: rgba(8, 10, 8, 0.28);
+  font-size: 2.4rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.altar-object:hover,
+.altar-object:focus-visible {
+  transform: translateY(-4px) scale(1.04);
+  border-color: var(--gold);
+}
+
+@media (max-width: 850px) {
+  .altar-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .altar-stage {
+    min-height: 460px;
+  }
+}
