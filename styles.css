@@ -1312,7 +1312,7 @@ body.threshold-locked {
   width: min(980px, 96%);
   aspect-ratio: 16 / 9;
   transform: translateX(-50%);
-  background: url("assets/altar/wooden-altar.png") center bottom / contain no-repeat;
+  background: url("assets/altar/wooden-altar2.png") center bottom / contain no-repeat;
   pointer-events: none;
 }
 
