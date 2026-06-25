@@ -1295,6 +1295,97 @@ body.threshold-locked {
   cursor: grabbing;
   filter: brightness(1.25);
 }
+.altar-object {
+  transform-origin: center center;
+}
+
+.altar-object.is-selected {
+  filter: brightness(1.18) drop-shadow(0 0 10px rgba(185, 160, 93, 0.65));
+}
+
+.altar-object.is-locked {
+  cursor: not-allowed;
+  opacity: 0.92;
+}
+
+.altar-object.has-glow {
+  filter:
+    brightness(1.2)
+    drop-shadow(0 0 10px rgba(244, 236, 216, 0.65))
+    drop-shadow(0 0 24px rgba(185, 160, 93, 0.55));
+}
+
+.altar-object.is-lit {
+  filter:
+    brightness(1.25)
+    drop-shadow(0 0 8px rgba(255, 213, 128, 0.75))
+    drop-shadow(0 0 24px rgba(255, 140, 66, 0.5));
+}
+
+.altar-object.has-glow.is-lit {
+  filter:
+    brightness(1.35)
+    drop-shadow(0 0 10px rgba(244, 236, 216, 0.8))
+    drop-shadow(0 0 28px rgba(185, 160, 93, 0.65))
+    drop-shadow(0 0 38px rgba(255, 140, 66, 0.45));
+}
+
+.altar-toolbar {
+  position: absolute;
+  z-index: 999;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-width: min(330px, calc(100% - 1rem));
+  padding: 0.45rem;
+  border: 1px solid rgba(185, 160, 93, 0.4);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.18), transparent 60%),
+    rgba(10, 8, 6, 0.92);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.altar-toolbar[hidden] {
+  display: none;
+}
+
+.altar-toolbar button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.22);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.altar-toolbar button:hover,
+.altar-toolbar button:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.2);
+}
+
+@media (max-width: 700px) {
+  .altar-toolbar {
+    border-radius: 1rem;
+  }
+
+  .altar-toolbar button {
+    width: 2.25rem;
+  }
+}
 
 @media (max-width: 900px) {
   .altar-workspace {
