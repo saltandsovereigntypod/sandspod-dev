@@ -1289,3 +1289,15 @@ body.threshold-locked {
     grid-template-columns: 1fr;
   }
 }
+
+.altar-stage-wrap {
+  height: auto;
+  min-height: 0;
+}
+
+.altar-stage {
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
+  background: url("assets/altar/backgrounds/forest-scene.png") center center / cover no-repeat;
+}
