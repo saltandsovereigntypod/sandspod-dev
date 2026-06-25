@@ -54,8 +54,18 @@ function placeObject(symbol, label) {
   const object = document.createElement("button");
   object.type = "button";
   object.className = "altar-object";
-  object.textContent = symbol;
-  object.setAttribute("aria-label", `${label}. Drag to move. Double click to remove.`);
+  
+  const img = document.createElement("img");
+  img.src = button.dataset.image;
+  img.alt = label;
+  img.draggable = false;
+  
+  object.appendChild(img);
+  
+  object.setAttribute(
+    "aria-label",
+    `${label}. Drag to move. Double click to remove.`
+  );
 
   const existingObjects = altarStage.querySelectorAll(".altar-object").length;
   const row = Math.floor(existingObjects / 5);
