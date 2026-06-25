@@ -1,5 +1,5 @@
 const altarStage = document.querySelector("[data-altar-stage]");
-const altarTools = document.querySelectorAll(".altar-item[data-object]");
+const altarTools = document.querySelectorAll(".altar-item");
 const emptyMessage = document.querySelector("[data-empty-message]");
 
 let activeObject = null;
@@ -48,20 +48,24 @@ function makeDraggable(object) {
   });
 }
 
-function placeObject(symbol, label) {
+function placeObject(imagePath, fallbackSymbol, label) {
   if (!altarStage) return;
 
   const object = document.createElement("button");
   object.type = "button";
   object.className = "altar-object";
-  
-  const img = document.createElement("img");
-  img.src = button.dataset.image;
-  img.alt = label;
-  img.draggable = false;
-  
-  object.appendChild(img);
-  
+
+  if (imagePath) {
+    const img = document.createElement("img");
+    img.src = imagePath;
+    img.alt = label;
+    img.draggable = false;
+
+    object.appendChild(img);
+  } else {
+    object.textContent = fallbackSymbol;
+  }
+
   object.setAttribute(
     "aria-label",
     `${label}. Drag to move. Double click to remove.`
@@ -87,10 +91,11 @@ function placeObject(symbol, label) {
 
 altarTools.forEach((tool) => {
   tool.addEventListener("click", () => {
-    const symbol = tool.dataset.object;
+    const imagePath = tool.dataset.image;
+    const fallbackSymbol = tool.dataset.object || "";
     const label = tool.dataset.label || "object";
 
-    placeObject(symbol, label);
+    placeObject(imagePath, fallbackSymbol, label);
   });
 });
 
