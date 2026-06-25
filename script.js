@@ -137,3 +137,56 @@ async function loadBlogPosts() {
 }
 
 loadBlogPosts();
+
+const thresholdGate = document.querySelector("[data-threshold-gate]");
+const enterThreshold = document.querySelector("[data-enter-threshold]");
+const declineThreshold = document.querySelector("[data-decline-threshold]");
+const thresholdQuestion = document.querySelector("[data-threshold-question]");
+const thresholdNote = document.querySelector("[data-threshold-note]");
+
+const thresholdQuestions = [
+  "Are you willing to meet yourself where you are?",
+  "What part of yourself is asking to be witnessed?",
+  "What would happen if you stopped trying to earn your worth?",
+  "Can you cross this threshold without abandoning yourself?",
+  "What are you carrying that was never yours?",
+  "Are you ready to return to the parts of you that survived?",
+  "Can you let this be a place where every part of you is welcome?"
+];
+
+if (thresholdGate) {
+  const hasEnteredThreshold = sessionStorage.getItem("saltThresholdEntered");
+
+  if (hasEnteredThreshold === "true") {
+    thresholdGate.classList.add("is-hidden");
+  } else {
+    document.body.classList.add("threshold-locked");
+
+    if (thresholdQuestion) {
+      const randomQuestion =
+        thresholdQuestions[Math.floor(Math.random() * thresholdQuestions.length)];
+
+      thresholdQuestion.textContent = randomQuestion;
+    }
+  }
+}
+
+if (enterThreshold && thresholdGate) {
+  enterThreshold.addEventListener("click", () => {
+    sessionStorage.setItem("saltThresholdEntered", "true");
+    thresholdGate.classList.add("is-hidden");
+    document.body.classList.remove("threshold-locked");
+  });
+}
+
+if (declineThreshold && thresholdQuestion && thresholdNote) {
+  declineThreshold.addEventListener("click", () => {
+    thresholdQuestion.textContent =
+      "The threshold will remain. Return when you are ready.";
+
+    thresholdNote.textContent =
+      "No path needs to be forced. May you leave gently, and return only if it calls.";
+
+    declineThreshold.textContent = "Remain at the Threshold";
+  });
+}
