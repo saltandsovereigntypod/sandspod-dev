@@ -1286,9 +1286,9 @@ body.threshold-locked {
 }
 
 .altar-object.is-lit[data-type="candle"]::after {
-  top: 13%;
+  top: 14%;
   width: 8%;
-  height: 15%;
+  height: 11%;
   border-radius: 50% 50% 45% 45%;
   background:
     radial-gradient(circle at 50% 30%, rgba(255, 250, 210, 0.96), rgba(255, 190, 85, 0.58) 42%, rgba(255, 112, 45, 0.24) 62%, transparent 76%);
