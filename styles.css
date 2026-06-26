@@ -1186,6 +1186,68 @@ body.threshold-locked {
     rgba(8, 10, 8, 0.72);
 }
 
+/* ==========================================
+   Herb Drawer Groups
+========================================== */
+
+.altar-herb-group {
+  margin: 0;
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 0.5rem;
+  background: rgba(12, 12, 10, 0.35);
+  overflow: hidden;
+}
+
+.altar-herb-group + .altar-herb-group {
+  margin-top: 0.6rem;
+}
+
+.altar-herb-group summary {
+  cursor: pointer;
+  padding: 0.75rem 0.9rem;
+  font-weight: 600;
+  color: var(--gold);
+  list-style: none;
+}
+
+.altar-herb-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.altar-herb-group summary::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.altar-herb-group[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.altar-herb-forms {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  padding: 0.8rem;
+}
+
+.altar-item--compact {
+  min-height: 2.6rem;
+  padding: 0.45rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 700px) {
+  .altar-herb-forms {
+    grid-template-columns: 1fr;
+  }
+
+  .altar-item--compact {
+    min-height: 2.3rem;
+    font-size: 0.75rem;
+  }
+}
 
 /* =========================================================
    13. ALTAR OBJECTS, GLOW, AND CANDLE FLICKER
