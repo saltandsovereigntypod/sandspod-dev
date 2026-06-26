@@ -29,6 +29,17 @@ if (altarStage) {
   altarStage.appendChild(toolbar);
 }
 
+const altarGlobalControls = document.createElement("div");
+altarGlobalControls.className = "altar-global-controls";
+altarGlobalControls.innerHTML = `
+  <button type="button" data-global-action="light-all">🔥 Light All</button>
+  <button type="button" data-global-action="extinguish-all">💨 Extinguish All</button>
+`;
+
+if (altarStage) {
+  altarStage.appendChild(altarGlobalControls);
+}
+
 function updateEmptyMessage() {
   if (!altarStage || !emptyMessage) return;
 
@@ -433,6 +444,29 @@ window.addEventListener("resize", () => {
   if (selectedObject) {
     keepObjectInsideStage(selectedObject);
   }
+});
+
+altarGlobalControls.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  const action = button.dataset.globalAction;
+  const candles = altarStage.querySelectorAll('.altar-object[data-type="candle"]');
+
+  candles.forEach((candle) => {
+    if (action === "light-all" && candle.dataset.lit !== "true") {
+      candle.dataset.lit = "true";
+      candle.classList.add("is-lit");
+      startFlame(candle);
+    }
+
+    if (action === "extinguish-all" && candle.dataset.lit === "true") {
+      candle.dataset.lit = "false";
+      candle.classList.remove("is-lit");
+      stopFlame(candle);
+      extinguishFlame(candle);
+    }
+  });
 });
 
 updateEmptyMessage();
