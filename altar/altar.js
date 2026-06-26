@@ -160,87 +160,26 @@ function toggleGlow(object) {
   object.classList.toggle("has-glow", object.dataset.glowing === "true");
 }
 
-function updateFlamePersonality(object) {
-  if (!object || object.dataset.type !== "candle" || object.dataset.lit !== "true") return;
-
-  object.style.setProperty("--flame-top-width", `${7 + Math.random() * 3}%`);
-  object.style.setProperty("--flame-top-height", `${13 + Math.random() * 5}%`);
-  object.style.setProperty("--flame-drift", `${0.4 + Math.random() * 1.8}px`);
-
-  object.style.setProperty("--flame-scale-x-a", `${0.88 + Math.random() * 0.14}`);
-  object.style.setProperty("--flame-scale-y-a", `${1.0 + Math.random() * 0.1}`);
-  object.style.setProperty("--flame-skew-a", `${-3 + Math.random() * 2}deg`);
-  object.style.setProperty("--flame-rotate-a", `${-2 + Math.random() * 1.5}deg`);
-
-  object.style.setProperty("--flame-scale-x-b", `${0.96 + Math.random() * 0.16}`);
-  object.style.setProperty("--flame-scale-y-b", `${0.93 + Math.random() * 0.12}`);
-  object.style.setProperty("--flame-skew-b", `${1 + Math.random() * 3}deg`);
-  object.style.setProperty("--flame-rotate-b", `${0.5 + Math.random() * 2}deg`);
-
-  object.style.setProperty("--flame-scale-x-c", `${0.9 + Math.random() * 0.14}`);
-  object.style.setProperty("--flame-scale-y-c", `${1.05 + Math.random() * 0.18}`);
-  object.style.setProperty("--flame-skew-c", `${-2 + Math.random() * 2.5}deg`);
-  object.style.setProperty("--flame-rotate-c", `${-1.5 + Math.random() * 1.8}deg`);
-
-  object.style.setProperty("--flame-scale-x-d", `${0.9 + Math.random() * 0.16}`);
-  object.style.setProperty("--flame-scale-y-d", `${1.0 + Math.random() * 0.16}`);
-  object.style.setProperty("--flame-skew-d", `${-1 + Math.random() * 3}deg`);
-  object.style.setProperty("--flame-rotate-d", `${-0.5 + Math.random() * 1.8}deg`);
-}
 
 function startFlame(object) {
   if (!object || object.dataset.type !== "candle") return;
 
-  stopFlame(object);
-
-  const flickerSpeed = 1.15 + Math.random() * 1.1;
-  const glowSpeed = 3.0 + Math.random() * 2.2;
+  const flickerSpeed = 1.4 + Math.random() * 0.9;
+  const glowSpeed = 3.2 + Math.random() * 1.8;
   const delay = Math.random() * -2;
 
   object.style.setProperty("--flame-flicker-speed", `${flickerSpeed}s`);
   object.style.setProperty("--flame-glow-speed", `${glowSpeed}s`);
   object.style.setProperty("--flame-delay", `${delay}s`);
-
-  updateFlamePersonality(object);
-
-  object.flamePersonalityTimer = window.setInterval(() => {
-    updateFlamePersonality(object);
-  }, 2600 + Math.random() * 1800);
 }
 
 function stopFlame(object) {
   if (!object) return;
 
-  if (object.flamePersonalityTimer) {
-    window.clearInterval(object.flamePersonalityTimer);
-    object.flamePersonalityTimer = null;
-  }
-
-  const flameProperties = [
-    "--flame-flicker-speed",
-    "--flame-glow-speed",
-    "--flame-delay",
-    "--flame-top-width",
-    "--flame-top-height",
-    "--flame-drift",
-    "--flame-scale-x-a",
-    "--flame-scale-y-a",
-    "--flame-skew-a",
-    "--flame-rotate-a",
-    "--flame-scale-x-b",
-    "--flame-scale-y-b",
-    "--flame-skew-b",
-    "--flame-rotate-b",
-    "--flame-scale-x-c",
-    "--flame-scale-y-c",
-    "--flame-skew-c",
-    "--flame-rotate-c",
-    "--flame-scale-x-d",
-    "--flame-scale-y-d",
-    "--flame-skew-d",
-    "--flame-rotate-d"
-  ];
-
+  object.style.removeProperty("--flame-flicker-speed");
+  object.style.removeProperty("--flame-glow-speed");
+  object.style.removeProperty("--flame-delay");
+}
   flameProperties.forEach((property) => {
     object.style.removeProperty(property);
   });
