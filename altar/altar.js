@@ -25,24 +25,36 @@ toolbar.innerHTML = `
   <button type="button" data-action="light" title="Light candle">🔥</button>
 `;
 
-if (altarStage) {
-  altarStage.appendChild(toolbar);
-}
-
 const altarGlobalControls = document.createElement("div");
 altarGlobalControls.className = "altar-global-controls";
 altarGlobalControls.innerHTML = `
-  <button type="button" data-global-action="light-all">🔥 Light All</button>
-  <button type="button" data-global-action="extinguish-all">💨 Extinguish All</button>
+  <button
+    type="button"
+    class="altar-global-toggle"
+    data-global-toggle
+    aria-label="Open altar controls"
+    aria-expanded="false">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="altar-global-menu" data-global-menu hidden>
+    <button type="button" data-global-action="light-all">🔥 All</button>
+    <button type="button" data-global-action="extinguish-all">💨 All</button>
+  </div>
 `;
 
 if (altarStage) {
+  altarStage.appendChild(toolbar);
   altarStage.appendChild(altarGlobalControls);
 }
 
+const globalToggle = altarGlobalControls.querySelector("[data-global-toggle]");
+const globalMenu = altarGlobalControls.querySelector("[data-global-menu]");
+
 function updateEmptyMessage() {
   if (!altarStage || !emptyMessage) return;
-
   emptyMessage.hidden = altarStage.querySelectorAll(".altar-object").length > 0;
 }
 
@@ -63,7 +75,6 @@ function selectObject(object) {
 
   selectedObject = object;
   selectedObject.classList.add("is-selected");
-
   toolbar.hidden = false;
 }
 
@@ -79,16 +90,11 @@ function deselectObject() {
 function keepObjectInsideStage(object) {
   if (!altarStage || !object) return;
 
-  if (object.dataset.type === "cloth") {
-    return;
-  }
+  if (object.dataset.type === "cloth") return;
 
   const scale = Number(object.dataset.scale || 1);
-  const baseWidth = object.offsetWidth;
-  const baseHeight = object.offsetHeight;
-
-  const visualWidth = baseWidth * scale;
-  const visualHeight = baseHeight * scale;
+  const visualWidth = object.offsetWidth * scale;
+  const visualHeight = object.offsetHeight * scale;
 
   let x = parseFloat(object.style.left) || 0;
   let y = parseFloat(object.style.top) || 0;
@@ -107,11 +113,9 @@ function resizeObject(object, amount) {
   if (!object || object.dataset.locked === "true") return;
 
   let scale = Number(object.dataset.scale || 1);
-
   scale += amount;
 
   const maxScale = object.dataset.type === "cloth" ? 18 : 3;
-
   scale = Math.max(0.35, Math.min(scale, maxScale));
 
   object.dataset.scale = String(scale);
@@ -127,7 +131,6 @@ function rotateObject(object) {
   rotation += 15;
 
   object.dataset.rotation = String(rotation);
-
   updateObjectTransform(object);
 }
 
@@ -151,7 +154,6 @@ function flipObject(object) {
   if (!object || object.dataset.locked === "true") return;
 
   object.dataset.flipped = object.dataset.flipped === "true" ? "false" : "true";
-
   updateObjectTransform(object);
 }
 
@@ -170,7 +172,6 @@ function toggleGlow(object) {
   object.dataset.glowing = object.dataset.glowing === "true" ? "false" : "true";
   object.classList.toggle("has-glow", object.dataset.glowing === "true");
 }
-
 
 function startFlame(object) {
   if (!object || object.dataset.type !== "candle") return;
@@ -245,7 +246,8 @@ function duplicateObject(object) {
     startFlame(clone);
   }
 
-makeDraggable(clone);
+  makeDraggable(clone);
+
   altarStage.appendChild(clone);
   selectObject(clone);
   updateEmptyMessage();
@@ -329,7 +331,7 @@ function makeDraggable(object) {
 function placeObject(options) {
   if (!altarStage) return;
 
-   const {
+  const {
     imagePath,
     fallbackSymbol,
     label,
@@ -340,6 +342,7 @@ function placeObject(options) {
   } = options;
 
   const object = document.createElement("button");
+  const isMobile = window.innerWidth <= 768;
 
   object.type = "button";
   object.className = "altar-object";
@@ -349,7 +352,12 @@ function placeObject(options) {
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
   object.dataset.color = color || "";
-  object.dataset.scale = type === "cloth" ? "3" : "1";
+  object.dataset.scale =
+    type === "cloth"
+      ? "3"
+      : isMobile
+        ? "1.8"
+        : "1";
   object.dataset.rotation = "0";
   object.dataset.flipped = "false";
   object.dataset.locked = "false";
@@ -429,25 +437,18 @@ altarTools.forEach((tool) => {
   });
 });
 
-document.addEventListener("pointerdown", (event) => {
-  if (!altarStage) return;
+globalToggle.addEventListener("click", (event) => {
+  event.stopPropagation();
 
-  const clickedObject = event.target.closest(".altar-object");
-  const clickedToolbar = event.target.closest(".altar-toolbar");
+  const isOpen = !globalMenu.hidden;
 
-  if (!clickedObject && !clickedToolbar) {
-    deselectObject();
-  }
-});
-
-window.addEventListener("resize", () => {
-  if (selectedObject) {
-    keepObjectInsideStage(selectedObject);
-  }
+  globalMenu.hidden = isOpen;
+  globalToggle.setAttribute("aria-expanded", String(!isOpen));
+  altarGlobalControls.classList.toggle("is-open", !isOpen);
 });
 
 altarGlobalControls.addEventListener("click", (event) => {
-  const button = event.target.closest("button");
+  const button = event.target.closest("[data-global-action]");
   if (!button) return;
 
   const action = button.dataset.globalAction;
@@ -467,6 +468,30 @@ altarGlobalControls.addEventListener("click", (event) => {
       extinguishFlame(candle);
     }
   });
+});
+
+document.addEventListener("pointerdown", (event) => {
+  if (!altarStage) return;
+
+  const clickedObject = event.target.closest(".altar-object");
+  const clickedToolbar = event.target.closest(".altar-toolbar");
+  const clickedGlobalControls = event.target.closest(".altar-global-controls");
+
+  if (!clickedObject && !clickedToolbar) {
+    deselectObject();
+  }
+
+  if (!clickedGlobalControls && globalMenu) {
+    globalMenu.hidden = true;
+    globalToggle.setAttribute("aria-expanded", "false");
+    altarGlobalControls.classList.remove("is-open");
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (selectedObject) {
+    keepObjectInsideStage(selectedObject);
+  }
 });
 
 updateEmptyMessage();
