@@ -184,28 +184,24 @@ function randomizeFlame(object) {
 function startFlame(object) {
   if (!object || object.dataset.type !== "candle") return;
 
-  stopFlame(object);
-  randomizeFlame(object);
+  const flickerSpeed = 1.4 + Math.random() * 0.9;
+  const swaySpeed = 2.6 + Math.random() * 1.4;
+  const glowSpeed = 3.2 + Math.random() * 1.8;
+  const delay = Math.random() * -2;
+
+  object.style.setProperty("--flame-flicker-speed", `${flickerSpeed}s`);
+  object.style.setProperty("--flame-sway-speed", `${swaySpeed}s`);
+  object.style.setProperty("--flame-glow-speed", `${glowSpeed}s`);
+  object.style.setProperty("--flame-delay", `${delay}s`);
 }
 
 function stopFlame(object) {
   if (!object) return;
 
-  if (object.flameTimer) {
-    window.clearTimeout(object.flameTimer);
-    object.flameTimer = null;
-  }
-
-  object.style.removeProperty("--flame-width");
-  object.style.removeProperty("--flame-height");
-  object.style.removeProperty("--flame-opacity");
-  object.style.removeProperty("--flame-scale-x");
-  object.style.removeProperty("--flame-scale-y");
-  object.style.removeProperty("--flame-rotation");
-  object.style.removeProperty("--flame-shift");
-  object.style.removeProperty("--flame-blur");
-  object.style.removeProperty("--flame-glow-small");
-  object.style.removeProperty("--flame-glow-large");
+  object.style.removeProperty("--flame-flicker-speed");
+  object.style.removeProperty("--flame-sway-speed");
+  object.style.removeProperty("--flame-glow-speed");
+  object.style.removeProperty("--flame-delay");
 }
 
 function toggleLight(object) {
