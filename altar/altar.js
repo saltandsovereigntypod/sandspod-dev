@@ -160,16 +160,71 @@ function toggleGlow(object) {
   object.classList.toggle("has-glow", object.dataset.glowing === "true");
 }
 
+function randomizeFlame(object) {
+  if (!object || object.dataset.type !== "candle" || object.dataset.lit !== "true") return;
+
+  object.style.setProperty("--flame-width", `${7 + Math.random() * 4}%`);
+  object.style.setProperty("--flame-height", `${11 + Math.random() * 6}%`);
+  object.style.setProperty("--flame-opacity", `${0.72 + Math.random() * 0.28}`);
+  object.style.setProperty("--flame-scale-x", `${0.82 + Math.random() * 0.32}`);
+  object.style.setProperty("--flame-scale-y", `${0.88 + Math.random() * 0.34}`);
+  object.style.setProperty("--flame-rotation", `${-3 + Math.random() * 6}deg`);
+  object.style.setProperty("--flame-shift", `${-53 + Math.random() * 6}%`);
+  object.style.setProperty("--flame-blur", `${0.25 + Math.random() * 0.35}px`);
+  object.style.setProperty("--flame-glow-small", `${4 + Math.random() * 5}px`);
+  object.style.setProperty("--flame-glow-large", `${9 + Math.random() * 9}px`);
+
+  const nextFlicker = 120 + Math.random() * 380;
+
+  object.flameTimer = window.setTimeout(() => {
+    randomizeFlame(object);
+  }, nextFlicker);
+}
+
+function startFlame(object) {
+  if (!object || object.dataset.type !== "candle") return;
+
+  stopFlame(object);
+  randomizeFlame(object);
+}
+
+function stopFlame(object) {
+  if (!object) return;
+
+  if (object.flameTimer) {
+    window.clearTimeout(object.flameTimer);
+    object.flameTimer = null;
+  }
+
+  object.style.removeProperty("--flame-width");
+  object.style.removeProperty("--flame-height");
+  object.style.removeProperty("--flame-opacity");
+  object.style.removeProperty("--flame-scale-x");
+  object.style.removeProperty("--flame-scale-y");
+  object.style.removeProperty("--flame-rotation");
+  object.style.removeProperty("--flame-shift");
+  object.style.removeProperty("--flame-blur");
+  object.style.removeProperty("--flame-glow-small");
+  object.style.removeProperty("--flame-glow-large");
+}
+
 function toggleLight(object) {
   if (!object) return;
 
   object.dataset.lit = object.dataset.lit === "true" ? "false" : "true";
   object.classList.toggle("is-lit", object.dataset.lit === "true");
+
+  if (object.dataset.lit === "true") {
+    startFlame(object);
+  } else {
+    stopFlame(object);
+  }
 }
 
 function deleteObject(object) {
   if (!object) return;
 
+  stopFlame(object);
   object.remove();
   deselectObject();
   updateEmptyMessage();
@@ -187,8 +242,12 @@ function duplicateObject(object) {
   clone.style.zIndex = highestLayer;
 
   clone.classList.remove("is-selected", "is-dragging");
-  makeDraggable(clone);
 
+  if (clone.dataset.lit === "true") {
+    startFlame(clone);
+  }
+
+makeDraggable(clone);
   altarStage.appendChild(clone);
   selectObject(clone);
   updateEmptyMessage();
@@ -272,13 +331,14 @@ function makeDraggable(object) {
 function placeObject(options) {
   if (!altarStage) return;
 
-  const {
+   const {
     imagePath,
     fallbackSymbol,
     label,
     type,
     herb,
-    form
+    form,
+    color
   } = options;
 
   const object = document.createElement("button");
@@ -290,6 +350,7 @@ function placeObject(options) {
   object.dataset.type = type || "";
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
+  object.dataset.color = color || "";
   object.dataset.scale = type === "cloth" ? "3" : "1";
   object.dataset.rotation = "0";
   object.dataset.flipped = "false";
@@ -364,7 +425,8 @@ altarTools.forEach((tool) => {
       label: tool.dataset.label || "object",
       type: tool.dataset.type || "",
       herb: tool.dataset.herb || "",
-      form: tool.dataset.form || ""
+      form: tool.dataset.form || "",
+      color: tool.dataset.color || ""
     });
   });
 });
