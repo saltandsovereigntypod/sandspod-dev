@@ -181,16 +181,30 @@ function stopFlame(object) {
   object.style.removeProperty("--flame-delay");
 }
 
+function extinguishFlame(object) {
+  if (!object || object.dataset.type !== "candle") return;
+
+  object.classList.add("is-extinguishing");
+
+  window.setTimeout(() => {
+    object.classList.remove("is-extinguishing");
+  }, 1400);
+}
+
 function toggleLight(object) {
   if (!object) return;
 
-  object.dataset.lit = object.dataset.lit === "true" ? "false" : "true";
-  object.classList.toggle("is-lit", object.dataset.lit === "true");
+  const isCurrentlyLit = object.dataset.lit === "true";
 
-  if (object.dataset.lit === "true") {
-    startFlame(object);
-  } else {
+  if (isCurrentlyLit) {
+    object.dataset.lit = "false";
+    object.classList.remove("is-lit");
     stopFlame(object);
+    extinguishFlame(object);
+  } else {
+    object.dataset.lit = "true";
+    object.classList.add("is-lit");
+    startFlame(object);
   }
 }
 
