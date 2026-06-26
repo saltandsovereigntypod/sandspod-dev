@@ -1271,7 +1271,7 @@ body.threshold-locked {
 }
 
 .altar-object.is-lit[data-type="candle"]::before {
-  top: 18%;
+  top: 16%;
   width: 6%;
   height: 8%;
   transform: translateX(-50%);
@@ -1303,6 +1303,41 @@ body.threshold-locked {
   animation-delay:
     var(--flame-delay, 0s),
     calc(var(--flame-delay, 0s) * 0.4);
+}
+
+.altar-object.is-extinguishing[data-type="candle"]::after {
+  content: "";
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  width: 10%;
+  height: 22%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 80%, rgba(210, 210, 200, 0.55), transparent 38%),
+    radial-gradient(circle at 45% 45%, rgba(210, 210, 200, 0.35), transparent 42%),
+    radial-gradient(circle at 58% 18%, rgba(210, 210, 200, 0.22), transparent 46%);
+  filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  animation: extinguishSmoke 1.4s ease-out forwards;
+}
+
+@keyframes extinguishSmoke {
+  0% {
+    transform: translateX(-50%) translateY(0) scale(0.6);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: translateX(-58%) translateY(-22px) scale(1.45);
+    opacity: 0;
+  }
 }
 
 @keyframes candleTopDance {
