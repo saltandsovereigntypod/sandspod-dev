@@ -1286,9 +1286,9 @@ body.threshold-locked {
 }
 
 .altar-object.is-lit[data-type="candle"]::after {
-  top: 14%;
-  width: 8%;
-  height: 11%;
+  top: 13%;
+  width: var(--flame-top-width, 8%);
+  height: var(--flame-top-height, 15%);
   border-radius: 50% 50% 45% 45%;
   background:
     radial-gradient(circle at 50% 30%, rgba(255, 250, 210, 0.96), rgba(255, 190, 85, 0.58) 42%, rgba(255, 112, 45, 0.24) 62%, transparent 76%);
@@ -1307,15 +1307,35 @@ body.threshold-locked {
 
 @keyframes candleTopDance {
   0% {
-    transform: translateX(-50%) scale(0.92, 1.03) skewX(-2deg) rotate(-1deg);
+    transform:
+      translateX(-50%)
+      scale(var(--flame-scale-x-a, 0.92), var(--flame-scale-y-a, 1.03))
+      skewX(var(--flame-skew-a, -2deg))
+      rotate(var(--flame-rotate-a, -1deg));
   }
 
-  45% {
-    transform: translateX(-50%) scale(1.02, 0.98) skewX(2deg) rotate(1deg);
+  37% {
+    transform:
+      translateX(calc(-50% + var(--flame-drift, 1px)))
+      scale(var(--flame-scale-x-b, 1.02), var(--flame-scale-y-b, 0.98))
+      skewX(var(--flame-skew-b, 2deg))
+      rotate(var(--flame-rotate-b, 1deg));
+  }
+
+  71% {
+    transform:
+      translateX(calc(-50% - var(--flame-drift, 1px)))
+      scale(var(--flame-scale-x-c, 0.97), var(--flame-scale-y-c, 1.1))
+      skewX(var(--flame-skew-c, -1deg))
+      rotate(var(--flame-rotate-c, -0.4deg));
   }
 
   100% {
-    transform: translateX(-50%) scale(0.96, 1.12) skewX(-1deg) rotate(-0.4deg);
+    transform:
+      translateX(-50%)
+      scale(var(--flame-scale-x-d, 0.96), var(--flame-scale-y-d, 1.04))
+      skewX(var(--flame-skew-d, 1.5deg))
+      rotate(var(--flame-rotate-d, 0.6deg));
   }
 }
 
