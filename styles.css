@@ -1441,6 +1441,77 @@ body.threshold-locked {
 }
 
 /* =========================================================
+   Candle Dressing
+   ========================================================= */
+
+.altar-stage.is-dressing-candle .altar-object[data-type="candle"] {
+  outline: 1px dashed rgba(185, 160, 93, 0.75);
+  outline-offset: 4px;
+}
+
+.altar-toolbar.is-dressing-mode {
+  border-color: rgba(185, 160, 93, 0.8);
+}
+
+.altar-toolbar-notes {
+  flex-basis: 100%;
+  padding: 0.35rem 0.45rem 0.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.altar-toolbar-notes[hidden] {
+  display: none;
+}
+
+.candle-dressing-flecks,
+.candle-dressing-sheen {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.candle-dressing-flecks {
+  inset: 24% 34% 24% 34%;
+  opacity: 0;
+  border-radius: 45%;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(76, 94, 58, 0.95) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 60% 35%, rgba(123, 102, 58, 0.9) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 42% 58%, rgba(64, 82, 49, 0.85) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 68% 72%, rgba(145, 124, 72, 0.85) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 50% 82%, rgba(80, 98, 62, 0.75) 0 1px, transparent 1.5px);
+}
+
+.candle-dressing-sheen {
+  top: 24%;
+  left: 43%;
+  width: 13%;
+  height: 48%;
+  opacity: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 248, 210, 0.18),
+      rgba(255, 248, 210, 0.34),
+      transparent
+    );
+  filter: blur(0.6px);
+  transform: rotate(4deg);
+}
+
+.altar-object.has-herb-dressing[data-type="candle"] .candle-dressing-flecks {
+  opacity: 0.9;
+}
+
+.altar-object.has-oil-dressing[data-type="candle"] .candle-dressing-sheen {
+  opacity: 1;
+}
+/* =========================================================
    14. ALTAR TOOLBAR
    ========================================================= */
 
