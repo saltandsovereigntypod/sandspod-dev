@@ -1264,10 +1264,10 @@ body.threshold-locked {
 .altar-object.is-lit[data-type="candle"]::after {
   content: "";
   position: absolute;
-  top: 14%;
+  top: 10%;
   left: 50%;
-  width: 9%;
-  height: 14%;
+  width: 7%;
+  height: 10%;
   transform-origin: 50% 85%;
   border-radius: 50% 50% 45% 45%;
   background:
