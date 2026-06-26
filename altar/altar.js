@@ -180,10 +180,6 @@ function stopFlame(object) {
   object.style.removeProperty("--flame-glow-speed");
   object.style.removeProperty("--flame-delay");
 }
-  flameProperties.forEach((property) => {
-    object.style.removeProperty(property);
-  });
-}
 
 function toggleLight(object) {
   if (!object) return;
