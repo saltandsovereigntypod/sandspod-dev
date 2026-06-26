@@ -1264,45 +1264,31 @@ body.threshold-locked {
 .altar-object.is-lit[data-type="candle"]::after {
   content: "";
   position: absolute;
-  top: 18%;
+  top: var(--flame-top, 14%);
   left: 50%;
-  width: 11%;
-  height: 16%;
-  transform: translateX(-50%);
+  width: var(--flame-width, 9%);
+  height: var(--flame-height, 14%);
+  transform:
+    translateX(var(--flame-shift, -50%))
+    scale(var(--flame-scale-x, 1), var(--flame-scale-y, 1))
+    rotate(var(--flame-rotation, 0deg));
+  transform-origin: 50% 85%;
   border-radius: 50% 50% 45% 45%;
   background:
-    radial-gradient(circle at 50% 35%, rgba(255, 245, 190, 0.95), rgba(255, 170, 70, 0.48) 45%, transparent 72%);
+    radial-gradient(circle at 50% 32%, rgba(255, 248, 205, 0.98), rgba(255, 190, 85, 0.58) 42%, rgba(255, 112, 45, 0.22) 62%, transparent 76%);
   filter:
-    blur(0.35px)
-    drop-shadow(0 0 5px rgba(255, 210, 120, 0.75))
-    drop-shadow(0 0 11px rgba(255, 120, 40, 0.38));
-  opacity: 0.95;
+    blur(var(--flame-blur, 0.35px))
+    drop-shadow(0 0 var(--flame-glow-small, 5px) rgba(255, 210, 120, 0.8))
+    drop-shadow(0 0 var(--flame-glow-large, 11px) rgba(255, 120, 40, 0.42));
+  opacity: var(--flame-opacity, 0.95);
   pointer-events: none;
-  animation: candleFlicker 0.85s ease-in-out infinite alternate;
+  transition:
+    width 0.18s ease,
+    height 0.18s ease,
+    transform 0.18s ease,
+    opacity 0.18s ease,
+    filter 0.18s ease;
 }
-
-@keyframes candleFlicker {
-  0% {
-    transform: translateX(-50%) scale(0.92, 1.02) rotate(-1deg);
-    opacity: 0.82;
-  }
-
-  35% {
-    transform: translateX(-48%) scale(1.02, 0.96) rotate(1deg);
-    opacity: 0.95;
-  }
-
-  70% {
-    transform: translateX(-52%) scale(0.96, 1.08) rotate(-0.5deg);
-    opacity: 0.88;
-  }
-
-  100% {
-    transform: translateX(-50%) scale(1.04, 0.98) rotate(1.5deg);
-    opacity: 1;
-  }
-}
-
 
 /* =========================================================
    14. ALTAR TOOLBAR
