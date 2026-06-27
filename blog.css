@@ -1,0 +1,221 @@
+/* =========================================================
+   9. BLOG POST AND GRIMOIRE PAGES
+   ========================================================= */
+
+.blog-post-page {
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.grimoire-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 920px);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: start;
+  justify-content: center;
+  width: min(1280px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.grimoire-sidebar {
+  position: sticky;
+  top: 6rem;
+  align-self: start;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 1rem;
+  background: rgba(16, 33, 24, 0.75);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 160, 93, 0.35) transparent;
+}
+
+.grimoire-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grimoire-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grimoire-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(185, 160, 93, 0.35);
+  border-radius: 999px;
+}
+
+.grimoire-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(185, 160, 93, 0.55);
+}
+
+.grimoire-home-link {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: rgba(244, 236, 216, 0.65);
+  text-decoration: none;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  transition: color 0.2s ease;
+}
+
+.grimoire-home-link:hover,
+.grimoire-home-link:focus-visible {
+  color: var(--gold);
+}
+
+.grimoire-sidebar h2 {
+  max-width: none;
+  font-size: 1.6rem;
+}
+
+.grimoire-sidebar h3 {
+  font-size: 1rem;
+  color: var(--gold);
+}
+
+.grimoire-sidebar p,
+.grimoire-sidebar li {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.grimoire-sidebar ul {
+  padding-left: 1.2rem;
+  color: var(--muted);
+}
+
+.sidebar-section {
+  border-top: none;
+  position: relative;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.sidebar-section::before {
+  content: "âœ¦";
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--gold);
+  opacity: 0.6;
+}
+
+.grimoire-page {
+  position: relative;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 5rem);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at 82% 10%, rgba(185, 160, 93, 0.14), transparent 12rem),
+    radial-gradient(circle at 15% 95%, rgba(111, 132, 101, 0.16), transparent 16rem),
+    linear-gradient(145deg, rgba(28, 24, 18, 0.94), rgba(10, 13, 10, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
+}
+
+.grimoire-page::before {
+  content: "";
+  position: absolute;
+  inset: 1.1rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 0.9rem;
+  pointer-events: none;
+}
+
+.grimoire-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.entry-type {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
+.entry-date {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.grimoire-divider {
+  color: var(--gold);
+  letter-spacing: 0.5rem;
+  opacity: 0.8;
+}
+
+.grimoire-header h1 {
+  max-width: none;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 0.95;
+}
+
+.grimoire-page h2 {
+  max-width: none;
+  margin-top: 4rem;
+  color: var(--cream);
+  font-size: clamp(2.3rem, 5vw, 4rem);
+}
+
+.grimoire-page p {
+  max-width: 78ch;
+  font-size: 1.12rem;
+  line-height: 1.95;
+}
+
+.grimoire-page blockquote {
+  max-width: 68ch;
+  margin: 3rem 0;
+  padding: 2rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-left: 3px solid var(--gold);
+  border-radius: 0.85rem;
+  background: rgba(185, 160, 93, 0.07);
+  font-style: italic;
+}
+
+.opening-quote {
+  max-width: 62ch;
+  margin: 3.5rem auto;
+  text-align: center;
+}
+
+.grimoire-page blockquote p {
+  color: var(--cream);
+}
+
+.grimoire-page > p:first-of-type::first-letter {
+  float: left;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 5.8rem;
+  line-height: 0.8;
+  padding-right: 0.6rem;
+  color: var(--gold);
+}
+
+.grimoire-page .button {
+  margin-top: 3rem;
+}
+
+
+
+
+/* =========================================================
+   BLOG AND GRIMOIRE RESPONSIVE STYLES
+   ========================================================= */
+
+@media (max-width: 1000px) {
+  .grimoire-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .grimoire-sidebar {
+    position: static;
+    order: 2;
+  }
+}
