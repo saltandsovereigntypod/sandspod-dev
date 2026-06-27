@@ -1719,6 +1719,175 @@ body.threshold-locked {
   .altar-toolbar button {
     width: 2.25rem;
   }
+
+     .altar-main {
+    padding: 1rem 0.65rem 6rem;
+  }
+
+  .altar-hero {
+    margin-bottom: 1rem;
+    padding-inline: 0.5rem;
+  }
+
+  .altar-hero h1 {
+    font-size: clamp(3rem, 18vw, 4.8rem);
+  }
+
+  .altar-hero p {
+    font-size: 0.95rem;
+  }
+
+  .altar-stage-wrap {
+    border-radius: 1rem;
+  }
+
+  .altar-stage {
+    aspect-ratio: auto;
+    height: 72vh;
+    min-height: 520px;
+    border-radius: 0.85rem;
+    background-position: center bottom;
+  }
+
+  .altar-empty-message {
+    top: 18%;
+    font-size: 0.9rem;
+  }
+
+  .altar-mobile-cabinet-toggle {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    z-index: 1200;
+    transform: translateX(-50%);
+    border: 1px solid rgba(185, 160, 93, 0.45);
+    border-radius: 999px;
+    padding: 0.7rem 1rem;
+    color: var(--cream);
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.18), transparent 60%),
+      rgba(10, 8, 6, 0.88);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .altar-cabinet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1150;
+    width: 100%;
+    max-height: 78vh;
+    margin: 0;
+    padding: 1rem 1rem 5rem;
+    border-radius: 1.2rem 1.2rem 0 0;
+    transform: translateY(105%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .altar-cabinet.is-mobile-open {
+    transform: translateY(0);
+  }
+
+  body.altar-cabinet-open {
+    overflow: hidden;
+  }
+
+  .altar-cabinet h2 {
+    font-size: 2rem;
+  }
+
+  .altar-cabinet p {
+    font-size: 0.85rem;
+  }
+
+  .altar-drawers {
+    gap: 0.55rem;
+    margin-top: 1rem;
+  }
+
+  .altar-drawer summary {
+    min-height: 3.4rem;
+    padding: 0.65rem 2.8rem 0.65rem 0.8rem;
+  }
+
+  .altar-drawer-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 48vh;
+    gap: 0.5rem;
+    padding: 0.65rem;
+  }
+
+  .altar-item {
+    min-height: 4.6rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .altar-item span {
+    font-size: 1.45rem;
+  }
+
+  .altar-toolbar {
+    position: fixed;
+    left: 0.65rem;
+    right: 0.65rem;
+    top: auto;
+    bottom: 4.4rem;
+    z-index: 1100;
+    justify-content: center;
+    max-width: none;
+    padding: 0.45rem;
+    border-radius: 999px;
+  }
+
+  .altar-toolbar button {
+    width: 2rem;
+    font-size: 0.78rem;
+  }
+
+  .altar-toolbar-notes {
+    order: 99;
+    padding: 0.25rem 0.6rem 0;
+    font-size: 0.68rem;
+  }
+
+  .altar-global-controls {
+    left: 0.6rem;
+    top: 0.6rem;
+  }
+
+  .altar-global-toggle {
+    width: 2.15rem;
+  }
+
+  .altar-global-menu {
+    flex-wrap: wrap;
+    max-width: 13rem;
+    border-radius: 1rem;
+  }
+
+  .altar-global-menu button {
+    font-size: 0.68rem;
+    padding: 0.28rem 0.45rem;
+  }
+}
+
+.altar-mobile-cabinet-toggle {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .altar-mobile-cabinet-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 @media (min-width: 720px) {
