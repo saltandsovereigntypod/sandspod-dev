@@ -201,9 +201,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sandspod/service-worker.js");
-  });
-}
