@@ -1720,9 +1720,30 @@ body.threshold-locked {
     width: 2.25rem;
   }
 
-     .altar-main {
+  .altar-main {
     padding: 1rem 0.65rem 6rem;
   }
+
+   .altar-page .site-header {
+     position: static;
+     min-height: auto;
+   }
+   
+   .altar-page .nav {
+     min-height: 3.25rem;
+   }
+   
+   .altar-page .brand {
+     font-size: 0.9rem;
+   }
+   
+   .altar-page .brand-mark {
+     width: 2rem;
+   }
+   
+   .altar-page .nav-links {
+     display: none;
+   }
 
   .altar-hero {
     margin-bottom: 1rem;
