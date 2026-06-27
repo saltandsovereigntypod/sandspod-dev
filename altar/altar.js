@@ -435,7 +435,6 @@ function clearAltar() {
     object.remove();
   });
 
-  localStorage.removeItem(ALTAR_STORAGE_KEY);
   deselectObject();
   clearCandleDressingMode();
   updateEmptyMessage();
