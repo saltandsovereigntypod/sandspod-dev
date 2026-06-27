@@ -2,8 +2,8 @@
   "name": "Salt & Sovereignty",
   "short_name": "Salt & Sovereignty",
   "description": "A crossroads sanctuary for witchcraft, healing, and self-reclamation.",
-  "start_url": "/sandspod/",
-  "scope": "/sandspod/",
+  "start_url": "/sandspod/altar/",
+  "scope": "/sandspod/altar/"
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0b0d0b",
