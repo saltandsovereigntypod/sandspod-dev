@@ -516,8 +516,7 @@
   display: none;
 }
 
-.candle-herb-overlay,
-.candle-oil-overlay {
+.candle-herb-overlay {
   position: absolute;
   top: 8%;
   left: 0;
@@ -530,8 +529,18 @@
 }
 
 .candle-oil-overlay {
+  position: absolute;
+  top: 11%;
+  left: 3%;
+  width: 94%;
+  height: 88%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.55;
   z-index: 4;
 }
+
 /* =========================================================
    14. ALTAR TOOLBAR
    ========================================================= */
