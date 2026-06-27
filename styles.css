@@ -1882,6 +1882,11 @@ body.threshold-locked {
   display: none;
 }
 
+.altar-mobile-backdrop,
+.altar-toast {
+  display: none;
+}
+
 @media (max-width: 700px) {
 
   .altar-mobile-cabinet-toggle {
@@ -1948,11 +1953,6 @@ body.threshold-locked {
   .altar-toast[hidden] {
     display: none;
   }
-}
-
-.altar-mobile-backdrop,
-.altar-toast {
-  display: none;
 }
 
 @media (min-width: 720px) {
