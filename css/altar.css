@@ -2,6 +2,8 @@
    11. ALTAR PAGE LAYOUT
    ========================================================= */
 
+@charset "UTF-8";
+
 .altar-page {
   min-height: 100vh;
   background:
@@ -157,7 +159,7 @@
 }
 
 .altar-drawer summary::after {
-  content: "âŒ„";
+  content: "\2304";
   position: absolute;
   right: 1rem;
   top: 50%;
@@ -173,7 +175,7 @@
 }
 
 .altar-drawer[open] summary::after {
-  content: "âŒƒ";
+  content: "\2303";
 }
 
 .altar-drawer summary span {
@@ -274,7 +276,7 @@
 }
 
 .altar-herb-group summary::before {
-  content: "â–¶";
+  content: "\25B6";
   display: inline-block;
   margin-right: 0.5rem;
   transition: transform 0.2s ease;
@@ -949,4 +951,14 @@
   .altar-toast[hidden] {
     display: none;
   }
+
+   .altar-drawer-items:has(.altar-herb-group) {
+     grid-template-columns: 1fr;
+   }
+   
+   .altar-herb-group summary {
+     overflow: hidden;
+     text-overflow: ellipsis;
+     white-space: nowrap;
+   }
 }
