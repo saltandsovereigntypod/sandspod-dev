@@ -1466,15 +1466,20 @@ body.threshold-locked {
   display: none;
 }
 
-.candle-dressing-overlay {
+.candle-herb-overlay,
+.candle-oil-overlay {
   position: absolute;
   inset: 0;
+  z-index: 3;
   width: 100%;
   height: 100%;
   object-fit: contain;
   pointer-events: none;
   user-select: none;
-  z-index: 3;
+}
+
+.candle-oil-overlay {
+  z-index: 4;
 }
 /* =========================================================
    14. ALTAR TOOLBAR
