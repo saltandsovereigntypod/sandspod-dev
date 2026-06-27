@@ -9,6 +9,8 @@ let offsetY = 0;
 let highestLayer = 10;
 let pendingCandleDressing = null;
 
+const ALTAR_STORAGE_KEY = "saltAndSovereigntySavedAltar";
+
 const CANDLE_HERB_OVERLAY_SRC =
   "../assets/altar/overlays/candle-herb-overlay.png";
 
@@ -47,10 +49,13 @@ altarGlobalControls.innerHTML = `
     <span></span>
   </button>
 
-  <div class="altar-global-menu" data-global-menu hidden>
-    <button type="button" data-global-action="light-all">🔥 All</button>
-    <button type="button" data-global-action="extinguish-all">💨 All</button>
-  </div>
+<div class="altar-global-menu" data-global-menu hidden>
+  <button type="button" data-global-action="light-all">🔥 All</button>
+  <button type="button" data-global-action="extinguish-all">💨 All</button>
+  <button type="button" data-global-action="save-altar">💾 Save</button>
+  <button type="button" data-global-action="load-altar">📜 Load</button>
+  <button type="button" data-global-action="clear-altar">🧹 Clear</button>
+</div>
 `;
 
 if (altarStage) {
@@ -296,6 +301,144 @@ function updateCandleDressingVisuals(candle) {
   } else {
     removeCandleOverlay(candle, "candle-oil-overlay");
   }
+}
+
+function getObjectImagePath(object) {
+  const img = object.querySelector("img:not(.candle-herb-overlay):not(.candle-oil-overlay)");
+  return img ? img.getAttribute("src") : "";
+}
+
+function saveAltar() {
+  if (!altarStage) return;
+
+  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
+    return {
+      imagePath: getObjectImagePath(object),
+      fallbackSymbol: object.textContent || "",
+      label: object.dataset.label || "object",
+      type: object.dataset.type || "",
+      herb: object.dataset.herb || "",
+      form: object.dataset.form || "",
+      color: object.dataset.color || "",
+      scale: object.dataset.scale || "1",
+      rotation: object.dataset.rotation || "0",
+      flipped: object.dataset.flipped || "false",
+      locked: object.dataset.locked || "false",
+      glowing: object.dataset.glowing || "false",
+      lit: object.dataset.lit || "false",
+      dressings: object.dataset.dressings || "[]",
+      left: object.style.left || "0px",
+      top: object.style.top || "0px",
+      zIndex: object.style.zIndex || "10"
+    };
+  });
+
+  localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(objects));
+}
+
+function createSavedObject(savedObject) {
+  const object = document.createElement("button");
+
+  object.type = "button";
+  object.className = "altar-object";
+
+  object.dataset.label = savedObject.label || "object";
+  object.dataset.type = savedObject.type || "";
+  object.dataset.herb = savedObject.herb || "";
+  object.dataset.form = savedObject.form || "";
+  object.dataset.color = savedObject.color || "";
+  object.dataset.scale = savedObject.scale || "1";
+  object.dataset.rotation = savedObject.rotation || "0";
+  object.dataset.flipped = savedObject.flipped || "false";
+  object.dataset.locked = savedObject.locked || "false";
+  object.dataset.glowing = savedObject.glowing || "false";
+  object.dataset.lit = savedObject.lit || "false";
+  object.dataset.dressings = savedObject.dressings || "[]";
+
+  object.style.left = savedObject.left || "0px";
+  object.style.top = savedObject.top || "0px";
+  object.style.zIndex = savedObject.zIndex || "10";
+
+  highestLayer = Math.max(highestLayer, Number(savedObject.zIndex || 10));
+
+  if (savedObject.imagePath) {
+    const img = document.createElement("img");
+    img.src = savedObject.imagePath;
+    img.alt = savedObject.label || "altar object";
+    img.draggable = false;
+    object.appendChild(img);
+  } else {
+    object.textContent = savedObject.fallbackSymbol || "";
+  }
+
+  object.setAttribute(
+    "aria-label",
+    `${savedObject.label || "Object"}. Click to select. Drag to move. Double click to remove.`
+  );
+
+  updateObjectTransform(object);
+
+  if (object.dataset.glowing === "true") {
+    object.classList.add("has-glow");
+  }
+
+  if (object.dataset.locked === "true") {
+    object.classList.add("is-locked");
+  }
+
+  if (object.dataset.lit === "true") {
+    object.classList.add("is-lit");
+    startFlame(object);
+  }
+
+  updateCandleDressingVisuals(object);
+  makeDraggable(object);
+
+  return object;
+}
+
+function loadAltar() {
+  if (!altarStage) return;
+
+  const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
+  if (!saved) return;
+
+  let objects = [];
+
+  try {
+    objects = JSON.parse(saved);
+  } catch {
+    return;
+  }
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  deselectObject();
+  clearCandleDressingMode();
+
+  objects.forEach((savedObject) => {
+    const object = createSavedObject(savedObject);
+    altarStage.appendChild(object);
+  });
+
+  updateEmptyMessage();
+}
+
+function clearAltar() {
+  if (!altarStage) return;
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  localStorage.removeItem(ALTAR_STORAGE_KEY);
+  deselectObject();
+  clearCandleDressingMode();
+  updateEmptyMessage();
 }
 
 function beginCandleDressing(object) {
@@ -649,6 +792,20 @@ altarGlobalControls.addEventListener("click", (event) => {
   if (!button || !altarStage) return;
 
   const action = button.dataset.globalAction;
+    if (action === "save-altar") {
+      saveAltar();
+      return;
+    }
+    
+    if (action === "load-altar") {
+      loadAltar();
+      return;
+    }
+    
+    if (action === "clear-altar") {
+      clearAltar();
+      return;
+    }
   const candles = altarStage.querySelectorAll('.altar-object[data-type="candle"]');
 
   candles.forEach((candle) => {
