@@ -1,6 +1,7 @@
 const altarStage = document.querySelector("[data-altar-stage]");
 const altarTools = document.querySelectorAll(".altar-item");
 const emptyMessage = document.querySelector("[data-empty-message]");
+const altarCabinet = document.querySelector(".altar-cabinet");
 
 let activeObject = null;
 let selectedObject = null;
@@ -62,6 +63,22 @@ if (altarStage) {
   altarStage.appendChild(toolbar);
   altarStage.appendChild(altarGlobalControls);
 }
+
+const mobileCabinetToggle = document.createElement("button");
+mobileCabinetToggle.type = "button";
+mobileCabinetToggle.className = "altar-mobile-cabinet-toggle";
+mobileCabinetToggle.textContent = "✦ Add Items";
+mobileCabinetToggle.setAttribute("aria-expanded", "false");
+
+if (altarCabinet) {
+  document.body.appendChild(mobileCabinetToggle);
+}
+
+mobileCabinetToggle.addEventListener("click", () => {
+  const isOpen = altarCabinet.classList.toggle("is-mobile-open");
+  mobileCabinetToggle.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("altar-cabinet-open", isOpen);
+});
 
 const globalToggle = altarGlobalControls.querySelector("[data-global-toggle]");
 const globalMenu = altarGlobalControls.querySelector("[data-global-menu]");
@@ -771,6 +788,12 @@ altarTools.forEach((tool) => {
       form: tool.dataset.form || "",
       color: tool.dataset.color || ""
     });
+    
+    if (window.innerWidth <= 700 && altarCabinet) {
+      altarCabinet.classList.remove("is-mobile-open");
+      document.body.classList.remove("altar-cabinet-open");
+      mobileCabinetToggle.setAttribute("aria-expanded", "false");
+    }
   });
 });
 
