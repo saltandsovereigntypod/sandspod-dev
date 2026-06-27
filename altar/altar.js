@@ -9,8 +9,11 @@ let offsetY = 0;
 let highestLayer = 10;
 let pendingCandleDressing = null;
 
-const CANDLE_DRESSING_OVERLAY_SRC =
-  "../assets/altar/overlays/candle-dressing-overlay.png";
+const CANDLE_HERB_OVERLAY_SRC =
+  "../assets/altar/overlays/candle-herb-overlay.png";
+
+const CANDLE_OIL_OVERLAY_SRC =
+  "../assets/altar/overlays/candle-oil-overlay.png";
 
 const toolbar = document.createElement("div");
 toolbar.className = "altar-toolbar";
@@ -244,14 +247,14 @@ function canDressCandle(object) {
   return isOil || isDressableHerb;
 }
 
-function ensureCandleDressingOverlay(candle) {
+function ensureCandleOverlay(candle, className, src) {
   if (!candle || candle.dataset.type !== "candle") return;
 
-  if (candle.querySelector(".candle-dressing-overlay")) return;
+  if (candle.querySelector(`.${className}`)) return;
 
   const overlay = document.createElement("img");
-  overlay.className = "candle-dressing-overlay";
-  overlay.src = CANDLE_DRESSING_OVERLAY_SRC;
+  overlay.className = className;
+  overlay.src = src;
   overlay.alt = "";
   overlay.draggable = false;
   overlay.setAttribute("aria-hidden", "true");
@@ -259,18 +262,39 @@ function ensureCandleDressingOverlay(candle) {
   candle.appendChild(overlay);
 }
 
+function removeCandleOverlay(candle, className) {
+  const overlay = candle.querySelector(`.${className}`);
+
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
 function updateCandleDressingVisuals(candle) {
   if (!candle || candle.dataset.type !== "candle") return;
 
   const dressings = getDressings(candle);
-  const overlay = candle.querySelector(".candle-dressing-overlay");
+
+  const hasHerbDressing = dressings.some(
+    (dressing) =>
+      dressing.type === "herb" &&
+      (dressing.form === "loose" || dressing.form === "powder")
+  );
+
+  const hasOilDressing = dressings.some((dressing) => dressing.type === "oil");
 
   candle.classList.toggle("is-dressed", dressings.length > 0);
 
-  if (dressings.length > 0) {
-    ensureCandleDressingOverlay(candle);
-  } else if (overlay) {
-    overlay.remove();
+  if (hasHerbDressing) {
+    ensureCandleOverlay(candle, "candle-herb-overlay", CANDLE_HERB_OVERLAY_SRC);
+  } else {
+    removeCandleOverlay(candle, "candle-herb-overlay");
+  }
+
+  if (hasOilDressing) {
+    ensureCandleOverlay(candle, "candle-oil-overlay", CANDLE_OIL_OVERLAY_SRC);
+  } else {
+    removeCandleOverlay(candle, "candle-oil-overlay");
   }
 }
 
