@@ -73,13 +73,14 @@ altarGlobalControls.innerHTML = `
     <span></span>
   </button>
 
-  <div class="altar-global-menu" data-global-menu hidden>
-    <button type="button" data-global-action="light-all">🔥 All</button>
-    <button type="button" data-global-action="extinguish-all">💨 All</button>
-    <button type="button" data-global-action="save-altar">💾 Save</button>
-    <button type="button" data-global-action="load-altar">📜 Load</button>
-    <button type="button" data-global-action="clear-altar">🧹 Clear</button>
-  </div>
+   <div class="altar-global-menu" data-global-menu hidden>
+     <button type="button" data-global-action="light-all">🔥 All</button>
+     <button type="button" data-global-action="extinguish-all">💨 All</button>
+     <button type="button" data-global-action="save-altar">💾 Save</button>
+     <button type="button" data-global-action="load-altar">📜 Load</button>
+     <button type="button" data-global-action="open-book">📖 Book</button>
+     <button type="button" data-global-action="clear-altar">🧹 Clear</button>
+   </div>
 `;
 
 if (altarStage) {
@@ -1075,6 +1076,11 @@ altarGlobalControls.addEventListener("click", (event) => {
 
   const action = button.dataset.globalAction;
 
+   if (action === "open-book") {
+     window.location.href = "grimoire/";
+     return;
+   }
+   
    if (action === "save-altar") {
      if (!isUserSignedIn()) {
        shouldSaveAfterAuth = true;
