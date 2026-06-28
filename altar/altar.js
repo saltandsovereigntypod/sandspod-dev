@@ -1153,6 +1153,11 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+document.addEventListener("saltAuthSuccess", () => {
+  closeSaveModal();
+  showAltarToast("Your grimoire is open");
+});
+
 /* =========================================================
    15. PWA SERVICE WORKER
    ========================================================= */
