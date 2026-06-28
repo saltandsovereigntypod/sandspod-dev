@@ -21,6 +21,7 @@ let offsetX = 0;
 let offsetY = 0;
 let highestLayer = 10;
 let pendingCandleDressing = null;
+let shouldSaveAfterAuth = false;
 
 const ALTAR_STORAGE_KEY = "saltAndSovereigntySavedAltar";
 
@@ -754,8 +755,12 @@ function createSavedObject(savedObject) {
 function loadAltar() {
   if (!altarStage) return;
 
-  const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
-  if (!saved) return;
+   const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
+   
+   if (!saved) {
+     showAltarToast("No saved altar found");
+     return;
+   }
 
   let altarData = null;
 
@@ -882,14 +887,15 @@ function makeDraggable(object) {
     activeObject = null;
   });
 
-  object.addEventListener("wheel", (event) => {
-    event.preventDefault();
-
-    if (object.dataset.locked === "true") return;
-
-    selectObject(object);
-    resizeObject(object, event.deltaY < 0 ? 0.1 : -0.1);
-  });
+   object.addEventListener("wheel", (event) => {
+     if (selectedObject !== object) return;
+   
+     event.preventDefault();
+   
+     if (object.dataset.locked === "true") return;
+   
+     resizeObject(object, event.deltaY < 0 ? 0.1 : -0.1);
+   });
 
    object.addEventListener("dblclick", () => {
      deleteObject(object);
@@ -1069,8 +1075,9 @@ altarGlobalControls.addEventListener("click", (event) => {
 
   const action = button.dataset.globalAction;
 
-  if (action === "save-altar") {
-     if (true) {
+   if (action === "save-altar") {
+     if (!isUserSignedIn()) {
+       shouldSaveAfterAuth = true;
        openSaveModal();
        return;
      }
@@ -1155,6 +1162,14 @@ document.addEventListener("keydown", (event) => {
 
 document.addEventListener("saltAuthSuccess", () => {
   closeSaveModal();
+
+  if (shouldSaveAfterAuth) {
+    saveAltar();
+    shouldSaveAfterAuth = false;
+    showAltarToast("Your altar has been saved");
+    return;
+  }
+
   showAltarToast("Your grimoire is open");
 });
 
