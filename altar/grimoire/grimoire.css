@@ -662,3 +662,24 @@
   display: grid;
   margin-top: 1rem;
 }
+
+.grimoire-reading-desk {
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 160, 93, 0.55) rgba(8, 10, 8, 0.35);
+}
+
+.grimoire-reading-desk::-webkit-scrollbar {
+  width: 0.65rem;
+}
+
+.grimoire-reading-desk::-webkit-scrollbar-track {
+  background: rgba(8, 10, 8, 0.35);
+  border-radius: 999px;
+}
+
+.grimoire-reading-desk::-webkit-scrollbar-thumb {
+  background: rgba(185, 160, 93, 0.55);
+  border-radius: 999px;
+}
