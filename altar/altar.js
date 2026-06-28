@@ -1,15 +1,17 @@
+/* =========================================================
+   1. ELEMENTS
+   ========================================================= */
+
 const altarStage = document.querySelector("[data-altar-stage]");
 const altarTools = document.querySelectorAll(".altar-item");
+const altarBackgroundButtons = document.querySelectorAll("[data-background]");
 const emptyMessage = document.querySelector("[data-empty-message]");
 const altarCabinet = document.querySelector(".altar-cabinet");
-const altarMobileBackdrop = document.createElement("button");
-altarMobileBackdrop.type = "button";
-altarMobileBackdrop.className = "altar-mobile-backdrop";
-altarMobileBackdrop.setAttribute("aria-label", "Close altar cabinet");
 
-const altarToast = document.createElement("div");
-altarToast.className = "altar-toast";
-altarToast.hidden = true;
+
+/* =========================================================
+   2. STATE
+   ========================================================= */
 
 let activeObject = null;
 let selectedObject = null;
@@ -25,6 +27,11 @@ const CANDLE_HERB_OVERLAY_SRC =
 
 const CANDLE_OIL_OVERLAY_SRC =
   "../assets/altar/overlays/candle-oil-overlay.png";
+
+
+/* =========================================================
+   3. TOOLBAR
+   ========================================================= */
 
 const toolbar = document.createElement("div");
 toolbar.className = "altar-toolbar";
@@ -44,6 +51,11 @@ toolbar.innerHTML = `
   <button type="button" data-action="dress-candle" title="Dress candle">🕯️+</button>
 `;
 
+
+/* =========================================================
+   4. GLOBAL ALTAR MENU
+   ========================================================= */
+
 const altarGlobalControls = document.createElement("div");
 altarGlobalControls.className = "altar-global-controls";
 altarGlobalControls.innerHTML = `
@@ -58,19 +70,36 @@ altarGlobalControls.innerHTML = `
     <span></span>
   </button>
 
-<div class="altar-global-menu" data-global-menu hidden>
-  <button type="button" data-global-action="light-all">🔥 All</button>
-  <button type="button" data-global-action="extinguish-all">💨 All</button>
-  <button type="button" data-global-action="save-altar">💾 Save</button>
-  <button type="button" data-global-action="load-altar">📜 Load</button>
-  <button type="button" data-global-action="clear-altar">🧹 Clear</button>
-</div>
+  <div class="altar-global-menu" data-global-menu hidden>
+    <button type="button" data-global-action="light-all">🔥 All</button>
+    <button type="button" data-global-action="extinguish-all">💨 All</button>
+    <button type="button" data-global-action="save-altar">💾 Save</button>
+    <button type="button" data-global-action="load-altar">📜 Load</button>
+    <button type="button" data-global-action="clear-altar">🧹 Clear</button>
+  </div>
 `;
 
 if (altarStage) {
   altarStage.appendChild(toolbar);
   altarStage.appendChild(altarGlobalControls);
 }
+
+const globalToggle = altarGlobalControls.querySelector("[data-global-toggle]");
+const globalMenu = altarGlobalControls.querySelector("[data-global-menu]");
+
+
+/* =========================================================
+   5. MOBILE CABINET AND TOAST
+   ========================================================= */
+
+const altarMobileBackdrop = document.createElement("button");
+altarMobileBackdrop.type = "button";
+altarMobileBackdrop.className = "altar-mobile-backdrop";
+altarMobileBackdrop.setAttribute("aria-label", "Close altar cabinet");
+
+const altarToast = document.createElement("div");
+altarToast.className = "altar-toast";
+altarToast.hidden = true;
 
 const mobileCabinetToggle = document.createElement("button");
 mobileCabinetToggle.type = "button";
@@ -84,12 +113,6 @@ if (altarCabinet) {
   document.body.appendChild(altarToast);
 }
 
-mobileCabinetToggle.addEventListener("click", () => {
-  const isOpen = altarCabinet.classList.toggle("is-mobile-open");
-  mobileCabinetToggle.setAttribute("aria-expanded", String(isOpen));
-  document.body.classList.toggle("altar-cabinet-open", isOpen);
-});
-
 function closeMobileCabinet() {
   if (!altarCabinet) return;
 
@@ -99,6 +122,8 @@ function closeMobileCabinet() {
 }
 
 function showAltarToast(message) {
+  if (!altarToast) return;
+
   altarToast.textContent = message;
   altarToast.hidden = false;
   altarToast.classList.add("is-visible");
@@ -114,13 +139,24 @@ function showAltarToast(message) {
   }, 1600);
 }
 
+mobileCabinetToggle.addEventListener("click", () => {
+  if (!altarCabinet) return;
+
+  const isOpen = altarCabinet.classList.toggle("is-mobile-open");
+  mobileCabinetToggle.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("altar-cabinet-open", isOpen);
+});
+
 altarMobileBackdrop.addEventListener("click", closeMobileCabinet);
 
-const globalToggle = altarGlobalControls.querySelector("[data-global-toggle]");
-const globalMenu = altarGlobalControls.querySelector("[data-global-menu]");
+
+/* =========================================================
+   6. GENERAL UI HELPERS
+   ========================================================= */
 
 function updateEmptyMessage() {
   if (!altarStage || !emptyMessage) return;
+
   emptyMessage.hidden = altarStage.querySelectorAll(".altar-object").length > 0;
 }
 
@@ -131,6 +167,39 @@ function updateObjectTransform(object) {
 
   object.style.transform = `scaleX(${flipped}) scale(${scale}) rotate(${rotation}deg)`;
 }
+
+function getObjectImagePath(object) {
+  const img = object.querySelector(
+    "img:not(.candle-herb-overlay):not(.candle-oil-overlay)"
+  );
+
+  return img ? img.getAttribute("src") : "";
+}
+
+
+/* =========================================================
+   7. ALTAR BACKGROUNDS
+   ========================================================= */
+
+function changeAltarBackground(button) {
+  if (!altarStage || !button) return;
+
+  const backgroundPath = button.dataset.background || "";
+  const backgroundName = button.dataset.backgroundName || "Altar background";
+
+  if (!backgroundPath) return;
+
+  altarStage.style.backgroundImage = `url("${backgroundPath}")`;
+  altarStage.dataset.background = backgroundPath;
+  altarStage.dataset.backgroundName = backgroundName;
+
+  showAltarToast(`${backgroundName} selected`);
+}
+
+
+/* =========================================================
+   8. SELECTION AND TOOLBAR NOTES
+   ========================================================= */
 
 function getDressings(candle) {
   if (!candle || !candle.dataset.dressings) return [];
@@ -180,7 +249,9 @@ function updateToolbarNotes(object) {
   }
 
   notes.hidden = false;
-  notes.textContent = `Dressed with: ${dressings.map(formatDressingName).join(", ")}`;
+  notes.textContent = `Dressed with: ${dressings
+    .map(formatDressingName)
+    .join(", ")}`;
 }
 
 function selectObject(object) {
@@ -192,6 +263,7 @@ function selectObject(object) {
 
   selectedObject = object;
   selectedObject.classList.add("is-selected");
+
   toolbar.hidden = false;
 
   updateToolbarNotes(selectedObject);
@@ -207,6 +279,11 @@ function deselectObject() {
 
   updateToolbarNotes(null);
 }
+
+
+/* =========================================================
+   9. OBJECT TRANSFORMS
+   ========================================================= */
 
 function keepObjectInsideStage(object) {
   if (!altarStage || !object) return;
@@ -248,8 +325,7 @@ function resizeObject(object, amount) {
 function rotateObject(object) {
   if (!object || object.dataset.locked === "true") return;
 
-  let rotation = Number(object.dataset.rotation || 0);
-  rotation += 15;
+  const rotation = Number(object.dataset.rotation || 0) + 15;
 
   object.dataset.rotation = String(rotation);
   updateObjectTransform(object);
@@ -265,10 +341,8 @@ function bringForward(object) {
 function sendBackward(object) {
   if (!object) return;
 
-  let currentLayer = Number(object.style.zIndex || 10);
-  currentLayer = Math.max(5, currentLayer - 1);
-
-  object.style.zIndex = currentLayer;
+  const currentLayer = Number(object.style.zIndex || 10);
+  object.style.zIndex = Math.max(5, currentLayer - 1);
 }
 
 function flipObject(object) {
@@ -293,6 +367,63 @@ function toggleGlow(object) {
   object.dataset.glowing = object.dataset.glowing === "true" ? "false" : "true";
   object.classList.toggle("has-glow", object.dataset.glowing === "true");
 }
+
+
+/* =========================================================
+   10. CANDLE LIGHTING
+   ========================================================= */
+
+function startFlame(object) {
+  if (!object || object.dataset.type !== "candle") return;
+
+  const flickerSpeed = 1.4 + Math.random() * 0.9;
+  const glowSpeed = 3.2 + Math.random() * 1.8;
+  const delay = Math.random() * -2;
+
+  object.style.setProperty("--flame-flicker-speed", `${flickerSpeed}s`);
+  object.style.setProperty("--flame-glow-speed", `${glowSpeed}s`);
+  object.style.setProperty("--flame-delay", `${delay}s`);
+}
+
+function stopFlame(object) {
+  if (!object) return;
+
+  object.style.removeProperty("--flame-flicker-speed");
+  object.style.removeProperty("--flame-glow-speed");
+  object.style.removeProperty("--flame-delay");
+}
+
+function extinguishFlame(object) {
+  if (!object || object.dataset.type !== "candle") return;
+
+  object.classList.add("is-extinguishing");
+
+  window.setTimeout(() => {
+    object.classList.remove("is-extinguishing");
+  }, 1400);
+}
+
+function toggleLight(object) {
+  if (!object || object.dataset.type !== "candle") return;
+
+  const isCurrentlyLit = object.dataset.lit === "true";
+
+  if (isCurrentlyLit) {
+    object.dataset.lit = "false";
+    object.classList.remove("is-lit");
+    stopFlame(object);
+    extinguishFlame(object);
+  } else {
+    object.dataset.lit = "true";
+    object.classList.add("is-lit");
+    startFlame(object);
+  }
+}
+
+
+/* =========================================================
+   11. CANDLE DRESSING
+   ========================================================= */
 
 function canDressCandle(object) {
   if (!object) return false;
@@ -356,37 +487,102 @@ function updateCandleDressingVisuals(candle) {
   }
 }
 
-function getObjectImagePath(object) {
-  const img = object.querySelector("img:not(.candle-herb-overlay):not(.candle-oil-overlay)");
-  return img ? img.getAttribute("src") : "";
+function beginCandleDressing(object) {
+  if (!canDressCandle(object) || !altarStage) return;
+
+  pendingCandleDressing = {
+    type: object.dataset.type || "",
+    herb: object.dataset.herb || "",
+    form: object.dataset.form || "",
+    label: object.dataset.label || "Ingredient"
+  };
+
+  altarStage.classList.add("is-dressing-candle");
+  toolbar.classList.add("is-dressing-mode");
+
+  altarStage
+    .querySelectorAll('.altar-object[data-type="candle"]')
+    .forEach((candle) => {
+      candle.classList.add("can-receive-dressing");
+    });
 }
+
+function clearCandleDressingMode() {
+  pendingCandleDressing = null;
+
+  if (!altarStage) return;
+
+  altarStage.classList.remove("is-dressing-candle");
+  toolbar.classList.remove("is-dressing-mode");
+
+  altarStage.querySelectorAll(".can-receive-dressing").forEach((object) => {
+    object.classList.remove("can-receive-dressing");
+  });
+}
+
+function dressCandle(candle) {
+  if (!pendingCandleDressing || !candle || candle.dataset.type !== "candle") {
+    return;
+  }
+
+  const dressings = getDressings(candle);
+
+  const alreadyAdded = dressings.some(
+    (dressing) =>
+      dressing.type === pendingCandleDressing.type &&
+      dressing.herb === pendingCandleDressing.herb &&
+      dressing.form === pendingCandleDressing.form
+  );
+
+  if (!alreadyAdded) {
+    dressings.push(pendingCandleDressing);
+  }
+
+  saveDressings(candle, dressings);
+  updateCandleDressingVisuals(candle);
+  selectObject(candle);
+  clearCandleDressingMode();
+}
+
+
+/* =========================================================
+   12. SAVE, LOAD, AND CLEAR
+   ========================================================= */
 
 function saveAltar() {
   if (!altarStage) return;
 
-  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
-    return {
-      imagePath: getObjectImagePath(object),
-      fallbackSymbol: object.textContent || "",
-      label: object.dataset.label || "object",
-      type: object.dataset.type || "",
-      herb: object.dataset.herb || "",
-      form: object.dataset.form || "",
-      color: object.dataset.color || "",
-      scale: object.dataset.scale || "1",
-      rotation: object.dataset.rotation || "0",
-      flipped: object.dataset.flipped || "false",
-      locked: object.dataset.locked || "false",
-      glowing: object.dataset.glowing || "false",
-      lit: object.dataset.lit || "false",
-      dressings: object.dataset.dressings || "[]",
-      left: object.style.left || "0px",
-      top: object.style.top || "0px",
-      zIndex: object.style.zIndex || "10"
-    };
-  });
+  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map(
+    (object) => {
+      return {
+        imagePath: getObjectImagePath(object),
+        fallbackSymbol: object.textContent || "",
+        label: object.dataset.label || "object",
+        type: object.dataset.type || "",
+        herb: object.dataset.herb || "",
+        form: object.dataset.form || "",
+        color: object.dataset.color || "",
+        scale: object.dataset.scale || "1",
+        rotation: object.dataset.rotation || "0",
+        flipped: object.dataset.flipped || "false",
+        locked: object.dataset.locked || "false",
+        glowing: object.dataset.glowing || "false",
+        lit: object.dataset.lit || "false",
+        dressings: object.dataset.dressings || "[]",
+        left: object.style.left || "0px",
+        top: object.style.top || "0px",
+        zIndex: object.style.zIndex || "10"
+      };
+    }
+  );
 
-  localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(objects));
+  const altarData = {
+    background: altarStage.dataset.background || "",
+    backgroundName: altarStage.dataset.backgroundName || "",
+    objects
+  };
+
+  localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(altarData));
 }
 
 function createSavedObject(savedObject) {
@@ -456,13 +652,15 @@ function loadAltar() {
   const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
   if (!saved) return;
 
-  let objects = [];
+  let altarData = null;
 
   try {
-    objects = JSON.parse(saved);
+    altarData = JSON.parse(saved);
   } catch {
     return;
   }
+
+  const objects = Array.isArray(altarData) ? altarData : altarData.objects || [];
 
   altarStage.querySelectorAll(".altar-object").forEach((object) => {
     stopFlame(object);
@@ -471,6 +669,12 @@ function loadAltar() {
 
   deselectObject();
   clearCandleDressingMode();
+
+  if (!Array.isArray(altarData) && altarData.background) {
+    altarStage.style.backgroundImage = `url("${altarData.background}")`;
+    altarStage.dataset.background = altarData.background;
+    altarStage.dataset.backgroundName = altarData.backgroundName || "";
+  }
 
   objects.forEach((savedObject) => {
     const object = createSavedObject(savedObject);
@@ -493,148 +697,10 @@ function clearAltar() {
   updateEmptyMessage();
 }
 
-function beginCandleDressing(object) {
-  if (!canDressCandle(object) || !altarStage) return;
 
-  pendingCandleDressing = {
-    type: object.dataset.type || "",
-    herb: object.dataset.herb || "",
-    form: object.dataset.form || "",
-    label: object.dataset.label || "Ingredient"
-  };
-
-  altarStage.classList.add("is-dressing-candle");
-  toolbar.classList.add("is-dressing-mode");
-
-  altarStage
-    .querySelectorAll('.altar-object[data-type="candle"]')
-    .forEach((candle) => {
-      candle.classList.add("can-receive-dressing");
-    });
-}
-
-function clearCandleDressingMode() {
-  pendingCandleDressing = null;
-
-  if (!altarStage) return;
-
-  altarStage.classList.remove("is-dressing-candle");
-  toolbar.classList.remove("is-dressing-mode");
-
-  altarStage
-    .querySelectorAll(".can-receive-dressing")
-    .forEach((object) => {
-      object.classList.remove("can-receive-dressing");
-    });
-}
-
-function dressCandle(candle) {
-  if (!pendingCandleDressing || !candle || candle.dataset.type !== "candle") return;
-
-  const dressings = getDressings(candle);
-
-  const alreadyAdded = dressings.some(
-    (dressing) =>
-      dressing.type === pendingCandleDressing.type &&
-      dressing.herb === pendingCandleDressing.herb &&
-      dressing.form === pendingCandleDressing.form
-  );
-
-  if (!alreadyAdded) {
-    dressings.push(pendingCandleDressing);
-  }
-
-  saveDressings(candle, dressings);
-  updateCandleDressingVisuals(candle);
-  selectObject(candle);
-  clearCandleDressingMode();
-}
-
-function startFlame(object) {
-  if (!object || object.dataset.type !== "candle") return;
-
-  const flickerSpeed = 1.4 + Math.random() * 0.9;
-  const glowSpeed = 3.2 + Math.random() * 1.8;
-  const delay = Math.random() * -2;
-
-  object.style.setProperty("--flame-flicker-speed", `${flickerSpeed}s`);
-  object.style.setProperty("--flame-glow-speed", `${glowSpeed}s`);
-  object.style.setProperty("--flame-delay", `${delay}s`);
-}
-
-function stopFlame(object) {
-  if (!object) return;
-
-  object.style.removeProperty("--flame-flicker-speed");
-  object.style.removeProperty("--flame-glow-speed");
-  object.style.removeProperty("--flame-delay");
-}
-
-function extinguishFlame(object) {
-  if (!object || object.dataset.type !== "candle") return;
-
-  object.classList.add("is-extinguishing");
-
-  window.setTimeout(() => {
-    object.classList.remove("is-extinguishing");
-  }, 1400);
-}
-
-function toggleLight(object) {
-  if (!object) return;
-
-  const isCurrentlyLit = object.dataset.lit === "true";
-
-  if (isCurrentlyLit) {
-    object.dataset.lit = "false";
-    object.classList.remove("is-lit");
-    stopFlame(object);
-    extinguishFlame(object);
-  } else {
-    object.dataset.lit = "true";
-    object.classList.add("is-lit");
-    startFlame(object);
-  }
-}
-
-function deleteObject(object) {
-  if (!object) return;
-
-  if (object === selectedObject) {
-    clearCandleDressingMode();
-  }
-
-  stopFlame(object);
-  object.remove();
-  deselectObject();
-  updateEmptyMessage();
-}
-
-function duplicateObject(object) {
-  if (!object || !altarStage) return;
-
-  const clone = object.cloneNode(true);
-
-  highestLayer += 1;
-
-  clone.style.left = `${(parseFloat(object.style.left) || 0) + 24}px`;
-  clone.style.top = `${(parseFloat(object.style.top) || 0) + 24}px`;
-  clone.style.zIndex = highestLayer;
-
-  clone.classList.remove("is-selected", "is-dragging", "can-receive-dressing");
-
-  updateCandleDressingVisuals(clone);
-
-  if (clone.dataset.lit === "true") {
-    startFlame(clone);
-  }
-
-  makeDraggable(clone);
-
-  altarStage.appendChild(clone);
-  selectObject(clone);
-  updateEmptyMessage();
-}
+/* =========================================================
+   13. OBJECT CREATION AND DRAGGING
+   ========================================================= */
 
 function makeDraggable(object) {
   object.addEventListener("pointerdown", (event) => {
@@ -719,16 +785,7 @@ function makeDraggable(object) {
 function placeObject(options) {
   if (!altarStage) return;
 
-  const {
-    imagePath,
-    fallbackSymbol,
-    label,
-    type,
-    herb,
-    form,
-    color
-  } = options;
-
+  const { imagePath, fallbackSymbol, label, type, herb, form, color } = options;
   const object = document.createElement("button");
   const isMobile = window.innerWidth <= 768;
 
@@ -740,12 +797,7 @@ function placeObject(options) {
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
   object.dataset.color = color || "";
-  object.dataset.scale =
-    type === "cloth"
-      ? "3"
-      : isMobile
-        ? "1.8"
-        : "1";
+  object.dataset.scale = type === "cloth" ? "3" : isMobile ? "1.8" : "1";
   object.dataset.rotation = "0";
   object.dataset.flipped = "false";
   object.dataset.locked = "false";
@@ -758,11 +810,9 @@ function placeObject(options) {
 
   if (imagePath) {
     const img = document.createElement("img");
-
     img.src = imagePath;
     img.alt = label || "altar object";
     img.draggable = false;
-
     object.appendChild(img);
   } else {
     object.textContent = fallbackSymbol || "";
@@ -787,6 +837,50 @@ function placeObject(options) {
   selectObject(object);
   updateEmptyMessage();
 }
+
+function deleteObject(object) {
+  if (!object) return;
+
+  if (object === selectedObject) {
+    clearCandleDressingMode();
+  }
+
+  stopFlame(object);
+  object.remove();
+  deselectObject();
+  updateEmptyMessage();
+}
+
+function duplicateObject(object) {
+  if (!object || !altarStage) return;
+
+  const clone = object.cloneNode(true);
+
+  highestLayer += 1;
+
+  clone.style.left = `${(parseFloat(object.style.left) || 0) + 24}px`;
+  clone.style.top = `${(parseFloat(object.style.top) || 0) + 24}px`;
+  clone.style.zIndex = highestLayer;
+
+  clone.classList.remove("is-selected", "is-dragging", "can-receive-dressing");
+
+  updateCandleDressingVisuals(clone);
+
+  if (clone.dataset.lit === "true") {
+    startFlame(clone);
+  }
+
+  makeDraggable(clone);
+
+  altarStage.appendChild(clone);
+  selectObject(clone);
+  updateEmptyMessage();
+}
+
+
+/* =========================================================
+   14. EVENT LISTENERS
+   ========================================================= */
 
 toolbar.addEventListener("pointerdown", (event) => {
   event.stopPropagation();
@@ -813,8 +907,20 @@ toolbar.addEventListener("click", (event) => {
   if (action === "dress-candle") beginCandleDressing(selectedObject);
 });
 
+altarBackgroundButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    changeAltarBackground(button);
+
+    if (window.innerWidth <= 700) {
+      closeMobileCabinet();
+    }
+  });
+});
+
 altarTools.forEach((tool) => {
   tool.addEventListener("click", () => {
+    if (tool.dataset.background) return;
+
     placeObject({
       imagePath: tool.dataset.image || "",
       fallbackSymbol: tool.dataset.object || "",
@@ -824,7 +930,7 @@ altarTools.forEach((tool) => {
       form: tool.dataset.form || "",
       color: tool.dataset.color || ""
     });
-    
+
     if (window.innerWidth <= 700) {
       closeMobileCabinet();
     }
@@ -848,23 +954,25 @@ altarGlobalControls.addEventListener("click", (event) => {
   if (!button || !altarStage) return;
 
   const action = button.dataset.globalAction;
-    if (action === "save-altar") {
-      saveAltar();
-      showAltarToast("Altar saved");
-      return;
-    }
-    
-    if (action === "load-altar") {
-      loadAltar();
-      showAltarToast("Altar loaded");
-      return;
-    }
-    
-    if (action === "clear-altar") {
-      clearAltar();
-      showAltarToast("Altar cleared");
-      return;
-    }
+
+  if (action === "save-altar") {
+    saveAltar();
+    showAltarToast("Altar saved");
+    return;
+  }
+
+  if (action === "load-altar") {
+    loadAltar();
+    showAltarToast("Altar loaded");
+    return;
+  }
+
+  if (action === "clear-altar") {
+    clearAltar();
+    showAltarToast("Altar cleared");
+    return;
+  }
+
   const candles = altarStage.querySelectorAll('.altar-object[data-type="candle"]');
 
   candles.forEach((candle) => {
@@ -908,7 +1016,10 @@ window.addEventListener("resize", () => {
   }
 });
 
-updateEmptyMessage();
+
+/* =========================================================
+   15. PWA SERVICE WORKER
+   ========================================================= */
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -919,3 +1030,10 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+
+
+/* =========================================================
+   16. INIT
+   ========================================================= */
+
+updateEmptyMessage();
