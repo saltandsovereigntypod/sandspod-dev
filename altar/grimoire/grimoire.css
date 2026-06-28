@@ -662,3 +662,45 @@
   display: grid;
   margin-top: 1rem;
 }
+
+/* TEMP FORCE FIX: make rendered grimoire blocks visible */
+.grimoire-reading-desk {
+  overflow: visible !important;
+}
+
+.grimoire-entry-list {
+  position: relative !important;
+  z-index: 20 !important;
+  display: block !important;
+  width: 100% !important;
+  margin-top: 1.5rem !important;
+}
+
+.grimoire-page-editor {
+  display: block !important;
+  position: relative !important;
+  z-index: 25 !important;
+  min-height: 300px !important;
+  padding: 1.25rem !important;
+  border: 2px solid gold !important;
+  background: #120f0a !important;
+  color: white !important;
+}
+
+.grimoire-block-list,
+.grimoire-block,
+.grimoire-block-textarea,
+.grimoire-add-block-wrap,
+.grimoire-add-block-button,
+.grimoire-autosave-status {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.grimoire-block-textarea {
+  width: 100% !important;
+  min-height: 140px !important;
+  background: white !important;
+  color: black !important;
+}
