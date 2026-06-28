@@ -569,6 +569,7 @@ function saveAltar() {
         glowing: object.dataset.glowing || "false",
         lit: object.dataset.lit || "false",
         dressings: object.dataset.dressings || "[]",
+        plaqueText: object.dataset.plaqueText || "",
         left: object.style.left || "0px",
         top: object.style.top || "0px",
         zIndex: object.style.zIndex || "10"
@@ -611,15 +612,23 @@ function createSavedObject(savedObject) {
   highestLayer = Math.max(highestLayer, Number(savedObject.zIndex || 10));
 
   if (savedObject.imagePath) {
-    const img = document.createElement("img");
-    img.src = savedObject.imagePath;
-    img.alt = savedObject.label || "altar object";
-    img.draggable = false;
-    object.appendChild(img);
-  } else {
-    object.textContent = savedObject.fallbackSymbol || "";
-  }
-
+     const img = document.createElement("img");
+     img.src = savedObject.imagePath;
+     img.alt = savedObject.label || "altar object";
+     img.draggable = false;
+     object.appendChild(img);
+   } else {
+     object.textContent = savedObject.fallbackSymbol || "";
+   }
+   
+   if (savedObject.type === "plaque") {
+     const plaqueText = document.createElement("span");
+     plaqueText.className = "altar-plaque-text";
+     plaqueText.textContent = savedObject.plaqueText || "Label";
+   
+     object.dataset.plaqueText = plaqueText.textContent;
+     object.appendChild(plaqueText);
+   }
   object.setAttribute(
     "aria-label",
     `${savedObject.label || "Object"}. Click to select. Drag to move. Double click to remove.`
@@ -777,9 +786,25 @@ function makeDraggable(object) {
     resizeObject(object, event.deltaY < 0 ? 0.1 : -0.1);
   });
 
-  object.addEventListener("dblclick", () => {
-    deleteObject(object);
-  });
+   object.addEventListener("dblclick", () => {
+     if (object.dataset.type === "plaque") {
+       const currentText = object.dataset.plaqueText || "Label";
+       const newText = prompt("Edit plaque text:", currentText);
+   
+       if (newText !== null) {
+         object.dataset.plaqueText = newText || "Label";
+   
+         const plaqueText = object.querySelector(".altar-plaque-text");
+         if (plaqueText) {
+           plaqueText.textContent = object.dataset.plaqueText;
+         }
+       }
+   
+       return;
+     }
+   
+     deleteObject(object);
+   });
 }
 
 function placeObject(options) {
@@ -808,15 +833,26 @@ function placeObject(options) {
   highestLayer += 1;
   object.style.zIndex = highestLayer;
 
-  if (imagePath) {
-    const img = document.createElement("img");
-    img.src = imagePath;
-    img.alt = label || "altar object";
-    img.draggable = false;
-    object.appendChild(img);
-  } else {
-    object.textContent = fallbackSymbol || "";
-  }
+   if (imagePath) {
+     const img = document.createElement("img");
+     img.src = imagePath;
+     img.alt = label || "altar object";
+     img.draggable = false;
+     object.appendChild(img);
+   } else {
+     object.textContent = fallbackSymbol || "";
+   }
+   
+   if (type === "plaque") {
+     const text = prompt("What should this plaque say?", "Rosemary");
+   
+     const plaqueText = document.createElement("span");
+     plaqueText.className = "altar-plaque-text";
+     plaqueText.textContent = text || "Label";
+   
+     object.dataset.plaqueText = plaqueText.textContent;
+     object.appendChild(plaqueText);
+   }
 
   object.setAttribute(
     "aria-label",
