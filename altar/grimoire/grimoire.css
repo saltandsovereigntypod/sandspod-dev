@@ -632,3 +632,33 @@
     width: 100%;
   }
 }
+
+.grimoire-entry-list {
+  display: block;
+  margin-top: 1rem;
+}
+
+.grimoire-page-editor {
+  position: relative;
+  z-index: 3;
+  display: block;
+  min-height: 300px;
+  border: 1px solid rgba(185, 160, 93, 0.45);
+  background: rgba(9, 8, 6, 0.72);
+}
+
+.grimoire-block-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.grimoire-block {
+  display: block;
+  min-height: 5rem;
+}
+
+.grimoire-add-block-wrap {
+  display: grid;
+  margin-top: 1rem;
+}
