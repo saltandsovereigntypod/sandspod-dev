@@ -8,7 +8,7 @@
 
     <meta
       name="description"
-      content="A private digital Book of Shadows for creating your own sections, pages, notes, links, rituals, dreams, correspondences, and personal magical practice."
+      content="A private digital Book of Shadows for creating your own sections, pages, notes, rituals, dreams, correspondences, and personal magical practice."
     />
 
     <link rel="stylesheet" href="../../css/styles.css" />
@@ -38,17 +38,16 @@
       </nav>
     </header>
 
-    <main id="grimoire-main" class="altar-main grimoire-main">
-      <section class="grimoire-hero">
+    <main id="grimoire-main" class="grimoire-main">
+      <section class="grimoire-cover">
         <p class="eyebrow">Private Grimoire</p>
 
         <h1>Book of Shadows</h1>
 
         <p>
-          A blank book for the path only you can build. Create your own sections,
-          write your own pages, and let your practice become its own living archive.
+          A living archive of your practice. Create your own sections, turn to
+          your own pages, and let the book become what your path requires.
         </p>
-
       </section>
 
       <section class="grimoire-auth-notice" data-grimoire-auth-notice>
@@ -59,8 +58,8 @@
             <h2>Open Your Book</h2>
 
             <p>
-              Sign in to create and save your personal Book of Shadows. Your sections,
-              pages, rituals, dreams, correspondences, and notes belong only to you.
+              Sign in to save your sections, pages, rituals, dreams,
+              correspondences, and private notes.
             </p>
           </div>
 
@@ -100,23 +99,24 @@
             </div>
 
             <p class="altar-auth-status" data-auth-status role="status" aria-live="polite">
-              Sign in or create an account to begin.
+              Sign in or create an account to open your grimoire.
             </p>
           </form>
         </div>
       </section>
 
-      <section class="grimoire-library" aria-label="Book of Shadows workspace">
-        <aside class="grimoire-table-of-contents">
-          <div class="grimoire-toc-header">
+      <section class="book-of-shadows" aria-label="Book of Shadows">
+        <aside class="book-toc" aria-label="Table of contents">
+          <a href="../index.html" class="book-return-link">
+            ← Return to Altar
+          </a>
+
+          <div class="book-toc-heading">
             <p class="eyebrow">Table of Contents</p>
             <h2>Book</h2>
-            <a href="../index.html" class="grimoire-return-link">
-                ← Return to Altar
-            </a>
           </div>
 
-          <div class="grimoire-toc-actions">
+          <div class="book-actions">
             <button class="button button--primary button--small" type="button" data-create-section>
               New Section
             </button>
@@ -126,44 +126,43 @@
             </button>
           </div>
 
-          <div class="grimoire-toc-list" data-grimoire-toc>
-            <p class="grimoire-sidebar-note">
-              Your sections and pages will appear here.
-            </p>
-          </div>
+          <nav class="book-toc-list" data-grimoire-toc aria-label="Book sections and pages">
+            <p class="book-note">Your sections and pages will appear here.</p>
+          </nav>
         </aside>
 
-        <section class="grimoire-reading-desk">
-          <div class="grimoire-desk-header">
-            <div>
-              <p class="eyebrow">Open Page</p>
-              <h2 data-grimoire-heading>Welcome</h2>
-            </div>
-
-            <label class="grimoire-search">
-              Search
+        <article class="book-page" data-book-page>
+          <div class="book-page-toolbar">
+            <label class="book-search">
+              <span>Search</span>
               <input
                 type="search"
                 data-entry-search
                 placeholder="Search your pages..."
               />
             </label>
+
+            <button class="book-edit-button" type="button" data-toggle-edit hidden>
+              ✎ Edit
+            </button>
           </div>
 
-          <div class="grimoire-empty" data-grimoire-empty>
-            <p class="grimoire-empty-symbol">☽ ✦ ☾</p>
-          
-            <h3>Welcome to your Book of Shadows.</h3>
-          
+          <div class="book-page-empty" data-grimoire-empty>
+            <p class="book-divider">✦ ☽ ✦ ☾ ✦</p>
+
+            <h2 data-grimoire-heading>Welcome</h2>
+
             <p>
               This book begins blank. There are no required chapters, no preset
               correspondences, and no single correct way to organize your practice.
               Create your first section when you are ready.
             </p>
           </div>
-          
-          <div class="grimoire-entry-list" data-entry-list></div>
-        </section>
+
+          <div class="book-page-content" data-entry-list></div>
+
+          <p class="book-status" data-entry-status role="status" aria-live="polite"></p>
+        </article>
       </section>
     </main>
 
