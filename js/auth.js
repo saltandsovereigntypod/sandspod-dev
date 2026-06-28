@@ -12,6 +12,14 @@ const signInButton = document.querySelector('[data-auth-action="signin"]');
 const signUpButton = document.querySelector('[data-auth-action="signup"]');
 const signOutButton = document.querySelector('[data-auth-action="signout"]');
 
+function announceAuthSuccess(message) {
+  document.dispatchEvent(
+    new CustomEvent("saltAuthSuccess", {
+      detail: { message }
+    })
+  );
+}
+
 function updateAuthUI(user) {
   const isSignedIn = Boolean(user);
 
@@ -26,7 +34,7 @@ function updateAuthUI(user) {
   if (authStatus) {
     authStatus.textContent = isSignedIn
       ? `Signed in as ${user.email}`
-      : "Your grimoire is private until you sign in.";
+      : "Sign in or create an account to save this altar.";
   }
 }
 
@@ -34,7 +42,6 @@ async function getCurrentUser() {
   const { data, error } = await db.auth.getUser();
 
   if (error) {
-    console.warn("Could not get current user:", error.message);
     currentUser = null;
     updateAuthUI(null);
     return null;
@@ -102,6 +109,7 @@ if (authForm) {
       }
 
       authForm.reset();
+      announceAuthSuccess("Your grimoire is open.");
     } catch (error) {
       if (authStatus) {
         authStatus.textContent = error.message;
@@ -138,6 +146,7 @@ if (signUpButton) {
       }
 
       authForm.reset();
+      announceAuthSuccess("Your grimoire has been created.");
     } catch (error) {
       if (authStatus) {
         authStatus.textContent = error.message;
@@ -154,6 +163,12 @@ if (signOutButton) {
       if (authStatus) {
         authStatus.textContent = "Your grimoire has been closed.";
       }
+
+      document.dispatchEvent(
+        new CustomEvent("saltAuthSignedOut", {
+          detail: { message: "Your grimoire has been closed." }
+        })
+      );
     } catch (error) {
       if (authStatus) {
         authStatus.textContent = error.message;
