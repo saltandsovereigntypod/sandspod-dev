@@ -101,6 +101,15 @@ const altarToast = document.createElement("div");
 altarToast.className = "altar-toast";
 altarToast.hidden = true;
 
+const altarInfoCard = document.createElement("aside");
+altarInfoCard.className = "altar-info-card";
+altarInfoCard.hidden = true;
+altarInfoCard.setAttribute("aria-live", "polite");
+
+if (altarStage) {
+  altarStage.appendChild(altarInfoCard);
+}
+
 const mobileCabinetToggle = document.createElement("button");
 mobileCabinetToggle.type = "button";
 mobileCabinetToggle.className = "altar-mobile-cabinet-toggle";
@@ -225,6 +234,80 @@ function formatDressingName(dressing) {
   return `${prettyHerb} ${prettyForm}`.trim();
 }
 
+function getObjectIcon(object) {
+  const type = object.dataset.type;
+
+  if (type === "candle") return "🕯️";
+  if (type === "herb") return "🌿";
+  if (type === "oil") return "🧴";
+  if (type === "crystal") return "💎";
+  if (type === "deity") return "🗝️";
+  if (type === "vessel") return "🏺";
+  if (type === "tool") return "✦";
+
+  return "✦";
+}
+
+function getObjectTypeLabel(object) {
+  const type = object.dataset.type || "altar object";
+  const form = object.dataset.form || "";
+
+  if (form && form !== "standard") {
+    return `${type} · ${form}`;
+  }
+
+  return type;
+}
+
+function showAltarInfoCard(object) {
+  if (!altarInfoCard || !object) return;
+
+  const label = object.dataset.label || "Altar Object";
+  const typeLabel = getObjectTypeLabel(object);
+  const icon = getObjectIcon(object);
+  const dressings = getDressings(object);
+
+  let dressingMarkup = "";
+
+  if (object.dataset.type === "candle" && dressings.length > 0) {
+    dressingMarkup = `
+      <div class="altar-info-card-section">
+        <p>Dressed with:</p>
+        <ul>
+          ${dressings
+            .map((dressing) => `<li>${formatDressingName(dressing)}</li>`)
+            .join("")}
+        </ul>
+      </div>
+    `;
+  }
+
+  altarInfoCard.innerHTML = `
+    <div class="altar-info-card-inner">
+      <p class="altar-info-card-icon">${icon}</p>
+      <h3>${label}</h3>
+      <p class="altar-info-card-type">${typeLabel}</p>
+      ${dressingMarkup}
+      <p class="altar-info-card-note">Placed by practitioner.</p>
+    </div>
+  `;
+
+  altarInfoCard.hidden = false;
+  altarInfoCard.classList.add("is-visible");
+}
+
+function hideAltarInfoCard() {
+  if (!altarInfoCard) return;
+
+  altarInfoCard.classList.remove("is-visible");
+
+  window.setTimeout(() => {
+    if (!altarInfoCard.classList.contains("is-visible")) {
+      altarInfoCard.hidden = true;
+    }
+  }, 180);
+}
+
 function updateToolbarNotes(object) {
   let notes = toolbar.querySelector(".altar-toolbar-notes");
 
@@ -267,6 +350,7 @@ function selectObject(object) {
   toolbar.hidden = false;
 
   updateToolbarNotes(selectedObject);
+  showAltarInfoCard(selectedObject);
 }
 
 function deselectObject() {
@@ -278,6 +362,7 @@ function deselectObject() {
   toolbar.hidden = true;
 
   updateToolbarNotes(null);
+  hideAltarInfoCard();
 }
 
 
@@ -621,14 +706,6 @@ function createSavedObject(savedObject) {
      object.textContent = savedObject.fallbackSymbol || "";
    }
    
-   if (savedObject.type === "plaque") {
-     const plaqueText = document.createElement("span");
-     plaqueText.className = "altar-plaque-text";
-     plaqueText.textContent = savedObject.plaqueText || "Label";
-   
-     object.dataset.plaqueText = plaqueText.textContent;
-     object.appendChild(plaqueText);
-   }
   object.setAttribute(
     "aria-label",
     `${savedObject.label || "Object"}. Click to select. Drag to move. Double click to remove.`
@@ -712,6 +789,15 @@ function clearAltar() {
    ========================================================= */
 
 function makeDraggable(object) {
+  object.addEventListener("pointerenter", () => {
+    showAltarInfoCard(object);
+  });
+
+  object.addEventListener("pointerleave", () => {
+    if (selectedObject !== object) {
+      hideAltarInfoCard();
+    }
+  });
   object.addEventListener("pointerdown", (event) => {
     if (event.target.closest(".altar-toolbar")) return;
 
@@ -787,22 +873,6 @@ function makeDraggable(object) {
   });
 
    object.addEventListener("dblclick", () => {
-     if (object.dataset.type === "plaque") {
-       const currentText = object.dataset.plaqueText || "Label";
-       const newText = prompt("Edit plaque text:", currentText);
-   
-       if (newText !== null) {
-         object.dataset.plaqueText = newText || "Label";
-   
-         const plaqueText = object.querySelector(".altar-plaque-text");
-         if (plaqueText) {
-           plaqueText.textContent = object.dataset.plaqueText;
-         }
-       }
-   
-       return;
-     }
-   
      deleteObject(object);
    });
 }
@@ -843,17 +913,6 @@ function placeObject(options) {
      object.textContent = fallbackSymbol || "";
    }
    
-   if (type === "plaque") {
-     const text = prompt("What should this plaque say?", "Rosemary");
-   
-     const plaqueText = document.createElement("span");
-     plaqueText.className = "altar-plaque-text";
-     plaqueText.textContent = text || "Label";
-   
-     object.dataset.plaqueText = plaqueText.textContent;
-     object.appendChild(plaqueText);
-   }
-
   object.setAttribute(
     "aria-label",
     `${label || "Object"}. Click to select. Drag to move. Double click to remove.`
