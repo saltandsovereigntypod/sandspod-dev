@@ -7,6 +7,8 @@ const altarTools = document.querySelectorAll(".altar-item");
 const altarBackgroundButtons = document.querySelectorAll("[data-background]");
 const emptyMessage = document.querySelector("[data-empty-message]");
 const altarCabinet = document.querySelector(".altar-cabinet");
+const saveModal = document.querySelector("[data-save-modal]");
+const saveModalClose = document.querySelector("[data-save-modal-close]");
 
 
 /* =========================================================
@@ -185,6 +187,23 @@ function getObjectImagePath(object) {
   return img ? img.getAttribute("src") : "";
 }
 
+function isUserSignedIn() {
+  return typeof currentUser !== "undefined" && currentUser;
+}
+
+function openSaveModal() {
+  if (!saveModal) return;
+
+  saveModal.hidden = false;
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeSaveModal() {
+  if (!saveModal) return;
+
+  saveModal.hidden = true;
+  document.body.classList.remove("altar-modal-open");
+}
 
 /* =========================================================
    7. ALTAR BACKGROUNDS
@@ -1051,10 +1070,15 @@ altarGlobalControls.addEventListener("click", (event) => {
   const action = button.dataset.globalAction;
 
   if (action === "save-altar") {
-    saveAltar();
-    showAltarToast("Altar saved");
-    return;
-  }
+     if (!isUserSignedIn()) {
+       openSaveModal();
+       return;
+     }
+   
+     saveAltar();
+     showAltarToast("Altar saved");
+     return;
+   }
 
   if (action === "load-altar") {
     loadAltar();
@@ -1111,6 +1135,23 @@ window.addEventListener("resize", () => {
   }
 });
 
+if (saveModalClose) {
+  saveModalClose.addEventListener("click", closeSaveModal);
+}
+
+if (saveModal) {
+  saveModal.addEventListener("click", (event) => {
+    if (event.target === saveModal) {
+      closeSaveModal();
+    }
+  });
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeSaveModal();
+  }
+});
 
 /* =========================================================
    15. PWA SERVICE WORKER
