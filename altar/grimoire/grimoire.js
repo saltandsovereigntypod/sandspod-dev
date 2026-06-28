@@ -538,9 +538,13 @@ async function loadBlocks(page) {
 
   currentBlocks = data || [];
 
-  if (currentBlocks.length === 0) {
-    await createBlock("text", "", 0, false);
-  }
+   if (currentBlocks.length === 0) {
+     const firstBlock = await createBlock("text", "", 0, false);
+   
+     if (firstBlock) {
+       currentBlocks = [firstBlock];
+     }
+   }
 }
 
 
