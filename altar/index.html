@@ -37,6 +37,46 @@
     </header>
 
     <main id="altar-main" class="altar-main">
+      <section class="altar-auth-panel" data-auth-panel>
+        <div class="altar-auth-card">
+          <div>
+            <p class="eyebrow">Private Grimoire</p>
+            <h2>Open Your Book of Shadows</h2>
+            <p>
+              Sign in to save your grimoire entries, altar notes, rituals, herbs, crystals, and personal practice.
+            </p>
+          </div>
+      
+          <form class="altar-auth-form" data-auth-form>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+      
+            <label>
+              Password
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+      
+            <div class="altar-auth-actions">
+              <button class="button button--primary" type="submit" data-auth-action="signin">
+                Enter
+              </button>
+      
+              <button class="button" type="button" data-auth-action="signup">
+                Create Account
+              </button>
+      
+              <button class="button button--ghost" type="button" data-auth-action="signout" hidden>
+                Sign Out
+              </button>
+            </div>
+      
+            <p class="altar-auth-status" data-auth-status role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+      
       <section class="altar-hero">
         <p class="eyebrow">The Sanctuary</p>
         <h1>The Altar</h1>
