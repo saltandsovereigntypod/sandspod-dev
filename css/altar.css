@@ -490,6 +490,29 @@
   }
 }
 
+.altar-object[data-type="plaque"] {
+  width: 130px;
+}
+
+.altar-object[data-type="plaque"] img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.altar-plaque-text {
+  position: relative;
+  z-index: 2;
+  max-width: 82%;
+  color: var(--cream);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
 /* =========================================================
    Candle Dressing
    ========================================================= */
