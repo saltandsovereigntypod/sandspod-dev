@@ -2,13 +2,13 @@
    BOOK OF SHADOWS
    File: altar/grimoire/grimoire.js
 
-   First working version:
+   Stage 1 block editor:
    - Creates/loads one Book of Shadows per user
    - Lets users create sections
    - Lets users create pages inside sections
    - Opens pages
-   - Saves page content as one text block
-   - Auto-saves while typing
+   - Supports Text, Heading, and Divider blocks
+   - Auto-saves page titles and block content
    ========================================================= */
 
 
@@ -17,17 +17,12 @@
    ========================================================= */
 
 const grimoireAuthNotice = document.querySelector("[data-grimoire-auth-notice]");
-const newEntryButton = document.querySelector("[data-new-entry]");
-const entryForm = document.querySelector("[data-entry-form]");
-const closeEntryFormButton = document.querySelector("[data-close-entry-form]");
 const entryStatus = document.querySelector("[data-entry-status]");
 const entryList = document.querySelector("[data-entry-list]");
 const grimoireEmpty = document.querySelector("[data-grimoire-empty]");
 const grimoireHeading = document.querySelector("[data-grimoire-heading]");
 const entrySearch = document.querySelector("[data-entry-search]");
-const chapterButtons = document.querySelectorAll("[data-entry-filter]");
 const grimoireShelf = document.querySelector("[data-grimoire-toc]");
-const grimoireBook = document.querySelector(".grimoire-book");
 
 
 /* =========================================================
@@ -38,10 +33,10 @@ let currentBook = null;
 let sections = [];
 let pages = [];
 let currentPage = null;
-let currentBlock = null;
+let currentBlocks = [];
 let activeSectionId = null;
 let searchTerm = "";
-let autosaveTimer = null;
+let autosaveTimers = {};
 
 
 /* =========================================================
@@ -78,14 +73,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function makeSlug(value) {
-  return String(value || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function formatDate(value) {
   if (!value) return "";
 
@@ -100,19 +87,28 @@ function formatDate(value) {
   });
 }
 
-function debounceAutosave(callback) {
-  window.clearTimeout(autosaveTimer);
+function debounceBlockSave(key, callback) {
+  window.clearTimeout(autosaveTimers[key]);
 
-  autosaveTimer = window.setTimeout(callback, 650);
+  autosaveTimers[key] = window.setTimeout(callback, 650);
 }
 
 function showWhisper(message) {
-  if (typeof showAltarToast === "function") {
-    showAltarToast(message);
-    return;
-  }
-
   setStatus(message);
+
+  window.clearTimeout(showWhisper.timeout);
+
+  showWhisper.timeout = window.setTimeout(() => {
+    setStatus("");
+  }, 2200);
+}
+
+function updateAutosaveStatus(message) {
+  const autosaveStatus = document.querySelector("[data-autosave-status]");
+
+  if (autosaveStatus) {
+    autosaveStatus.textContent = message;
+  }
 }
 
 
@@ -141,7 +137,7 @@ function renderSignedOutState() {
   sections = [];
   pages = [];
   currentPage = null;
-  currentBlock = null;
+  currentBlocks = [];
   activeSectionId = null;
 
   if (grimoireHeading) {
@@ -259,7 +255,7 @@ async function loadPages() {
 
 
 /* =========================================================
-   6. SHELF / TABLE OF CONTENTS
+   6. TABLE OF CONTENTS
    ========================================================= */
 
 function renderShelf() {
@@ -361,7 +357,7 @@ function renderShelfPageButton(page) {
 
 function renderWelcomeState() {
   currentPage = null;
-  currentBlock = null;
+  currentBlocks = [];
 
   if (grimoireHeading) {
     grimoireHeading.textContent = "Welcome";
@@ -381,14 +377,6 @@ function renderWelcomeState() {
         order, and no prescribed path. Create sections, add pages, and let
         your practice shape the archive.
       </p>
-      <div class="button-row grimoire-empty-actions">
-        <button class="button button--primary" type="button" data-create-section>
-          Create First Section
-        </button>
-        <button class="button" type="button" data-create-page>
-          Create First Page
-        </button>
-      </div>
     `;
   }
 }
@@ -510,7 +498,7 @@ async function createPage(sectionId = activeSectionId) {
 
 
 /* =========================================================
-   9. OPEN AND RENDER PAGE
+   9. OPEN PAGE AND LOAD BLOCKS
    ========================================================= */
 
 async function openPage(pageId) {
@@ -531,51 +519,37 @@ async function openPage(pageId) {
 
   renderShelf();
 
-  await loadOrCreateMainBlock(page);
+  await loadBlocks(page);
   renderPageEditor(page);
 }
 
-async function loadOrCreateMainBlock(page) {
+async function loadBlocks(page) {
   const user = requireUser();
   if (!user || !currentBook || !page) return;
 
-  const { data: existingBlocks, error: loadError } = await db
+  const { data, error } = await db
     .from("grimoire_blocks")
     .select("*")
     .eq("page_id", page.id)
     .order("sort_order", { ascending: true })
-    .limit(1);
+    .order("created_at", { ascending: true });
 
-  if (loadError) throw loadError;
+  if (error) throw error;
 
-  if (existingBlocks && existingBlocks.length > 0) {
-    currentBlock = existingBlocks[0];
-    return currentBlock;
+  currentBlocks = data || [];
+
+  if (currentBlocks.length === 0) {
+    await createBlock("text", "", 0, false);
   }
-
-  const { data: newBlock, error: createError } = await db
-    .from("grimoire_blocks")
-    .insert({
-      user_id: user.id,
-      book_id: currentBook.id,
-      page_id: page.id,
-      block_type: "text",
-      content: "",
-      sort_order: 0
-    })
-    .select()
-    .single();
-
-  if (createError) throw createError;
-
-  currentBlock = newBlock;
-  return currentBlock;
 }
+
+
+/* =========================================================
+   10. RENDER PAGE EDITOR
+   ========================================================= */
 
 function renderPageEditor(page) {
   if (!entryList) return;
-
-  const blockContent = currentBlock ? currentBlock.content || "" : "";
 
   entryList.innerHTML = `
     <article class="grimoire-page-editor">
@@ -606,11 +580,31 @@ function renderPageEditor(page) {
         </div>
       </header>
 
-      <textarea
-        class="grimoire-page-textarea"
-        data-page-content
-        placeholder="Begin writing..."
-      >${escapeHtml(blockContent)}</textarea>
+      <div class="grimoire-block-list" data-block-list>
+        ${currentBlocks.map(renderBlock).join("")}
+      </div>
+
+      <div class="grimoire-add-block-wrap">
+        <button class="grimoire-add-block-button" type="button" data-open-block-menu>
+          ✦ Add Block
+        </button>
+
+        <div class="grimoire-block-menu" data-block-menu hidden>
+          <p class="eyebrow">Choose Block</p>
+
+          <button type="button" data-add-block-type="text">
+            📝 Text
+          </button>
+
+          <button type="button" data-add-block-type="heading">
+            # Heading
+          </button>
+
+          <button type="button" data-add-block-type="divider">
+            ─ Divider
+          </button>
+        </div>
+      </div>
 
       <p class="grimoire-autosave-status" data-autosave-status>
         Page opened.
@@ -619,63 +613,177 @@ function renderPageEditor(page) {
   `;
 }
 
+function renderBlock(block) {
+  if (block.block_type === "heading") {
+    return `
+      <section class="grimoire-block grimoire-block--heading" data-block-id="${block.id}">
+        <input
+          class="grimoire-block-heading-input"
+          type="text"
+          value="${escapeHtml(block.content)}"
+          placeholder="Heading"
+          data-block-input
+          data-block-id="${block.id}"
+          aria-label="Heading block"
+        />
+
+        <button class="grimoire-block-delete" type="button" data-delete-block="${block.id}" aria-label="Delete block">
+          ×
+        </button>
+      </section>
+    `;
+  }
+
+  if (block.block_type === "divider") {
+    return `
+      <section class="grimoire-block grimoire-block--divider" data-block-id="${block.id}">
+        <div class="grimoire-divider-symbol">☽ ✦ ☾</div>
+
+        <button class="grimoire-block-delete" type="button" data-delete-block="${block.id}" aria-label="Delete block">
+          ×
+        </button>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="grimoire-block grimoire-block--text" data-block-id="${block.id}">
+      <textarea
+        class="grimoire-block-textarea"
+        placeholder="Begin writing..."
+        data-block-input
+        data-block-id="${block.id}"
+        aria-label="Text block"
+      >${escapeHtml(block.content)}</textarea>
+
+      <button class="grimoire-block-delete" type="button" data-delete-block="${block.id}" aria-label="Delete block">
+        ×
+      </button>
+    </section>
+  `;
+}
+
 
 /* =========================================================
-   10. SAVE PAGE CONTENT AND TITLE
+   11. CREATE, SAVE, AND DELETE BLOCKS
    ========================================================= */
 
-async function saveCurrentBlock() {
+async function createBlock(type = "text", content = "", sortOrder = currentBlocks.length, shouldRender = true) {
   const user = requireUser();
-  if (!user || !currentBlock || !currentPage) return;
-
-  const contentInput = document.querySelector("[data-page-content]");
-  const autosaveStatus = document.querySelector("[data-autosave-status]");
-
-  if (!contentInput) return;
-
-  if (autosaveStatus) {
-    autosaveStatus.textContent = "Saving...";
-  }
+  if (!user || !currentBook || !currentPage) return;
 
   const { data, error } = await db
     .from("grimoire_blocks")
-    .update({
-      content: contentInput.value,
-      updated_at: new Date().toISOString()
+    .insert({
+      user_id: user.id,
+      book_id: currentBook.id,
+      page_id: currentPage.id,
+      block_type: type,
+      content,
+      sort_order: sortOrder
     })
-    .eq("id", currentBlock.id)
     .select()
     .single();
 
   if (error) {
-    if (autosaveStatus) {
-      autosaveStatus.textContent = error.message;
-    }
-
+    setStatus(error.message);
     return;
   }
 
-  currentBlock = data;
+  currentBlocks.push(data);
 
-  if (autosaveStatus) {
-    autosaveStatus.textContent = "Page saved.";
+  if (shouldRender) {
+    renderPageEditor(currentPage);
+    focusBlock(data.id);
+    showWhisper("Block added");
   }
+
+  return data;
 }
+
+function focusBlock(blockId) {
+  window.setTimeout(() => {
+    const input = document.querySelector(`[data-block-input][data-block-id="${blockId}"]`);
+
+    if (input) {
+      input.focus();
+    }
+  }, 50);
+}
+
+async function saveBlock(blockId, value) {
+  const block = currentBlocks.find((item) => item.id === blockId);
+  if (!block) return;
+
+  updateAutosaveStatus("Saving...");
+
+  const { data, error } = await db
+    .from("grimoire_blocks")
+    .update({
+      content: value,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", blockId)
+    .select()
+    .single();
+
+  if (error) {
+    updateAutosaveStatus(error.message);
+    return;
+  }
+
+  currentBlocks = currentBlocks.map((item) => {
+    if (item.id === data.id) return data;
+    return item;
+  });
+
+  updateAutosaveStatus("Page saved.");
+}
+
+async function deleteBlock(blockId) {
+  const block = currentBlocks.find((item) => item.id === blockId);
+  if (!block) return;
+
+  if (currentBlocks.length === 1) {
+    showWhisper("A page needs at least one block");
+    return;
+  }
+
+  const confirmed = window.confirm("Return this block to ashes?");
+
+  if (!confirmed) return;
+
+  const { error } = await db
+    .from("grimoire_blocks")
+    .delete()
+    .eq("id", blockId);
+
+  if (error) {
+    setStatus(error.message);
+    return;
+  }
+
+  currentBlocks = currentBlocks.filter((item) => item.id !== blockId);
+  renderPageEditor(currentPage);
+  showWhisper("Block returned to ashes");
+}
+
+
+/* =========================================================
+   12. SAVE PAGE TITLE
+   ========================================================= */
 
 async function saveCurrentPageTitle() {
   const user = requireUser();
   if (!user || !currentPage) return;
 
   const titleInput = document.querySelector("[data-page-title-input]");
-  const autosaveStatus = document.querySelector("[data-autosave-status]");
 
   if (!titleInput) return;
 
   const newTitle = titleInput.value.trim() || "Untitled Page";
 
-  if (autosaveStatus) {
-    autosaveStatus.textContent = "Saving title...";
-  }
+  updateAutosaveStatus("Saving title...");
 
   const { data, error } = await db
     .from("grimoire_pages")
@@ -688,10 +796,7 @@ async function saveCurrentPageTitle() {
     .single();
 
   if (error) {
-    if (autosaveStatus) {
-      autosaveStatus.textContent = error.message;
-    }
-
+    updateAutosaveStatus(error.message);
     return;
   }
 
@@ -707,15 +812,12 @@ async function saveCurrentPageTitle() {
   }
 
   renderShelf();
-
-  if (autosaveStatus) {
-    autosaveStatus.textContent = "Title saved.";
-  }
+  updateAutosaveStatus("Title saved.");
 }
 
 
 /* =========================================================
-   11. RENAME AND DELETE
+   13. RENAME AND DELETE PAGE
    ========================================================= */
 
 async function renameCurrentPage() {
@@ -758,7 +860,7 @@ async function returnCurrentPageToAshes() {
 
   pages = pages.filter((page) => page.id !== pageId);
   currentPage = null;
-  currentBlock = null;
+  currentBlocks = [];
 
   renderShelf();
 
@@ -773,7 +875,7 @@ async function returnCurrentPageToAshes() {
 
 
 /* =========================================================
-   12. SEARCH
+   14. SEARCH
    ========================================================= */
 
 function applySearch() {
@@ -834,20 +936,8 @@ function applySearch() {
 
 
 /* =========================================================
-   13. EVENT LISTENERS
+   15. EVENT LISTENERS
    ========================================================= */
-
-if (newEntryButton) {
-  newEntryButton.addEventListener("click", () => {
-    createPage();
-  });
-}
-
-if (closeEntryFormButton && entryForm) {
-  closeEntryFormButton.addEventListener("click", () => {
-    entryForm.hidden = true;
-  });
-}
 
 if (entrySearch) {
   entrySearch.addEventListener("input", () => {
@@ -856,26 +946,6 @@ if (entrySearch) {
   });
 }
 
-chapterButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    chapterButtons.forEach((item) => item.classList.remove("is-active"));
-    button.classList.add("is-active");
-
-    const filter = button.dataset.entryFilter;
-
-    if (filter === "all") {
-      searchTerm = "";
-      if (entrySearch) entrySearch.value = "";
-
-      if (pages.length > 0) {
-        openPage(pages[0].id);
-      } else {
-        renderWelcomeState();
-      }
-    }
-  });
-});
-
 document.addEventListener("click", (event) => {
   const createSectionButton = event.target.closest("[data-create-section]");
   const createPageButton = event.target.closest("[data-create-page]");
@@ -883,6 +953,9 @@ document.addEventListener("click", (event) => {
   const pageButton = event.target.closest("[data-page-id]");
   const renameButton = event.target.closest("[data-rename-page]");
   const ashesButton = event.target.closest("[data-return-page-to-ashes]");
+  const openBlockMenuButton = event.target.closest("[data-open-block-menu]");
+  const addBlockButton = event.target.closest("[data-add-block-type]");
+  const deleteBlockButton = event.target.closest("[data-delete-block]");
 
   if (createSectionButton) {
     createSection();
@@ -912,28 +985,48 @@ document.addEventListener("click", (event) => {
 
   if (ashesButton) {
     returnCurrentPageToAshes();
+    return;
+  }
+
+  if (openBlockMenuButton) {
+    const menu = document.querySelector("[data-block-menu]");
+
+    if (menu) {
+      menu.hidden = !menu.hidden;
+    }
+
+    return;
+  }
+
+  if (addBlockButton) {
+    const type = addBlockButton.dataset.addBlockType;
+    createBlock(type);
+    return;
+  }
+
+  if (deleteBlockButton) {
+    deleteBlock(deleteBlockButton.dataset.deleteBlock);
   }
 });
 
 document.addEventListener("input", (event) => {
-  const contentInput = event.target.closest("[data-page-content]");
+  const blockInput = event.target.closest("[data-block-input]");
   const titleInput = event.target.closest("[data-page-title-input]");
-  const autosaveStatus = document.querySelector("[data-autosave-status]");
 
-  if (contentInput) {
-    if (autosaveStatus) {
-      autosaveStatus.textContent = "Unsaved changes...";
-    }
+  if (blockInput) {
+    const blockId = blockInput.dataset.blockId;
 
-    debounceAutosave(saveCurrentBlock);
+    updateAutosaveStatus("Unsaved changes...");
+
+    debounceBlockSave(blockId, () => {
+      saveBlock(blockId, blockInput.value);
+    });
   }
 
   if (titleInput) {
-    if (autosaveStatus) {
-      autosaveStatus.textContent = "Unsaved title...";
-    }
+    updateAutosaveStatus("Unsaved title...");
 
-    debounceAutosave(saveCurrentPageTitle);
+    debounceBlockSave("page-title", saveCurrentPageTitle);
   }
 });
 
@@ -947,7 +1040,7 @@ document.addEventListener("saltAuthSuccess", () => {
 
 
 /* =========================================================
-   14. INIT
+   16. INIT
    ========================================================= */
 
 updateGrimoireAuthState();
