@@ -26,7 +26,7 @@ const grimoireEmpty = document.querySelector("[data-grimoire-empty]");
 const grimoireHeading = document.querySelector("[data-grimoire-heading]");
 const entrySearch = document.querySelector("[data-entry-search]");
 const chapterButtons = document.querySelectorAll("[data-entry-filter]");
-const grimoireShelf = document.querySelector(".grimoire-shelf");
+const grimoireShelf = document.querySelector("[data-grimoire-toc]");
 const grimoireBook = document.querySelector(".grimoire-book");
 
 
