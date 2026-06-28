@@ -1070,7 +1070,7 @@ altarGlobalControls.addEventListener("click", (event) => {
   const action = button.dataset.globalAction;
 
   if (action === "save-altar") {
-     if (!isUserSignedIn()) {
+     if (true) {
        openSaveModal();
        return;
      }
