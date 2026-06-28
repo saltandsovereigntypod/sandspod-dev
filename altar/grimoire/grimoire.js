@@ -597,67 +597,48 @@ async function loadBlocks(page) {
 
 function renderPageEditor(page) {
   if (!entryList) return;
-   if (grimoireEmpty) {
-     grimoireEmpty.hidden = true;
-     grimoireEmpty.style.display = "none";
-   }
+
+  if (grimoireEmpty) {
+    grimoireEmpty.hidden = true;
+    grimoireEmpty.style.display = "none";
+  }
 
   entryList.innerHTML = `
-    <article class="grimoire-page-editor">
-      <header class="grimoire-page-editor-header">
-        <div>
-          <p class="eyebrow">Page</p>
+    <article
+      style="
+        display: block;
+        position: relative;
+        z-index: 9999;
+        margin-top: 2rem;
+        padding: 2rem;
+        border: 4px solid gold;
+        background: white;
+        color: black;
+        min-height: 300px;
+      "
+    >
+      <h2 style="color: black;">${escapeHtml(page.title)}</h2>
 
-          <div class="grimoire-page-title-row">
-            <span class="grimoire-page-icon">${escapeHtml(page.icon || "📄")}</span>
+      <textarea
+        data-block-input
+        data-block-id="${currentBlocks[0]?.id || ""}"
+        style="
+          display: block;
+          width: 100%;
+          min-height: 180px;
+          background: white;
+          color: black;
+          border: 2px solid black;
+          padding: 1rem;
+          font-size: 18px;
+        "
+      >${escapeHtml(currentBlocks[0]?.content || "")}</textarea>
 
-            <input
-              class="grimoire-page-title-input"
-              type="text"
-              value="${escapeHtml(page.title)}"
-              data-page-title-input
-              aria-label="Page title"
-            />
-          </div>
+      <button type="button" data-open-block-menu>
+        ✦ Add Block
+      </button>
 
-          <p class="grimoire-page-meta">
-            Created ${formatDate(page.created_at)}
-          </p>
-        </div>
-
-        <div class="grimoire-entry-actions">
-          <button type="button" data-rename-page>Rename</button>
-          <button type="button" data-return-page-to-ashes>Return to Ashes</button>
-        </div>
-      </header>
-
-      <div class="grimoire-block-list" data-block-list>
-        ${currentBlocks.map(renderBlock).join("")}
-      </div>
-
-      <div class="grimoire-add-block-wrap">
-        <button class="grimoire-add-block-button" type="button" data-open-block-menu>
-          ✦ Add Block
-        </button>
-
-        <div class="grimoire-block-menu" data-block-menu hidden>
-          <p class="eyebrow">Choose Block</p>
-
-          <button type="button" data-add-block-type="text">
-            📝 Text
-          </button>
-
-          <button type="button" data-add-block-type="heading">
-            # Heading
-          </button>
-
-          <button type="button" data-add-block-type="divider">
-            ─ Divider
-          </button>
-        </div>
-      </div>
-
-      <p class="grimoire-autosave-status" data-autosave-status>
+      <p data-autosave-status>
         Page opened.
       </p>
     </article>
