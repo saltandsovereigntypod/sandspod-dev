@@ -87,6 +87,81 @@
   font-style: italic;
 }
 
+/* =========================================================
+   Altar Auth Panel
+   ========================================================= */
+
+.altar-auth-panel {
+  width: min(1500px, 100%);
+  margin: 0 auto 2rem;
+}
+
+.altar-auth-card {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 420px);
+  gap: 1.5rem;
+  align-items: center;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid rgba(185, 160, 93, 0.34);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 24, 17, 0.92), rgba(9, 8, 6, 0.94));
+  box-shadow: var(--shadow);
+}
+
+.altar-auth-card h2 {
+  max-width: none;
+  margin-bottom: 0.75rem;
+  color: var(--cream);
+  font-size: clamp(2.3rem, 5vw, 4rem);
+}
+
+.altar-auth-card p {
+  max-width: 58ch;
+}
+
+.altar-auth-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.altar-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.altar-auth-status {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.altar-auth-panel.is-signed-in .altar-auth-card {
+  grid-template-columns: 1fr;
+}
+
+.altar-auth-panel.is-signed-in .altar-auth-form label {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .altar-auth-card {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .altar-auth-card h2 {
+    font-size: 2.3rem;
+  }
+
+  .altar-auth-actions {
+    display: grid;
+  }
+}
+
 
 /* =========================================================
    12. ALTAR CABINET AND DRAWERS
