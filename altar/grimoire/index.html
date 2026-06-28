@@ -8,7 +8,7 @@
 
     <meta
       name="description"
-      content="A private digital Book of Shadows for ritual logs, herbs, crystals, moon notes, dreams, spells, deity work, and personal magical practice."
+      content="A private digital Book of Shadows for creating your own sections, pages, notes, links, rituals, dreams, correspondences, and personal magical practice."
     />
 
     <link rel="stylesheet" href="../../css/styles.css" />
@@ -41,29 +41,39 @@
     <main id="grimoire-main" class="altar-main grimoire-main">
       <section class="grimoire-hero">
         <p class="eyebrow">Private Grimoire</p>
+
         <h1>Book of Shadows</h1>
+
         <p>
-          A living record of your practice. Log rituals, herbs, crystals, dreams,
-          moon phases, deity work, spells, correspondences, and the quiet wisdom
-          gathered along the way.
+          A blank book for the path only you can build. Create your own sections,
+          write your own pages, and let your practice become its own living archive.
         </p>
 
         <div class="button-row grimoire-hero-actions">
           <a class="button" href="../index.html">Return to Altar</a>
-          <button class="button button--primary" type="button" data-new-entry>
-            Add New Entry
+
+          <button class="button button--primary" type="button" data-create-section>
+            New Section
+          </button>
+
+          <button class="button" type="button" data-create-page>
+            New Page
           </button>
         </div>
       </section>
 
       <section class="grimoire-auth-notice" data-grimoire-auth-notice>
         <div class="grimoire-auth-card">
-          <p class="eyebrow">Sacred Archive</p>
-          <h2>Open Your Grimoire</h2>
-          <p>
-            Sign in to save and retrieve your personal Book of Shadows entries
-            across rituals, herbs, crystals, moon work, dreams, spells, and notes.
-          </p>
+          <div>
+            <p class="eyebrow">Sacred Archive</p>
+
+            <h2>Open Your Book</h2>
+
+            <p>
+              Sign in to create and save your personal Book of Shadows. Your sections,
+              pages, rituals, dreams, correspondences, and notes belong only to you.
+            </p>
+          </div>
 
           <form class="altar-auth-form" data-auth-form>
             <label>
@@ -90,7 +100,12 @@
                 Create My Grimoire
               </button>
 
-              <button class="button button--ghost" type="button" data-auth-action="signout" hidden>
+              <button
+                class="button button--ghost"
+                type="button"
+                data-auth-action="signout"
+                hidden
+              >
                 Close Grimoire
               </button>
             </div>
@@ -102,56 +117,35 @@
         </div>
       </section>
 
-      <section class="grimoire-layout" aria-label="Book of Shadows workspace">
-        <aside class="grimoire-shelf">
-          <h2>Chapters</h2>
+      <section class="grimoire-library" aria-label="Book of Shadows workspace">
+        <aside class="grimoire-table-of-contents">
+          <div class="grimoire-toc-header">
+            <p class="eyebrow">Table of Contents</p>
+            <h2>Book</h2>
+          </div>
 
-          <button class="grimoire-chapter is-active" type="button" data-entry-filter="all">
-            ✦ All Entries
-          </button>
+          <div class="grimoire-toc-actions">
+            <button class="button button--primary button--small" type="button" data-create-section>
+              New Section
+            </button>
 
-          <button class="grimoire-chapter" type="button" data-entry-filter="ritual">
-            🔥 Ritual Log
-          </button>
+            <button class="button button--small" type="button" data-create-page>
+              New Page
+            </button>
+          </div>
 
-          <button class="grimoire-chapter" type="button" data-entry-filter="herb">
-            🌿 Herbs
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="crystal">
-            💎 Crystals
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="moon">
-            🌙 Moon Phases
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="deity">
-            🗝️ Deities
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="dream">
-            ✨ Dream Journal
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="spell">
-            🕯️ Spells
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="correspondence">
-            📜 Correspondences
-          </button>
-
-          <button class="grimoire-chapter" type="button" data-entry-filter="note">
-            🖋️ Personal Notes
-          </button>
+          <div class="grimoire-toc-list" data-grimoire-toc>
+            <p class="grimoire-sidebar-note">
+              Your sections and pages will appear here.
+            </p>
+          </div>
         </aside>
 
-        <section class="grimoire-book">
-          <div class="grimoire-book-header">
+        <section class="grimoire-reading-desk">
+          <div class="grimoire-desk-header">
             <div>
-              <p class="eyebrow">Your Living Archive</p>
-              <h2 data-grimoire-heading>All Entries</h2>
+              <p class="eyebrow">Open Page</p>
+              <h2 data-grimoire-heading>Welcome</h2>
             </div>
 
             <label class="grimoire-search">
@@ -159,89 +153,31 @@
               <input
                 type="search"
                 data-entry-search
-                placeholder="Search your grimoire..."
+                placeholder="Search your pages..."
               />
             </label>
           </div>
 
-          <form class="grimoire-entry-form" data-entry-form hidden>
-            <div class="grimoire-form-header">
-              <div>
-                <p class="eyebrow">New Entry</p>
-                <h3>Add to Your Book</h3>
-              </div>
-
-              <button class="button button--ghost button--small" type="button" data-close-entry-form>
-                Close
-              </button>
-            </div>
-
-            <label>
-              Title
-              <input
-                type="text"
-                name="title"
-                placeholder="Rosemary protection notes, Full moon ritual, Dream of keys..."
-                required
-              />
-            </label>
-
-            <label>
-              Chapter
-              <select name="entry_type" required>
-                <option value="ritual">Ritual Log</option>
-                <option value="herb">Herb</option>
-                <option value="crystal">Crystal</option>
-                <option value="moon">Moon Phase</option>
-                <option value="deity">Deity</option>
-                <option value="dream">Dream Journal</option>
-                <option value="spell">Spell</option>
-                <option value="correspondence">Correspondence</option>
-                <option value="note">Personal Note</option>
-              </select>
-            </label>
-
-            <label>
-              Moon Phase
-              <input
-                type="text"
-                name="moon_phase"
-                placeholder="New moon, waxing crescent, full moon..."
-              />
-            </label>
-
-            <label>
-              Tags
-              <input
-                type="text"
-                name="tags"
-                placeholder="hekate, protection, dreamwork"
-              />
-            </label>
-
-            <label>
-              Entry
-              <textarea
-                name="content"
-                rows="9"
-                placeholder="Write what happened, what you used, what you noticed, what you learned, or what you want to remember."
-              ></textarea>
-            </label>
-
-            <button class="button button--primary" type="submit">
-              Save Entry
-            </button>
-
-            <p class="grimoire-form-status" data-entry-status role="status" aria-live="polite"></p>
-          </form>
-
           <div class="grimoire-empty" data-grimoire-empty>
             <p class="grimoire-empty-symbol">☽ ✦ ☾</p>
-            <h3>Your pages are waiting.</h3>
+
+            <h3>Welcome to your Book of Shadows.</h3>
+
             <p>
-              Choose “Add New Entry” to begin building your Book of Shadows.
-              Your rituals, notes, dreams, correspondences, and observations will appear here.
+              This book begins blank. There are no required chapters, no preset
+              correspondences, and no single correct way to organize your practice.
+              Create your first section when you are ready.
             </p>
+
+            <div class="button-row grimoire-empty-actions">
+              <button class="button button--primary" type="button" data-create-section>
+                Create First Section
+              </button>
+
+              <button class="button" type="button" data-create-page>
+                Create First Page
+              </button>
+            </div>
           </div>
 
           <div class="grimoire-entry-list" data-entry-list></div>
