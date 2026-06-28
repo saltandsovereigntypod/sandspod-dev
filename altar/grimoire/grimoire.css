@@ -14,10 +14,6 @@
   padding-bottom: clamp(4rem, 8vw, 7rem);
 }
 
-/* =========================================================
-   HERO
-   ========================================================= */
-
 .grimoire-hero {
   max-width: 960px;
   margin: 0 auto 2rem;
@@ -35,14 +31,6 @@
   color: var(--cream);
   font-size: 1.08rem;
 }
-
-.grimoire-hero-actions {
-  justify-content: center;
-}
-
-/* =========================================================
-   AUTH CARD
-   ========================================================= */
 
 .grimoire-auth-notice {
   width: min(1280px, 100%);
@@ -77,10 +65,6 @@
   max-width: 58ch;
 }
 
-/* =========================================================
-   MAIN LIBRARY LAYOUT
-   ========================================================= */
-
 .grimoire-library {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
@@ -96,16 +80,12 @@
 .grimoire-page-editor,
 .grimoire-entry-card {
   border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 1rem;
   background:
     radial-gradient(circle at top, rgba(185, 160, 93, 0.1), transparent 18rem),
     linear-gradient(145deg, rgba(38, 61, 46, 0.72), rgba(10, 13, 10, 0.95));
   box-shadow: var(--shadow);
-  border-radius: 1rem;
 }
-
-/* =========================================================
-   TABLE OF CONTENTS
-   ========================================================= */
 
 .grimoire-table-of-contents {
   position: sticky;
@@ -128,11 +108,11 @@
 
 .grimoire-toc-actions {
   display: grid;
-  grid-template-columns: 1fr;
   gap: 0.55rem;
 }
 
-.grimoire-toc-list {
+.grimoire-toc-list,
+.grimoire-section-list {
   display: grid;
   gap: 0.75rem;
 }
@@ -147,11 +127,6 @@
   text-align: center;
   font-size: 0.95rem;
   font-style: italic;
-}
-
-.grimoire-section-list {
-  display: grid;
-  gap: 0.75rem;
 }
 
 .grimoire-section-group {
@@ -241,9 +216,19 @@
   background: rgba(244, 236, 216, 0.06);
 }
 
-/* =========================================================
-   READING DESK
-   ========================================================= */
+.grimoire-return-link {
+  display: inline-flex;
+  justify-content: center;
+  color: rgba(244, 236, 216, 0.62);
+  font-size: 0.85rem;
+  font-style: italic;
+  text-decoration: none;
+}
+
+.grimoire-return-link:hover,
+.grimoire-return-link:focus-visible {
+  color: var(--gold);
+}
 
 .grimoire-reading-desk {
   position: relative;
@@ -282,10 +267,6 @@
   color: var(--silver);
 }
 
-/* =========================================================
-   WELCOME / EMPTY STATE
-   ========================================================= */
-
 .grimoire-empty {
   position: relative;
   z-index: 1;
@@ -311,14 +292,6 @@
   color: var(--cream);
   font-size: clamp(2rem, 4vw, 3.4rem);
 }
-
-.grimoire-empty-actions {
-  justify-content: center;
-}
-
-/* =========================================================
-   PAGE EDITOR
-   ========================================================= */
 
 .grimoire-entry-list {
   position: relative;
@@ -384,24 +357,167 @@
   font-style: italic;
 }
 
-.grimoire-page-textarea {
-  min-height: 440px;
-  resize: vertical;
-  border: 1px solid rgba(185, 160, 93, 0.22);
+.grimoire-block-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.grimoire-block {
+  position: relative;
+  border: 1px solid rgba(185, 160, 93, 0.16);
   border-radius: 0.85rem;
-  padding: 1rem;
-  color: var(--cream);
+  padding: 0.75rem;
   background:
-    linear-gradient(rgba(244, 236, 216, 0.035), rgba(244, 236, 216, 0.015)),
-    rgba(8, 10, 8, 0.45);
+    linear-gradient(rgba(244, 236, 216, 0.032), rgba(244, 236, 216, 0.012)),
+    rgba(8, 10, 8, 0.36);
+}
+
+.grimoire-block:focus-within {
+  border-color: rgba(185, 160, 93, 0.48);
+  box-shadow: 0 0 0 2px rgba(185, 160, 93, 0.08);
+}
+
+.grimoire-block-textarea {
+  width: 100%;
+  min-height: 9rem;
+  resize: vertical;
+  border: 0;
+  padding: 0;
+  color: var(--cream);
+  background: transparent;
   font: inherit;
   font-size: 1.08rem;
   line-height: 1.8;
 }
 
-.grimoire-page-textarea::placeholder {
+.grimoire-block-textarea:focus,
+.grimoire-block-heading-input:focus {
+  outline: none;
+}
+
+.grimoire-block-textarea::placeholder,
+.grimoire-block-heading-input::placeholder {
   color: rgba(244, 236, 216, 0.42);
   font-style: italic;
+}
+
+.grimoire-block-heading-input {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  color: var(--cream);
+  background: transparent;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 700;
+}
+
+.grimoire-block--divider {
+  display: grid;
+  place-items: center;
+  min-height: 4.5rem;
+}
+
+.grimoire-divider-symbol {
+  color: var(--gold);
+  letter-spacing: 0.55rem;
+  font-size: 1rem;
+}
+
+.grimoire-block-delete {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.18);
+  border-radius: 50%;
+  color: rgba(244, 236, 216, 0.55);
+  background: rgba(8, 10, 8, 0.42);
+  font: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.grimoire-block:hover .grimoire-block-delete,
+.grimoire-block:focus-within .grimoire-block-delete {
+  opacity: 1;
+}
+
+.grimoire-block-delete:hover,
+.grimoire-block-delete:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+.grimoire-add-block-wrap {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  margin-top: 1rem;
+}
+
+.grimoire-add-block-button {
+  border: 1px solid rgba(185, 160, 93, 0.32);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  color: var(--gold);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.15), transparent 70%),
+    rgba(8, 10, 8, 0.62);
+  font: inherit;
+  cursor: pointer;
+}
+
+.grimoire-add-block-button:hover,
+.grimoire-add-block-button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+.grimoire-block-menu {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  z-index: 5;
+  display: grid;
+  gap: 0.4rem;
+  width: min(260px, 90vw);
+  padding: 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.34);
+  border-radius: 0.9rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.14), transparent 70%),
+    rgba(9, 8, 6, 0.96);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.54);
+}
+
+.grimoire-block-menu[hidden] {
+  display: none;
+}
+
+.grimoire-block-menu .eyebrow {
+  margin-bottom: 0.2rem;
+  text-align: center;
+}
+
+.grimoire-block-menu button {
+  border: 1px solid rgba(244, 236, 216, 0.16);
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grimoire-block-menu button:hover,
+.grimoire-block-menu button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.16);
 }
 
 .grimoire-autosave-status {
@@ -410,10 +526,6 @@
   font-size: 0.86rem;
   font-style: italic;
 }
-
-/* =========================================================
-   SEARCH RESULT CARDS
-   ========================================================= */
 
 .grimoire-entry-card {
   padding: 1rem;
@@ -460,10 +572,6 @@
 .grimoire-entry-actions button:focus-visible {
   border-color: var(--gold);
 }
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
 
 @media (max-width: 980px) {
   .grimoire-auth-card,
@@ -516,8 +624,8 @@
     font-size: clamp(2rem, 12vw, 3.2rem);
   }
 
-  .grimoire-page-textarea {
-    min-height: 360px;
+  .grimoire-block-delete {
+    opacity: 1;
   }
 
   .grimoire-entry-actions {
