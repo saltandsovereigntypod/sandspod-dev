@@ -1250,3 +1250,34 @@ body.altar-modal-open {
 .altar-stage.is-selecting-ritual-items {
   cursor: crosshair;
 }
+
+.altar-object.is-ritual-selected {
+  outline: 3px solid rgba(185, 160, 93, 0.95);
+  outline-offset: 6px;
+  filter: drop-shadow(0 0 14px rgba(185, 160, 93, 0.75));
+}
+
+.altar-object.is-ritual-grouped {
+  outline: 2px solid rgba(111, 132, 101, 0.95);
+  outline-offset: 5px;
+}
+
+.altar-group-indicator {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 80;
+  max-width: min(320px, calc(100% - 2rem));
+  border: 1px solid rgba(185, 160, 93, 0.35);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  color: var(--gold);
+  background: rgba(8, 10, 8, 0.72);
+  font-size: 0.82rem;
+  font-style: italic;
+  backdrop-filter: blur(8px);
+}
+
+.altar-stage.is-selecting-ritual-items {
+  cursor: crosshair;
+}
