@@ -387,3 +387,23 @@ async function applyTemplateToCurrentPage() {
 
 updateMundaneModeUI();
 updateAuthState();
+
+/* =========================================================
+   ALTAR IMPORT
+   ========================================================= */
+
+window.addEventListener("load", () => {
+  const handoff = localStorage.getItem(ALTAR_GRIMOIRE_HANDOFF_KEY);
+
+  if (!handoff) return;
+
+  try {
+    const ritual = JSON.parse(handoff);
+
+    openAltarImportModal(ritual);
+
+  } catch (error) {
+    console.error(error);
+    localStorage.removeItem(ALTAR_GRIMOIRE_HANDOFF_KEY);
+  }
+});
