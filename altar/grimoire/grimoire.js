@@ -504,35 +504,74 @@ function renderShelf() {
 function renderSection(section) {
   const sectionPages = pages.filter((page) => page.section_id === section.id);
   const isCollapsed = section.is_collapsed === true;
+  const sectionIndex = sections.findIndex((item) => item.id === section.id);
 
   return `
     <section class="book-toc-section">
-      <button
-        class="book-section-title ${activeSectionId === section.id ? "is-active" : ""}"
-        type="button"
-        data-toggle-section="${section.id}">
-        <span>${isCollapsed ? "▸" : "▾"} ${escapeHtml(section.title)}</span>
-      </button>
+      <div class="book-section-row">
+        <button
+          class="book-section-title ${activeSectionId === section.id ? "is-active" : ""}"
+          type="button"
+          data-toggle-section="${section.id}">
+          <span>${isCollapsed ? "▸" : "▾"} ${escapeHtml(section.title)}</span>
+        </button>
+
+        <div class="book-toc-move-controls">
+          <button
+            type="button"
+            data-move-section-up="${section.id}"
+            ${sectionIndex === 0 ? "disabled" : ""}>
+            ↑
+          </button>
+
+          <button
+            type="button"
+            data-move-section-down="${section.id}"
+            ${sectionIndex === sections.length - 1 ? "disabled" : ""}>
+            ↓
+          </button>
+        </div>
+      </div>
 
       <div class="book-section-pages" ${isCollapsed ? "hidden" : ""}>
         ${
           sectionPages.length === 0
             ? `<p class="book-section-empty">No pages yet.</p>`
-            : sectionPages.map(renderShelfPageButton).join("")
+            : sectionPages.map((page, index) =>
+                renderShelfPageButton(page, sectionPages, index)
+              ).join("")
         }
       </div>
     </section>
   `;
 }
 
-function renderShelfPageButton(page) {
+function renderShelfPageButton(page, pageGroup = [], index = 0) {
   return `
-    <button
-      class="book-page-link ${currentPage && currentPage.id === page.id ? "is-active" : ""}"
-      type="button"
-      data-page-id="${page.id}">
-      ${escapeHtml(page.title)}
-    </button>
+    <div class="book-page-row">
+      <button
+        class="book-page-link ${currentPage && currentPage.id === page.id ? "is-active" : ""}"
+        type="button"
+        data-page-id="${page.id}">
+        ${escapeHtml(page.title)}
+      </button>
+
+      <div class="book-toc-move-controls">
+        <button
+          type="button"
+          data-move-page-up="${page.id}"
+          ${index === 0 ? "disabled" : ""}>
+          ↑
+        </button>
+
+        <button
+          type="button"
+          data-move-page-down="${page.id}"
+          ${index === pageGroup.length - 1 ? "disabled" : ""}>
+          ↓
+        </button>
+      </div>
+    </div>
   `;
 }
 
@@ -1715,6 +1754,95 @@ function applySearch() {
   `;
 }
 
+
+async function moveSection(sectionId, direction) {
+  const index = sections.findIndex((section) => section.id === sectionId);
+  if (index < 0) return;
+
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= sections.length) return;
+
+  const reordered = [...sections];
+  const [movedSection] = reordered.splice(index, 1);
+  reordered.splice(targetIndex, 0, movedSection);
+
+  sections = reordered.map((section, newIndex) => ({
+    ...section,
+    sort_order: newIndex
+  }));
+
+  renderShelf();
+
+  const jobs = sections.map((section) =>
+    db
+      .from("grimoire_sections")
+      .update({ sort_order: section.sort_order })
+      .eq("id", section.id)
+  );
+
+  const results = await Promise.all(jobs);
+  const failed = results.find((result) => result.error);
+
+  if (failed) {
+    setStatus(failed.error.message);
+    await loadSections();
+    renderShelf();
+    return;
+  }
+
+  flashStatus("Section moved.");
+}
+
+async function movePageInSection(pageId, direction) {
+  const page = pages.find((item) => item.id === pageId);
+  if (!page) return;
+
+  const pageGroup = pages
+    .filter((item) => item.section_id === page.section_id)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+  const index = pageGroup.findIndex((item) => item.id === pageId);
+  if (index < 0) return;
+
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= pageGroup.length) return;
+
+  const reorderedGroup = [...pageGroup];
+  const [movedPage] = reorderedGroup.splice(index, 1);
+  reorderedGroup.splice(targetIndex, 0, movedPage);
+
+  const updatedGroup = reorderedGroup.map((item, newIndex) => ({
+    ...item,
+    sort_order: newIndex
+  }));
+
+  pages = pages.map((item) => {
+    const updatedPage = updatedGroup.find((pageItem) => pageItem.id === item.id);
+    return updatedPage || item;
+  });
+
+  renderShelf();
+
+  const jobs = updatedGroup.map((item) =>
+    db
+      .from("grimoire_pages")
+      .update({ sort_order: item.sort_order })
+      .eq("id", item.id)
+  );
+
+  const results = await Promise.all(jobs);
+  const failed = results.find((result) => result.error);
+
+  if (failed) {
+    setStatus(failed.error.message);
+    await loadPages();
+    renderShelf();
+    return;
+  }
+
+  flashStatus("Page moved.");
+}
+
 /* =========================================================
    EVENTS
    ========================================================= */
@@ -1769,6 +1897,10 @@ document.addEventListener("click", async (event) => {
   const choosePageForBlockButton = event.target.closest("[data-choose-page-for-block]");
   const richButton = event.target.closest("[data-rich-command]");
   const closeModalButton = event.target.closest("[data-close-book-modal]");
+   const moveSectionUpButton = event.target.closest("[data-move-section-up]");
+   const moveSectionDownButton = event.target.closest("[data-move-section-down]");
+   const movePageUpButton = event.target.closest("[data-move-page-up]");
+   const movePageDownButton = event.target.closest("[data-move-page-down]");
 
   if (createSectionButton) {
     createSection();
@@ -1866,6 +1998,26 @@ document.addEventListener("click", async (event) => {
       closeBookModal(null);
     }
   }
+
+   if (moveSectionUpButton) {
+     moveSection(moveSectionUpButton.dataset.moveSectionUp, "up");
+     return;
+   }
+   
+   if (moveSectionDownButton) {
+     moveSection(moveSectionDownButton.dataset.moveSectionDown, "down");
+     return;
+   }
+   
+   if (movePageUpButton) {
+     movePageInSection(movePageUpButton.dataset.movePageUp, "up");
+     return;
+   }
+   
+   if (movePageDownButton) {
+     movePageInSection(movePageDownButton.dataset.movePageDown, "down");
+     return;
+   }
 });
 
 document.addEventListener("focusin", (event) => {
