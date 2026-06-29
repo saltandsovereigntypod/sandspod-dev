@@ -470,17 +470,23 @@ function renderShelf() {
     return;
   }
 
-  const loosePages = pages.filter((page) => !page.section_id);
+  const sortedSections = [...sections].sort(
+    (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+  );
+
+  const loosePages = pages
+    .filter((page) => !page.section_id)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   grimoireShelf.innerHTML = `
     <div class="book-section-list">
       ${
-        sections.length === 0 && loosePages.length === 0
+        sortedSections.length === 0 && loosePages.length === 0
           ? `<p class="book-note">Your book is blank. Begin with a section or page.</p>`
           : ""
       }
 
-      ${sections.map(renderSection).join("")}
+      ${sortedSections.map(renderSection).join("")}
 
       ${
         loosePages.length > 0
@@ -491,7 +497,9 @@ function renderShelf() {
               </button>
 
               <div class="book-section-pages">
-                ${loosePages.map(renderShelfPageButton).join("")}
+                ${loosePages
+                  .map((page, index) => renderShelfPageButton(page, loosePages, index))
+                  .join("")}
               </div>
             </section>
           `
@@ -502,9 +510,16 @@ function renderShelf() {
 }
 
 function renderSection(section) {
-  const sectionPages = pages.filter((page) => page.section_id === section.id);
+  const sortedSections = [...sections].sort(
+    (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+  );
+
+  const sectionPages = pages
+    .filter((page) => page.section_id === section.id)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
   const isCollapsed = section.is_collapsed === true;
-  const sectionIndex = sections.findIndex((item) => item.id === section.id);
+  const sectionIndex = sortedSections.findIndex((item) => item.id === section.id);
 
   return `
     <section class="book-toc-section">
@@ -527,7 +542,7 @@ function renderSection(section) {
           <button
             type="button"
             data-move-section-down="${section.id}"
-            ${sectionIndex === sections.length - 1 ? "disabled" : ""}>
+            ${sectionIndex === sortedSections.length - 1 ? "disabled" : ""}>
             ↓
           </button>
         </div>
@@ -537,9 +552,9 @@ function renderSection(section) {
         ${
           sectionPages.length === 0
             ? `<p class="book-section-empty">No pages yet.</p>`
-            : sectionPages.map((page, index) =>
-                renderShelfPageButton(page, sectionPages, index)
-              ).join("")
+            : sectionPages
+                .map((page, index) => renderShelfPageButton(page, sectionPages, index))
+                .join("")
         }
       </div>
     </section>
