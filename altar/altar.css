@@ -1240,3 +1240,13 @@
 body.altar-modal-open {
   overflow: hidden;
 }
+
+.altar-object.is-ritual-selected {
+  outline: 3px solid rgba(185, 160, 93, 0.95);
+  outline-offset: 6px;
+  filter: drop-shadow(0 0 14px rgba(185, 160, 93, 0.75));
+}
+
+.altar-stage.is-selecting-ritual-items {
+  cursor: crosshair;
+}
