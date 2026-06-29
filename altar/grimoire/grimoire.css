@@ -101,15 +101,18 @@
   scrollbar-color: rgba(185, 160, 93, 0.45) transparent;
 }
 
-.book-toc::-webkit-scrollbar {
+.book-toc::-webkit-scrollbar,
+.book-page::-webkit-scrollbar {
   width: 6px;
 }
 
-.book-toc::-webkit-scrollbar-track {
+.book-toc::-webkit-scrollbar-track,
+.book-page::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.book-toc::-webkit-scrollbar-thumb {
+.book-toc::-webkit-scrollbar-thumb,
+.book-page::-webkit-scrollbar-thumb {
   background: rgba(185, 160, 93, 0.45);
   border-radius: 999px;
 }
@@ -187,6 +190,10 @@
   cursor: pointer;
 }
 
+.book-section-title span {
+  display: inline-block;
+}
+
 .book-section-title:hover,
 .book-section-title:focus-visible,
 .book-section-title.is-active {
@@ -197,6 +204,10 @@
   display: grid;
   gap: 0.25rem;
   padding-left: 1rem;
+}
+
+.book-section-pages[hidden] {
+  display: none;
 }
 
 .book-section-empty {
@@ -224,12 +235,14 @@
 }
 
 /* =========================================================
-   READING PAGE
+   BOOK PAGE
    ========================================================= */
 
 .book-page {
   position: relative;
   min-height: 680px;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   border: 1px solid rgba(185, 160, 93, 0.38);
   border-radius: 1.2rem;
@@ -238,6 +251,8 @@
     radial-gradient(circle at 14% 95%, rgba(111, 132, 101, 0.14), transparent 18rem),
     linear-gradient(145deg, rgba(28, 24, 18, 0.95), rgba(10, 13, 10, 0.98));
   box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 160, 93, 0.45) transparent;
 }
 
 .book-page::before {
@@ -323,6 +338,10 @@
   margin-inline: auto;
 }
 
+/* =========================================================
+   READER MODE
+   ========================================================= */
+
 .book-reader-page {
   max-width: 760px;
   margin: 0 auto;
@@ -371,6 +390,17 @@
   font-size: clamp(2rem, 4vw, 3.4rem);
 }
 
+.book-reader-body ul,
+.book-reader-body ol {
+  color: var(--muted);
+  line-height: 1.9;
+  padding-left: 1.4rem;
+}
+
+.book-reader-body li {
+  margin-bottom: 0.35rem;
+}
+
 .book-reader-body blockquote {
   max-width: 64ch;
   margin: 2.5rem 0;
@@ -390,6 +420,119 @@
 .book-placeholder {
   text-align: center;
   font-style: italic;
+}
+
+/* =========================================================
+   SPECIAL READER ELEMENTS
+   ========================================================= */
+
+.book-callout,
+.book-correspondence,
+.book-ingredient-list,
+.book-linked-pages,
+.book-image {
+  margin: 2rem 0;
+  border: 1px solid rgba(185, 160, 93, 0.3);
+  border-radius: 0.95rem;
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.11), transparent 14rem),
+    rgba(8, 10, 8, 0.32);
+}
+
+.book-callout {
+  padding: 1.35rem 1.5rem;
+  border-left: 3px solid var(--gold);
+}
+
+.book-callout p {
+  margin: 0;
+  color: var(--cream);
+  font-style: italic;
+}
+
+.book-correspondence {
+  padding: 1.25rem 1.4rem;
+  color: var(--cream);
+  line-height: 1.85;
+  white-space: pre-line;
+}
+
+.book-ingredient-list {
+  padding: 1.25rem 1.4rem;
+}
+
+.book-ingredient-list h3 {
+  margin-bottom: 0.75rem;
+  color: var(--gold);
+  font-size: 1.6rem;
+}
+
+.book-checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.book-checklist li {
+  position: relative;
+  padding-left: 1.7rem;
+}
+
+.book-checklist li::before {
+  content: "☐";
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+}
+
+.book-image {
+  overflow: hidden;
+}
+
+.book-image img {
+  width: 100%;
+  display: block;
+}
+
+.book-image figcaption {
+  padding: 0.75rem 1rem 1rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.book-inline-link button,
+.book-linked-pages button {
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 999px;
+  padding: 0.5rem 0.85rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  cursor: pointer;
+}
+
+.book-inline-link button:hover,
+.book-inline-link button:focus-visible,
+.book-linked-pages button:hover,
+.book-linked-pages button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+.book-linked-pages {
+  padding: 1.25rem 1.4rem;
+}
+
+.book-linked-pages h2 {
+  margin-top: 0;
+  font-size: 2rem;
+}
+
+.book-linked-pages div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
 /* =========================================================
@@ -435,12 +578,20 @@
 }
 
 .book-edit-element {
+  position: relative;
   display: grid;
-  gap: 0.6rem;
+  gap: 0.75rem;
   padding: 1rem;
   border: 1px solid rgba(185, 160, 93, 0.22);
   border-radius: 0.85rem;
-  background: rgba(8, 10, 8, 0.34);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.07), transparent 12rem),
+    rgba(8, 10, 8, 0.34);
+}
+
+.book-edit-element:focus-within {
+  border-color: rgba(185, 160, 93, 0.5);
+  box-shadow: 0 0 0 2px rgba(185, 160, 93, 0.08);
 }
 
 .book-edit-element label {
@@ -453,7 +604,6 @@
 }
 
 .book-edit-element button {
-  justify-self: end;
   border: 1px solid rgba(244, 236, 216, 0.18);
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
@@ -470,17 +620,126 @@
   color: var(--cream);
 }
 
-.book-add-elements {
+.book-edit-element button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.book-edit-element--divider {
+  text-align: center;
+}
+
+.book-element-controls {
   display: flex;
-  justify-content: center;
-  gap: 0.55rem;
+  justify-content: flex-end;
+  gap: 0.4rem;
   flex-wrap: wrap;
+}
+
+.book-element-controls button {
+  min-width: 2rem;
+}
+
+/* =========================================================
+   RICH TEXT EDITOR
+   ========================================================= */
+
+.book-rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 999px;
+  background: rgba(8, 10, 8, 0.32);
+  width: fit-content;
+}
+
+.book-rich-toolbar button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  border: 1px solid rgba(244, 236, 216, 0.18);
+  border-radius: 999px;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.book-rich-toolbar button:hover,
+.book-rich-toolbar button:focus-visible {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.book-rich-input {
+  min-height: 7rem;
+  width: 100%;
+  padding: 0.9rem;
+  border: 1px solid rgba(194, 200, 196, 0.24);
+  border-radius: 0.45rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.07);
+  line-height: 1.8;
+  outline: none;
+}
+
+.book-rich-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(185, 160, 93, 0.08);
+}
+
+.book-rich-heading {
+  min-height: 4rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.book-rich-callout {
+  min-height: 5rem;
+  border-left: 3px solid var(--gold);
+  font-style: italic;
+}
+
+/* =========================================================
+   ADD ELEMENTS
+   ========================================================= */
+
+.book-add-elements {
+  display: grid;
+  gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(185, 160, 93, 0.18);
 }
 
-.book-add-elements button {
+.book-element-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.book-element-group p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.book-element-group div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.book-add-elements button,
+.book-element-group button {
   border: 1px solid rgba(185, 160, 93, 0.32);
   border-radius: 999px;
   padding: 0.55rem 0.85rem;
@@ -491,7 +750,9 @@
 }
 
 .book-add-elements button:hover,
-.book-add-elements button:focus-visible {
+.book-add-elements button:focus-visible,
+.book-element-group button:hover,
+.book-element-group button:focus-visible {
   border-color: var(--gold);
   color: var(--cream);
 }
@@ -531,6 +792,92 @@
 }
 
 /* =========================================================
+   MODALS
+   ========================================================= */
+
+.book-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 5, 4, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.book-modal {
+  width: min(640px, 100%);
+  max-height: min(720px, calc(100vh - 2rem));
+  overflow-y: auto;
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 18rem),
+    linear-gradient(145deg, rgba(31, 24, 17, 0.98), rgba(8, 7, 5, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.7);
+}
+
+.book-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(185, 160, 93, 0.2);
+}
+
+.book-modal h2 {
+  max-width: none;
+  margin: 0;
+  color: var(--cream);
+  font-size: 2.3rem;
+}
+
+.book-modal header button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.18);
+  border-radius: 999px;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  cursor: pointer;
+}
+
+.book-modal-body {
+  padding: 1.25rem;
+}
+
+.book-template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.book-template-grid button {
+  min-height: 4rem;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 0.85rem;
+  padding: 0.85rem;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.12), transparent 10rem),
+    rgba(8, 10, 8, 0.38);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.book-template-grid button:hover,
+.book-template-grid button:focus-visible {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* =========================================================
    STATUS
    ========================================================= */
 
@@ -556,6 +903,10 @@
 
   .book-toc {
     position: static;
+    max-height: none;
+  }
+
+  .book-page {
     max-height: none;
   }
 }
@@ -598,27 +949,16 @@
   }
 
   .book-editor-actions,
-  .book-add-elements {
+  .book-element-group div {
     display: grid;
   }
-}
 
-.book-page {
-  max-height: calc(100vh - 8rem);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(185, 160, 93, 0.45) transparent;
-}
+  .book-rich-toolbar {
+    border-radius: 0.9rem;
+    width: 100%;
+  }
 
-.book-page::-webkit-scrollbar {
-  width: 6px;
-}
-
-.book-page::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.book-page::-webkit-scrollbar-thumb {
-  background: rgba(185, 160, 93, 0.45);
-  border-radius: 999px;
+  .book-template-grid {
+    grid-template-columns: 1fr;
+  }
 }
