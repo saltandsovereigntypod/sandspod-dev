@@ -1183,9 +1183,16 @@ function groupSelectedRitualItems() {
     items: currentGroupObjects.map(altarObjectToRitualItem)
   };
 
-  clearRitualSelection();
-  updateGroupIndicator();
-  showAltarToast("Group created");
+   selectedRitualItems.forEach((object) => {
+     object.classList.remove("is-ritual-selected");
+   });
+   
+   selectedRitualItems = [];
+   altarSelectionMode = false;
+   altarStage.classList.remove("is-selecting-ritual-items");
+   
+   updateGroupIndicator();
+   showAltarToast("Group created");
 }
 
 function sendCurrentGroupToGrimoire() {
