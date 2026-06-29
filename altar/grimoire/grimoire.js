@@ -11,6 +11,7 @@ const grimoireHeading = document.querySelector("[data-grimoire-heading]");
 const entrySearch = document.querySelector("[data-entry-search]");
 const grimoireShelf = document.querySelector("[data-grimoire-toc]");
 const editToggleButton = document.querySelector("[data-toggle-edit]");
+const mundaneToggle = document.querySelector("[data-mundane-toggle]");
 
 let currentBook = null;
 let sections = [];
@@ -23,6 +24,7 @@ let pageMode = "read";
 let searchTerm = "";
 let autosaveTimers = {};
 let activeRichEditor = null;
+let mundaneMode = localStorage.getItem("saltMundaneMode") === "true";
 
 const ELEMENT_TYPES = [
   { type: "text", label: "Paragraph", group: "Writing" },
@@ -687,7 +689,7 @@ function renderReader() {
   entryList.innerHTML = `
     <section class="book-reader-page">
       <header class="book-reader-header">
-        <h1>${escapeHtml(currentPage.title)}</h1>
+        <h1>${escapeHtml(getDisplayPageTitle())}</h1>
         <p class="book-reader-date">${formatDate(currentPage.created_at)}</p>
         <div class="book-reader-divider">✦ ☽ ✦ ☾ ✦</div>
       </header>
@@ -1858,6 +1860,46 @@ async function movePageInSection(pageId, direction) {
   flashStatus("Page moved.");
 }
 
+function updateMundaneModeUI() {
+  document.body.classList.toggle("is-mundane-mode", mundaneMode);
+
+  if (mundaneToggle) {
+    mundaneToggle.checked = mundaneMode;
+  }
+
+  const coverEyebrow = document.querySelector(".grimoire-cover .eyebrow");
+  const coverTitle = document.querySelector(".grimoire-cover h1");
+  const coverText = document.querySelector(".grimoire-cover p");
+
+  if (coverEyebrow) {
+    coverEyebrow.textContent = mundaneMode ? "Private Journal" : "Private Grimoire";
+  }
+
+  if (coverTitle) {
+    coverTitle.textContent = mundaneMode ? "Personal Journal" : "Book of Shadows";
+  }
+
+  if (coverText) {
+    coverText.textContent = mundaneMode
+      ? "A private place for personal notes, reflections, and daily writing."
+      : "A living archive of your practice. Create your own sections, turn to your own pages, and let the book become what your path requires.";
+  }
+
+  if (currentPage) {
+    renderPage();
+  }
+}
+
+function getDisplayPageTitle() {
+  if (!currentPage) return "Welcome";
+
+  if (mundaneMode) {
+    return formatDate(currentPage.created_at) || "Journal Entry";
+  }
+
+  return currentPage.title;
+}
+
 /* =========================================================
    EVENTS
    ========================================================= */
@@ -2082,5 +2124,17 @@ document.addEventListener("input", (event) => {
 
 document.addEventListener("saltAuthChanged", updateAuthState);
 document.addEventListener("saltAuthSuccess", updateAuthState);
+
+if (mundaneToggle) {
+  mundaneToggle.checked = mundaneMode;
+
+  mundaneToggle.addEventListener("change", () => {
+    mundaneMode = mundaneToggle.checked;
+    localStorage.setItem("saltMundaneMode", String(mundaneMode));
+    updateMundaneModeUI();
+  });
+}
+
+updateMundaneModeUI();
 
 updateAuthState();
