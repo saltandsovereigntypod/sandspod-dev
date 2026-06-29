@@ -1077,7 +1077,7 @@ altarGlobalControls.addEventListener("click", (event) => {
   const action = button.dataset.globalAction;
 
    if (action === "open-book") {
-     window.location.href = "grimoire/";
+     window.location.href = "../grimoire/index.html";
      return;
    }
    
