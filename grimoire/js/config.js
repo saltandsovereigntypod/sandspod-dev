@@ -3,6 +3,8 @@
    File: grimoire/js/config.js
    ========================================================= */
 
+const ALTAR_GRIMOIRE_HANDOFF_KEY = "saltAndSovereigntyAltarToGrimoire";
+
 const ELEMENT_TYPES = [
   { type: "text", label: "Paragraph", group: "Writing" },
   { type: "heading", label: "Heading", group: "Writing" },
@@ -16,6 +18,17 @@ const ELEMENT_TYPES = [
   { type: "image", label: "Image", group: "Media & Links" },
   { type: "page_link", label: "Page Link", group: "Media & Links" }
 ];
+
+const ALTAR_IMPORT_TYPE_LABELS = {
+  candle: "Candles",
+  herb: "Herbs",
+  oil: "Oils",
+  crystal: "Crystals",
+  deity: "Deities",
+  vessel: "Vessels",
+  tool: "Tools",
+  item: "Other Items"
+};
 
 const PAGE_TEMPLATES = {
   blank: {
