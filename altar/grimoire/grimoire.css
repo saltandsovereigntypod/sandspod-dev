@@ -1099,3 +1099,32 @@ body.is-mundane-mode .book-page {
     radial-gradient(circle at 82% 10%, rgba(244, 236, 216, 0.08), transparent 14rem),
     linear-gradient(145deg, rgba(24, 23, 20, 0.96), rgba(12, 13, 12, 0.98));
 }
+
+body.is-mundane-mode .book-reader-body h2,
+body.is-mundane-mode .book-reader-divider {
+  display: none;
+}
+
+body.is-mundane-mode .book-reader-header h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+}
+
+body.is-mundane-mode .book-reader-header h1::before {
+  content: "Journal Entry";
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+body.is-mundane-mode .book-reader-date {
+  display: block;
+}
+
+body.is-mundane-mode .book-reader-body {
+  margin-top: 2rem;
+}
