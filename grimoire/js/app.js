@@ -339,6 +339,140 @@ async function choosePageForBlock(blockId) {
 }
 
 /* =========================================================
+   ALTAR IMPORT TO RITUAL PAGE
+   ========================================================= */
+
+function formatAltarImportItems(items = []) {
+  const groupedItems = {};
+
+  items.forEach((item) => {
+    const type = item.type || "item";
+    const label = ALTAR_IMPORT_TYPE_LABELS[type] || "Other Items";
+
+    if (!groupedItems[label]) {
+      groupedItems[label] = [];
+    }
+
+    groupedItems[label].push(item);
+  });
+
+  return Object.entries(groupedItems)
+    .map(([groupLabel, groupItems]) => {
+      const itemLines = groupItems
+        .map((item) => {
+          const parts = [];
+
+          if (item.label) parts.push(item.label);
+          if (item.color) parts.push(`Color: ${item.color}`);
+          if (item.form) parts.push(`Form: ${item.form}`);
+
+          return parts.join(" · ");
+        })
+        .join("\n");
+
+      return {
+        groupLabel,
+        content: itemLines
+      };
+    })
+    .filter((group) => group.content.trim());
+}
+
+async function createRitualPageFromAltarImport(ritual, purpose = "") {
+  const user = requireUser();
+
+  if (!user || !currentBook) {
+    setStatus("Sign in to create a ritual page.");
+    return;
+  }
+
+  const title = ritual.name || "Ritual Working";
+  const groupedItems = formatAltarImportItems(ritual.items || []);
+
+  const { data: page, error } = await db
+    .from("grimoire_pages")
+    .insert({
+      user_id: user.id,
+      book_id: currentBook.id,
+      section_id: activeSectionId || null,
+      title,
+      icon: "",
+      page_type: "ritual",
+      sort_order: pages.length
+    })
+    .select()
+    .single();
+
+  if (error) {
+    setStatus(error.message);
+    return;
+  }
+
+  pages.push(page);
+  currentPage = page;
+
+  const ritualBlocks = [
+    { type: "heading", content: "Date" },
+    { type: "text", content: formatDate(new Date().toISOString()) },
+
+    { type: "heading", content: "Purpose" },
+    { type: "text", content: purpose || "" },
+
+    { type: "heading", content: "Items from the Altar" }
+  ];
+
+  groupedItems.forEach((group) => {
+    ritualBlocks.push({
+      type: "heading",
+      content: group.groupLabel
+    });
+
+    ritualBlocks.push({
+      type: "ingredient_list",
+      content: group.content
+    });
+  });
+
+  ritualBlocks.push(
+    { type: "heading", content: "Ritual Steps" },
+    { type: "numbered_list", content: "" },
+    { type: "heading", content: "Results" },
+    { type: "text", content: "" },
+    { type: "heading", content: "Reflection" },
+    { type: "text", content: "" }
+  );
+
+  const rows = ritualBlocks.map((block, index) => ({
+    user_id: user.id,
+    book_id: currentBook.id,
+    page_id: page.id,
+    block_type: block.type,
+    content: block.content || "",
+    metadata: {},
+    rich_content: null,
+    sort_order: index
+  }));
+
+  const { data: blocks, error: blockError } = await db
+    .from("grimoire_blocks")
+    .insert(rows)
+    .select();
+
+  if (blockError) {
+    setStatus(blockError.message);
+    return;
+  }
+
+  currentBlocks = blocks || [];
+  pageLinks = [];
+
+  renderShelf();
+  await openPage(page.id, "edit");
+
+  flashStatus("Ritual page created.");
+}
+
+/* =========================================================
    TEMPLATES
    ========================================================= */
 
