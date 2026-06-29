@@ -27,16 +27,15 @@ let activeRichEditor = null;
 const ELEMENT_TYPES = [
   { type: "text", label: "Paragraph", group: "Writing" },
   { type: "heading", label: "Heading", group: "Writing" },
-  { type: "quote", label: "Quote", group: "Writing" },
-  { type: "callout", label: "Callout", group: "Writing" },
+  { type: "callout", label: "Note / Quote", group: "Writing" },
   { type: "divider", label: "Divider", group: "Structure" },
   { type: "checklist", label: "Checklist", group: "Structure" },
   { type: "bulleted_list", label: "Bulleted List", group: "Structure" },
   { type: "numbered_list", label: "Numbered List", group: "Structure" },
   { type: "ingredient_list", label: "Ingredient List", group: "Magical" },
   { type: "correspondence", label: "Correspondence", group: "Magical" },
-  { type: "image", label: "Image", group: "Media" },
-  { type: "page_link", label: "Page Link", group: "Links" }
+  { type: "image", label: "Image", group: "Media & Links" },
+  { type: "page_link", label: "Page Link", group: "Media & Links" }
 ];
 
 const PAGE_TEMPLATES = {
@@ -845,29 +844,37 @@ function renderEditor() {
 function renderElementButtons() {
   const groups = [...new Set(ELEMENT_TYPES.map((item) => item.group))];
 
-  return groups
-    .map((group) => {
-      const groupItems = ELEMENT_TYPES.filter((item) => item.group === group);
+  return `
+    <details class="book-add-drawer">
+      <summary>✦ Add Page Element</summary>
 
-      return `
-        <div class="book-element-group">
-          <p>${group}</p>
+      <div class="book-add-drawer-panel">
+        ${groups
+          .map((group) => {
+            const groupItems = ELEMENT_TYPES.filter((item) => item.group === group);
 
-          <div>
-            ${groupItems
-              .map(
-                (item) => `
-                  <button type="button" data-add-block-type="${item.type}">
-                    + ${item.label}
-                  </button>
-                `
-              )
-              .join("")}
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+            return `
+              <div class="book-element-group">
+                <p>${group}</p>
+
+                <div>
+                  ${groupItems
+                    .map(
+                      (item) => `
+                        <button type="button" data-add-block-type="${item.type}">
+                          + ${item.label}
+                        </button>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </details>
+  `;
 }
 
 function renderEditableElement(block, index) {
