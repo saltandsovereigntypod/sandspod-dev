@@ -1449,8 +1449,14 @@ body.altar-modal-open {
 }
 
 .altar-cabinet-content {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
   gap: 0.65rem !important;
+  align-items: flex-start;
+}
+
+.cabinet-card {
+  flex: 0 0 320px !important;
 }
 
 @media (max-width: 700px) {
