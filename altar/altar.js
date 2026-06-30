@@ -78,7 +78,7 @@ altarActionBar.innerHTML = `
 
   <div class="altar-action-group">
     <button type="button" data-global-action="select-ritual-items">☑ Select</button>
-    <button type="button" data-global-action="manage-groups">🗂 Groups</button>
+    <button type="button" data-global-action="group-ritual-items">🗂 Group</button>
     <button type="button" data-global-action="send-group-to-grimoire">📖 Record</button>
   </div>
 
@@ -422,6 +422,8 @@ function keepObjectInsideStage(object) {
 
   object.style.left = `${x}px`;
   object.style.top = `${y}px`;
+
+  updateObjectPositionPercent(object);
 }
 
 function resizeObject(object, amount) {
@@ -437,6 +439,8 @@ function resizeObject(object, amount) {
 
   updateObjectTransform(object);
   keepObjectInsideStage(object);
+
+  updateObjectPositionPercent(object);
 }
 
 function rotateObject(object) {
