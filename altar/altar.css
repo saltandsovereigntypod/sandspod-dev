@@ -757,9 +757,9 @@
 
 @media (max-width: 700px) {
   .altar-page .site-header {
-    position: static;
-    min-height: auto;
-  }
+     position: static !important;
+     min-height: auto;
+   }
 
   .altar-page .nav {
     min-height: 3.25rem;
