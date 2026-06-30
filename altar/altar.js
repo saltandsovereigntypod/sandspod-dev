@@ -699,14 +699,6 @@ function deselectObject() {
   updateSelectedGroupVisuals(null);
 }
 
-  selectedObject = null;
-  toolbar.hidden = true;
-
-  updateToolbarNotes(null);
-  hideAltarInfoCard();
-  updateSelectedGroupVisuals(object);
-}
-
 
 /* =========================================================
    9. OBJECT TRANSFORMS
