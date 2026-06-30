@@ -1123,3 +1123,19 @@ body.altar-modal-open {
 path = Path('/mnt/data/altar-clean.css')
 path.write_text(css)
 print(path)
+
+.cabinet-tab {
+  min-height: 2.45rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+.cabinet-tab span {
+  font-size: 1rem;
+}
+
+.altar-cabinet-tabs {
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 0.35rem;
+}
