@@ -322,7 +322,7 @@
 }
 
 .altar-object.is-lit[data-type="candle"]::before {
-  top: 8%;
+  top: 1%;
   width: 6%;
   height: 8%;
   transform: translateX(-50%);
@@ -337,7 +337,7 @@
 }
 
 .altar-object.is-lit[data-type="candle"]::after {
-  top: 8%;
+  top: 1%;
   width: 8%;
   height: 15%;
   border-radius: 50% 50% 45% 45%;
