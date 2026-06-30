@@ -793,8 +793,8 @@ body.altar-modal-open {
   filter: drop-shadow(0 0 14px rgba(185, 160, 93, 0.75));
 }
 
-.altar-object.is-ritual-grouped {
-  outline: 2px solid rgba(111, 132, 101, 0.95);
+.altar-object.is-group-active {
+  outline: 2px solid rgba(185, 160, 93, 0.45);
   outline-offset: 5px;
 }
 
