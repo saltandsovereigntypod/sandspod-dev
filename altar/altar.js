@@ -451,7 +451,6 @@ function renderCabinetItems() {
         return `
           <article class="cabinet-card">
             <div class="cabinet-card-main">
-              <span class="cabinet-card-icon">${item.icon}</span>
               <div>
                 <h3>${item.name}</h3>
                 ${keywords ? `<div class="cabinet-keywords">${keywords}</div>` : ""}
@@ -472,7 +471,6 @@ function renderCabinetItems() {
       return `
         <article class="cabinet-card">
           <div class="cabinet-card-main">
-            <span class="cabinet-card-icon">${item.icon}</span>
             <div>
               <h3>${item.name}</h3>
               ${keywords ? `<div class="cabinet-keywords">${keywords}</div>` : ""}
