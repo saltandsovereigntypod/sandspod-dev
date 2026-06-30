@@ -296,7 +296,6 @@ const cabinetItems = [
     forms: [
       { label: "Sprig", image: "../assets/altar/objects/herbs/rosemary/rosemary-sprig.png", type: "herb", herb: "rosemary", form: "sprig" },
       { label: "Loose", image: "../assets/altar/objects/herbs/rosemary/rosemary-loose.png", type: "herb", herb: "rosemary", form: "loose" },
-      { label: "Powder", image: "../assets/altar/objects/herbs/rosemary/rosemary-powder.png", type: "herb", herb: "rosemary", form: "powder" },
       { label: "Oil", image: "../assets/altar/objects/herbs/rosemary/rosemary-oil.png", type: "oil", herb: "rosemary", form: "oil" }
     ]
   },
@@ -308,7 +307,6 @@ const cabinetItems = [
     forms: [
       { label: "Sprig", image: "../assets/altar/objects/herbs/lavender/lavender-sprig.png", type: "herb", herb: "lavender", form: "sprig" },
       { label: "Loose", image: "../assets/altar/objects/herbs/lavender/lavender-loose.png", type: "herb", herb: "lavender", form: "loose" },
-      { label: "Powder", image: "../assets/altar/objects/herbs/lavender/lavender-powder.png", type: "herb", herb: "lavender", form: "powder" },
       { label: "Oil", image: "../assets/altar/objects/herbs/lavender/lavender-oil.png", type: "oil", herb: "lavender", form: "oil" }
     ]
   },
@@ -320,7 +318,6 @@ const cabinetItems = [
     forms: [
       { label: "Sprig", image: "../assets/altar/objects/herbs/mugwort/mugwort-sprig.png", type: "herb", herb: "mugwort", form: "sprig" },
       { label: "Loose", image: "../assets/altar/objects/herbs/mugwort/mugwort-loose.png", type: "herb", herb: "mugwort", form: "loose" },
-      { label: "Powder", image: "../assets/altar/objects/herbs/mugwort/mugwort-powder.png", type: "herb", herb: "mugwort", form: "powder" },
       { label: "Oil", image: "../assets/altar/objects/herbs/mugwort/mugwort-oil.png", type: "oil", herb: "mugwort", form: "oil" }
     ]
   },
@@ -332,7 +329,6 @@ const cabinetItems = [
     forms: [
       { label: "Sprig", image: "../assets/altar/objects/herbs/bay-leaf/bay-sprig.png", type: "herb", herb: "bay leaf", form: "sprig" },
       { label: "Loose", image: "../assets/altar/objects/herbs/bay-leaf/bay-loose.png", type: "herb", herb: "bay leaf", form: "loose" },
-      { label: "Powder", image: "../assets/altar/objects/herbs/bay-leaf/bay-powder.png", type: "herb", herb: "bay leaf", form: "powder" },
       { label: "Oil", image: "../assets/altar/objects/herbs/bay-leaf/bay-oil.png", type: "oil", herb: "bay leaf", form: "oil" }
     ]
   },
@@ -346,7 +342,6 @@ const cabinetItems = [
       { label: "Point", image: "../assets/altar/objects/crystals/amethyst/amethyst-point.png", type: "crystal", crystal: "amethyst", form: "point" },
       { label: "Chips", image: "../assets/altar/objects/crystals/amethyst/amethyst-chips.png", type: "crystal", crystal: "amethyst", form: "chips" },
       { label: "Cluster", image: "../assets/altar/objects/crystals/amethyst/amethyst-cluster.png", type: "crystal", crystal: "amethyst", form: "cluster" },
-      { label: "Polished", image: "../assets/altar/objects/crystals/amethyst/amethyst-polished.png", type: "crystal", crystal: "amethyst", form: "polished" }
     ]
   },
 
@@ -745,7 +740,8 @@ function resizeObject(object, amount) {
 
     let newScale = oldScale + amount;
     const maxScale = item.dataset.type === "cloth" ? 18 : 3;
-    newScale = Math.max(0.35, Math.min(newScale, maxScale));
+    const minScale = item.dataset.type === "candle" ? 0.18 : 0.35;
+    newScale = Math.max(minScale, Math.min(newScale, maxScale));
 
     item.dataset.scale = String(newScale);
     updateObjectTransform(item);
@@ -866,7 +862,7 @@ function canDressCandle(object) {
   const isOil = object.dataset.type === "oil";
   const isDressableHerb =
     object.dataset.type === "herb" &&
-    (object.dataset.form === "loose" || object.dataset.form === "powder");
+    object.dataset.form === "loose";
 
   return isOil || isDressableHerb;
 }
