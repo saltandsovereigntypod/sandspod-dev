@@ -1520,3 +1520,13 @@ body.altar-modal-open {
     width: min(16rem, calc(100% - 1rem)) !important;
   }
 }
+
+.altar-page .nav-links {
+  display: flex !important;
+  align-items: center;
+  gap: 1rem;
+}
+
+.altar-page .nav-links a {
+  display: inline-flex !important;
+}
