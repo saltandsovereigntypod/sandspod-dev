@@ -567,7 +567,6 @@ function showAltarInfoCard(object) {
   if (!altarInfoCard || !object) return;
 
   const label = object.dataset.label || "Altar Object";
-  const typeLabel = getObjectTypeLabel(object);
   const activeGroup = object.dataset.groupId
     ? altarGroups.find((group) => group.id === object.dataset.groupId)
     : null;
@@ -603,7 +602,7 @@ function showAltarInfoCard(object) {
   altarInfoCard.innerHTML = `
     <div class="altar-info-card-inner">
       <h3>${label}</h3>
-      <p class="altar-info-card-type">${typeLabel}</p>
+      ${object.dataset.grimoireKeywords ? `<p class="altar-info-card-type">${object.dataset.grimoireKeywords}</p>` : ""}
       ${groupMarkup}
       ${dressingMarkup}
     </div>
