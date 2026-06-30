@@ -736,20 +736,27 @@ function resizeObject(object, amount) {
   objectsToResize.forEach((item) => {
     if (item.dataset.locked === "true") return;
 
-    let scale = Number(item.dataset.scale || 1);
-    scale += amount;
+    const oldScale = Number(item.dataset.scale || 1);
+    const oldLeft = parseFloat(item.style.left) || 0;
+    const oldTop = parseFloat(item.style.top) || 0;
 
+    const centerX = oldLeft + (item.offsetWidth * oldScale) / 2;
+    const centerY = oldTop + (item.offsetHeight * oldScale) / 2;
+
+    let newScale = oldScale + amount;
     const maxScale = item.dataset.type === "cloth" ? 18 : 3;
-    scale = Math.max(0.35, Math.min(scale, maxScale));
+    newScale = Math.max(0.35, Math.min(newScale, maxScale));
 
-    item.dataset.scale = String(scale);
-
+    item.dataset.scale = String(newScale);
     updateObjectTransform(item);
+
+    item.style.left = `${centerX - (item.offsetWidth * newScale) / 2}px`;
+    item.style.top = `${centerY - (item.offsetHeight * newScale) / 2}px`;
+
     keepObjectInsideStage(item);
     updateObjectPositionPercent(item);
   });
 }
-
 function rotateObject(object) {
   if (!object || object.dataset.locked === "true") return;
 
