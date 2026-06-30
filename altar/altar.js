@@ -669,31 +669,40 @@ function dressCandle(candle) {
    ========================================================= */
 
 function getStagePositionPercent(object) {
+  const scale = Number(object.dataset.scale || 1);
   const leftPx = parseFloat(object.style.left) || 0;
   const topPx = parseFloat(object.style.top) || 0;
 
+  const centerX = leftPx + (object.offsetWidth * scale) / 2;
+  const centerY = topPx + (object.offsetHeight * scale) / 2;
+
   return {
-    leftPercent: altarStage.clientWidth ? leftPx / altarStage.clientWidth : 0,
-    topPercent: altarStage.clientHeight ? topPx / altarStage.clientHeight : 0
+    leftPercent: altarStage.clientWidth ? centerX / altarStage.clientWidth : 0,
+    topPercent: altarStage.clientHeight ? centerY / altarStage.clientHeight : 0
   };
 }
 
 function applyStagePositionPercent(object, savedObject) {
+  const scale = Number(savedObject.scale || object.dataset.scale || 1);
+
   const leftPercent =
     typeof savedObject.leftPercent === "number"
       ? savedObject.leftPercent
-      : (parseFloat(savedObject.left) || 0) / altarStage.clientWidth;
+      : 0.5;
 
   const topPercent =
     typeof savedObject.topPercent === "number"
       ? savedObject.topPercent
-      : (parseFloat(savedObject.top) || 0) / altarStage.clientHeight;
+      : 0.5;
 
   object.dataset.leftPercent = String(leftPercent);
   object.dataset.topPercent = String(topPercent);
 
-  object.style.left = `${leftPercent * altarStage.clientWidth}px`;
-  object.style.top = `${topPercent * altarStage.clientHeight}px`;
+  const centerX = leftPercent * altarStage.clientWidth;
+  const centerY = topPercent * altarStage.clientHeight;
+
+  object.style.left = `${centerX - (object.offsetWidth * scale) / 2}px`;
+  object.style.top = `${centerY - (object.offsetHeight * scale) / 2}px`;
 }
 
 function updateObjectPositionPercent(object) {
@@ -709,14 +718,11 @@ function repositionAllObjectsFromPercent() {
   if (!altarStage) return;
 
   altarStage.querySelectorAll(".altar-object").forEach((object) => {
-    const leftPercent = Number(object.dataset.leftPercent);
-    const topPercent = Number(object.dataset.topPercent);
-
-    if (Number.isFinite(leftPercent) && Number.isFinite(topPercent)) {
-      object.style.left = `${leftPercent * altarStage.clientWidth}px`;
-      object.style.top = `${topPercent * altarStage.clientHeight}px`;
-      keepObjectInsideStage(object);
-    }
+    applyStagePositionPercent(object, {
+      leftPercent: Number(object.dataset.leftPercent),
+      topPercent: Number(object.dataset.topPercent),
+      scale: object.dataset.scale || "1"
+    });
   });
 }
 
