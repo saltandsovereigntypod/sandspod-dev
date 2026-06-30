@@ -1218,6 +1218,7 @@ function loadAltarById(altarId) {
   });
 
   updateGroupIndicator();
+  syncGroupObjectClasses();
   updateEmptyMessage();
   closeSavedAltarsManager();
   showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
@@ -1661,12 +1662,30 @@ function ensureObjectId(object) {
   return object.dataset.altarObjectId;
 }
 
-function getGroupObjects(groupId) {
-  return Array.from(altarStage.querySelectorAll(`.altar-object[data-group-id="${groupId}"]`));
+function getGroupById(groupId) {
+  return altarGroups.find((group) => group.id === groupId) || null;
 }
 
 function getActiveGroup() {
-  return altarGroups.find((group) => group.id === activeGroupId) || null;
+  return getGroupById(activeGroupId);
+}
+
+function getGroupObjects(groupId) {
+  const group = getGroupById(groupId);
+
+  if (!group || !Array.isArray(group.objectIds)) return [];
+
+  return group.objectIds
+    .map((objectId) =>
+      altarStage.querySelector(`.altar-object[data-altar-object-id="${objectId}"]`)
+    )
+    .filter(Boolean);
+}
+
+function syncGroupObjectClasses() {
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    object.classList.toggle("is-ritual-grouped", Boolean(object.dataset.groupId));
+  });
 }
 
 function updateGroupIndicator() {
@@ -1732,16 +1751,20 @@ function groupSelectedRitualItems() {
 
   const groupId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
 
-  selectedRitualItems.forEach((object) => {
-    ensureObjectId(object);
+  const objectIds = selectedRitualItems.map((object) => {
+    const objectId = ensureObjectId(object);
+
     object.dataset.groupId = groupId;
     object.classList.remove("is-ritual-selected");
+
+    return objectId;
   });
 
   const newGroup = {
     id: groupId,
     name: groupName.trim() || "Ritual Working",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    objectIds
   };
 
   altarGroups.push(newGroup);
@@ -1751,6 +1774,7 @@ function groupSelectedRitualItems() {
   altarSelectionMode = false;
   altarStage.classList.remove("is-selecting-ritual-items");
 
+  syncGroupObjectClasses();
   updateGroupIndicator();
   showAltarToast("Group created");
 }
@@ -1759,15 +1783,14 @@ function ungroupCurrentItems() {
   const activeGroup = chooseActiveGroup();
   if (!activeGroup) return;
 
-  const groupObjects = getGroupObjects(activeGroup.id);
-
-  groupObjects.forEach((object) => {
+  getGroupObjects(activeGroup.id).forEach((object) => {
     delete object.dataset.groupId;
   });
 
   altarGroups = altarGroups.filter((group) => group.id !== activeGroup.id);
   activeGroupId = altarGroups.length > 0 ? altarGroups[0].id : null;
 
+  syncGroupObjectClasses();
   updateGroupIndicator();
   showAltarToast("Group removed");
 }
