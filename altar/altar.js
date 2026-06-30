@@ -603,11 +603,18 @@ function showAltarInfoCard(object) {
       `
       : "";
 
-  const groupMarkup = `
-    <div class="altar-info-card-section">
-      <p><strong>Group:</strong> ${activeGroup ? activeGroup.name : "None"}</p>
-    </div>
-  `;
+   const groupItems = activeGroup
+     ? getGroupObjects(activeGroup.id).map((item) => item.dataset.label || "Item")
+     : [];
+   
+   const groupMarkup = activeGroup
+     ? `
+       <div class="altar-info-card-section">
+         <p><strong>Group:</strong> ${activeGroup.name}</p>
+         <p>${groupItems.join(", ")}</p>
+       </div>
+     `
+     : "";
 
   altarInfoCard.innerHTML = `
     <div class="altar-info-card-inner">
@@ -676,13 +683,21 @@ function selectObject(object) {
 
   updateToolbarNotes(selectedObject);
   showAltarInfoCard(selectedObject);
+  updateSelectedGroupVisuals(selectedObject);
 }
 
 function deselectObject() {
   if (selectedObject) {
     selectedObject.classList.remove("is-selected");
-    updateSelectedGroupVisuals(null);
   }
+
+  selectedObject = null;
+  toolbar.hidden = true;
+
+  updateToolbarNotes(null);
+  hideAltarInfoCard();
+  updateSelectedGroupVisuals(null);
+}
 
   selectedObject = null;
   toolbar.hidden = true;
@@ -722,32 +737,25 @@ function keepObjectInsideStage(object) {
 function resizeObject(object, amount) {
   if (!object || object.dataset.locked === "true") return;
 
-  let scale = Number(object.dataset.scale || 1);
-  scale += amount;
+  const objectsToResize = object.dataset.groupId
+    ? getGroupObjects(object.dataset.groupId)
+    : [object];
 
-  const maxScale = object.dataset.type === "cloth" ? 18 : 3;
-  scale = Math.max(0.35, Math.min(scale, maxScale));
+  objectsToResize.forEach((item) => {
+    if (item.dataset.locked === "true") return;
 
-  object.dataset.scale = String(scale);
+    let scale = Number(item.dataset.scale || 1);
+    scale += amount;
 
-  updateObjectTransform(object);
-  keepObjectInsideStage(object);
+    const maxScale = item.dataset.type === "cloth" ? 18 : 3;
+    scale = Math.max(0.35, Math.min(scale, maxScale));
 
-  updateObjectPositionPercent(object);
-   if (object.dataset.groupId) {
-     getGroupObjects(object.dataset.groupId).forEach((groupObject) => {
-       if (groupObject === object || groupObject.dataset.locked === "true") return;
-   
-       let groupScale = Number(groupObject.dataset.scale || 1);
-       groupScale += amount;
-       groupScale = Math.max(0.35, Math.min(groupScale, 3));
-   
-       groupObject.dataset.scale = String(groupScale);
-       updateObjectTransform(groupObject);
-       keepObjectInsideStage(groupObject);
-       updateObjectPositionPercent(groupObject);
+    item.dataset.scale = String(scale);
+
+    updateObjectTransform(item);
+    keepObjectInsideStage(item);
+    updateObjectPositionPercent(item);
   });
-}
 }
 
 function rotateObject(object) {
