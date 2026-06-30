@@ -681,6 +681,7 @@ function selectObject(object) {
 function deselectObject() {
   if (selectedObject) {
     selectedObject.classList.remove("is-selected");
+    updateSelectedGroupVisuals(null);
   }
 
   selectedObject = null;
@@ -688,6 +689,7 @@ function deselectObject() {
 
   updateToolbarNotes(null);
   hideAltarInfoCard();
+  updateSelectedGroupVisuals(object);
 }
 
 
@@ -732,6 +734,20 @@ function resizeObject(object, amount) {
   keepObjectInsideStage(object);
 
   updateObjectPositionPercent(object);
+   if (object.dataset.groupId) {
+     getGroupObjects(object.dataset.groupId).forEach((groupObject) => {
+       if (groupObject === object || groupObject.dataset.locked === "true") return;
+   
+       let groupScale = Number(groupObject.dataset.scale || 1);
+       groupScale += amount;
+       groupScale = Math.max(0.35, Math.min(groupScale, 3));
+   
+       groupObject.dataset.scale = String(groupScale);
+       updateObjectTransform(groupObject);
+       keepObjectInsideStage(groupObject);
+       updateObjectPositionPercent(groupObject);
+  });
+}
 }
 
 function rotateObject(object) {
@@ -1161,9 +1177,6 @@ function createSavedObject(savedObject) {
     `${savedObject.label || "Object"}. Click to select. Drag to move. Double click to remove.`
   );
 
-  applyStagePositionPercent(object, savedObject);
-  updateObjectTransform(object);
-
   if (object.dataset.glowing === "true") {
     object.classList.add("has-glow");
   }
@@ -1214,6 +1227,8 @@ function loadAltarById(altarId) {
   (altarData.objects || []).forEach((savedObject) => {
     const object = createSavedObject(savedObject);
     altarStage.appendChild(object);
+    applyStagePositionPercent(object, savedObject);
+    updateObjectTransform(object);
     keepObjectInsideStage(object);
   });
 
@@ -1684,7 +1699,21 @@ function getGroupObjects(groupId) {
 
 function syncGroupObjectClasses() {
   altarStage.querySelectorAll(".altar-object").forEach((object) => {
-    object.classList.toggle("is-ritual-grouped", Boolean(object.dataset.groupId));
+    object.classList.remove("is-ritual-grouped", "is-group-active");
+  });
+}
+
+function updateSelectedGroupVisuals(object) {
+  altarStage.querySelectorAll(".altar-object").forEach((item) => {
+    item.classList.remove("is-group-active");
+  });
+
+  if (!object || !object.dataset.groupId) return;
+
+  getGroupObjects(object.dataset.groupId).forEach((groupObject) => {
+    if (groupObject !== object) {
+      groupObject.classList.add("is-group-active");
+    }
   });
 }
 
