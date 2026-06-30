@@ -484,7 +484,7 @@ function renderCabinetItems() {
               .map((form) => `
                 <button
                   type="button"
-                  class="cabinet-form-button altar-item"
+                  class="cabinet-form-button"
                   data-image="${form.image || ""}"
                   data-label="${form.label === "Place" ? item.name : `${item.name} ${form.label}`}"
                   data-type="${form.type || ""}"
@@ -1835,7 +1835,7 @@ if (altarCabinet) {
       return;
     }
 
-    const itemButton = event.target.closest(".altar-item");
+    const itemButton = event.target.closest(".cabinet-form-button[data-image]");
     if (!itemButton) return;
 
     placeObject({
