@@ -1399,3 +1399,55 @@ body.altar-modal-open {
     grid-template-columns: 1fr;
   }
 }
+
+.altar-action-bar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:.75rem;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    margin:1rem 0 1.5rem;
+    padding:.75rem 1rem;
+    border:1px solid rgba(185,160,93,.2);
+    border-radius:16px;
+    background:rgba(18,18,18,.85);
+}
+
+.altar-action-group{
+    display:flex;
+    gap:.45rem;
+    flex-shrink:0;
+}
+
+.altar-action-divider{
+    width:1px;
+    height:28px;
+    background:rgba(185,160,93,.25);
+    flex-shrink:0;
+}
+
+.altar-action-bar button{
+    font:inherit;
+    font-size:.88rem;
+    padding:.45rem .8rem;
+    border-radius:999px;
+    border:1px solid rgba(185,160,93,.25);
+    background:rgba(255,255,255,.04);
+    color:var(--cream);
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.altar-action-bar button:hover{
+    border-color:var(--gold);
+    background:rgba(185,160,93,.14);
+}
+
+@media (max-width:768px){
+
+    .altar-action-bar{
+        justify-content:flex-start;
+    }
+
+}
