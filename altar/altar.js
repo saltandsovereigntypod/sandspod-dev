@@ -65,41 +65,36 @@ toolbar.innerHTML = `
    4. GLOBAL ALTAR MENU
    ========================================================= */
 
-const altarGlobalControls = document.createElement("div");
-altarGlobalControls.className = "altar-global-controls";
-altarGlobalControls.innerHTML = `
-  <button
-    type="button"
-    class="altar-global-toggle"
-    data-global-toggle
-    aria-label="Open altar controls"
-    aria-expanded="false">
-    <span></span>
-    <span></span>
-    <span></span>
-  </button>
+const altarActionBar = document.createElement("div");
+altarActionBar.className = "altar-action-bar";
 
-   <div class="altar-global-menu" data-global-menu hidden>
-     <button type="button" data-global-action="light-all">🔥 All</button>
-     <button type="button" data-global-action="extinguish-all">💨 All</button>
-     <button type="button" data-global-action="save-altar">💾 Save</button>
-     <button type="button" data-global-action="load-altar">📜 Load</button>
-     <button type="button" data-global-action="select-ritual-items">◻ Select</button>
-     <button type="button" data-global-action="group-ritual-items">🔗 Group</button>
-     <button type="button" data-global-action="ungroup-ritual-items">🔓 Ungroup</button>
-     <button type="button" data-global-action="send-group-to-grimoire">📖 Grimoire</button>
-     <button type="button" data-global-action="clear-altar">🧹 Clear</button>
-   </div>
+altarActionBar.innerHTML = `
+  <div class="altar-action-group">
+    <button type="button" data-global-action="save-altar">💾 Save</button>
+    <button type="button" data-global-action="load-altar">📂 Load</button>
+  </div>
+
+  <div class="altar-action-divider"></div>
+
+  <div class="altar-action-group">
+    <button type="button" data-global-action="select-ritual-items">☑ Select</button>
+    <button type="button" data-global-action="manage-groups">🗂 Groups</button>
+    <button type="button" data-global-action="send-group-to-grimoire">📖 Record</button>
+  </div>
+
+  <div class="altar-action-divider"></div>
+
+  <div class="altar-action-group">
+    <button type="button" data-global-action="light-all">🔥 Light</button>
+    <button type="button" data-global-action="extinguish-all">💨 Out</button>
+    <button type="button" data-global-action="clear-altar">🧹 Clear</button>
+  </div>
 `;
 
 if (altarStage) {
+  altarStage.after(altarActionBar);
   altarStage.appendChild(toolbar);
-  altarStage.appendChild(altarGlobalControls);
 }
-
-const globalToggle = altarGlobalControls.querySelector("[data-global-toggle]");
-const globalMenu = altarGlobalControls.querySelector("[data-global-menu]");
-
 
 /* =========================================================
    5. MOBILE CABINET AND TOAST
@@ -1536,19 +1531,7 @@ altarTools.forEach((tool) => {
   });
 });
 
-if (globalToggle && globalMenu) {
-  globalToggle.addEventListener("click", (event) => {
-    event.stopPropagation();
-
-    const isOpen = !globalMenu.hidden;
-
-    globalMenu.hidden = isOpen;
-    globalToggle.setAttribute("aria-expanded", String(!isOpen));
-    altarGlobalControls.classList.toggle("is-open", !isOpen);
-  });
-}
-
-altarGlobalControls.addEventListener("click", (event) => {
+altarActionBar.addEventListener("click", (event) => {
   const button = event.target.closest("[data-global-action]");
   if (!button || !altarStage) return;
 
@@ -1621,18 +1604,7 @@ document.addEventListener("pointerdown", (event) => {
 
   const clickedObject = event.target.closest(".altar-object");
   const clickedToolbar = event.target.closest(".altar-toolbar");
-  const clickedGlobalControls = event.target.closest(".altar-global-controls");
 
-  if (!clickedObject && !clickedToolbar) {
-    deselectObject();
-    clearCandleDressingMode();
-  }
-
-  if (!clickedGlobalControls && globalMenu) {
-    globalMenu.hidden = true;
-    globalToggle.setAttribute("aria-expanded", "false");
-    altarGlobalControls.classList.remove("is-open");
-  }
 });
 
 window.addEventListener("resize", () => {
