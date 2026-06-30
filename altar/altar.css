@@ -856,13 +856,24 @@
     border-radius: 1rem;
   }
 
-  .altar-stage {
-    aspect-ratio: auto;
-    height: 72vh;
-    min-height: 520px;
-    border-radius: 0.85rem;
-    background-position: center bottom;
+   .altar-stage {
+     aspect-ratio: 16 / 9;
+     height: auto;
+     min-height: 0;
+     border-radius: 0.85rem;
+     background-position: center center;
+   }
+
+   @media (max-width: 520px) {
+  .altar-stage-wrap {
+    overflow-x: auto;
   }
+
+  .altar-stage {
+    width: 720px;
+    max-width: none;
+  }
+}
 
   .altar-empty-message {
     top: 18%;
@@ -1308,18 +1319,72 @@ body.altar-modal-open {
   }
 }
 
-.altar-action-bar{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:.75rem;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    margin:1rem 0 1.5rem;
-    padding:.75rem 1rem;
-    border:1px solid rgba(185,160,93,.2);
-    border-radius:16px;
-    background:rgba(18,18,18,.85);
+.altar-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.25rem, 1vw, 0.75rem);
+  flex-wrap: nowrap;
+  width: min(1500px, 100%);
+  margin: 1rem auto 1.5rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(185, 160, 93, 0.2);
+  border-radius: 16px;
+  background: rgba(18, 18, 18, 0.85);
+  overflow: hidden;
+}
+
+.altar-action-group {
+  display: flex;
+  gap: clamp(0.2rem, 0.7vw, 0.45rem);
+  flex-shrink: 1;
+}
+
+.altar-action-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(185, 160, 93, 0.25);
+  flex-shrink: 0;
+}
+
+.altar-action-bar button {
+  font: inherit;
+  font-size: clamp(0.72rem, 1.4vw, 0.88rem);
+  padding: 0.45rem clamp(0.45rem, 1.1vw, 0.8rem);
+  border-radius: 999px;
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cream);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.altar-action-bar button:hover {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.14);
+}
+
+@media (max-width: 720px) {
+  .altar-action-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.45rem;
+    padding: 0.6rem;
+  }
+
+  .altar-action-group {
+    display: contents;
+  }
+
+  .altar-action-divider {
+    display: none;
+  }
+
+  .altar-action-bar button {
+    min-height: 2.6rem;
+    padding: 0.45rem 0.35rem;
+    font-size: 0.72rem;
+  }
 }
 
 .altar-action-group{
