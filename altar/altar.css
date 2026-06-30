@@ -1419,3 +1419,46 @@ body.altar-modal-open {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
 }
 
+.cabinet-card {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  padding: 0.6rem 0.7rem !important;
+  gap: 0.5rem !important;
+  min-height: 4.25rem !important;
+}
+
+.cabinet-card-main {
+  min-width: 0 !important;
+}
+
+.cabinet-card h3 {
+  font-size: 1rem !important;
+  line-height: 1.05 !important;
+}
+
+.cabinet-form-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, auto) !important;
+  justify-content: end !important;
+  gap: 0.35rem !important;
+}
+
+.cabinet-form-button {
+  min-height: 2rem !important;
+  padding: 0.28rem 0.55rem !important;
+  font-size: 0.72rem !important;
+}
+
+.altar-cabinet-content {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 0.65rem !important;
+}
+
+@media (max-width: 700px) {
+  .cabinet-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cabinet-form-row {
+    justify-content: start !important;
+  }
+}
