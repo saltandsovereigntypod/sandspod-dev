@@ -668,8 +668,60 @@ function dressCandle(candle) {
 
 
 /* =========================================================
-   12. SAVE, LOAD, AND CLEAR
+   12. SAVE, LOAD, MANAGE, AND CLEAR
    ========================================================= */
+
+function getStagePositionPercent(object) {
+  const leftPx = parseFloat(object.style.left) || 0;
+  const topPx = parseFloat(object.style.top) || 0;
+
+  return {
+    leftPercent: altarStage.clientWidth ? leftPx / altarStage.clientWidth : 0,
+    topPercent: altarStage.clientHeight ? topPx / altarStage.clientHeight : 0
+  };
+}
+
+function applyStagePositionPercent(object, savedObject) {
+  const leftPercent =
+    typeof savedObject.leftPercent === "number"
+      ? savedObject.leftPercent
+      : (parseFloat(savedObject.left) || 0) / altarStage.clientWidth;
+
+  const topPercent =
+    typeof savedObject.topPercent === "number"
+      ? savedObject.topPercent
+      : (parseFloat(savedObject.top) || 0) / altarStage.clientHeight;
+
+  object.dataset.leftPercent = String(leftPercent);
+  object.dataset.topPercent = String(topPercent);
+
+  object.style.left = `${leftPercent * altarStage.clientWidth}px`;
+  object.style.top = `${topPercent * altarStage.clientHeight}px`;
+}
+
+function updateObjectPositionPercent(object) {
+  if (!altarStage || !object) return;
+
+  const position = getStagePositionPercent(object);
+
+  object.dataset.leftPercent = String(position.leftPercent);
+  object.dataset.topPercent = String(position.topPercent);
+}
+
+function repositionAllObjectsFromPercent() {
+  if (!altarStage) return;
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    const leftPercent = Number(object.dataset.leftPercent);
+    const topPercent = Number(object.dataset.topPercent);
+
+    if (Number.isFinite(leftPercent) && Number.isFinite(topPercent)) {
+      object.style.left = `${leftPercent * altarStage.clientWidth}px`;
+      object.style.top = `${topPercent * altarStage.clientHeight}px`;
+      keepObjectInsideStage(object);
+    }
+  });
+}
 
 function getSavedAltars() {
   const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
@@ -684,6 +736,10 @@ function getSavedAltars() {
   }
 }
 
+function storeSavedAltars(savedAltars) {
+  localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(savedAltars));
+}
+
 function saveAltar() {
   if (!altarStage) return;
 
@@ -692,6 +748,8 @@ function saveAltar() {
 
   const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map(
     (object) => {
+      const position = getStagePositionPercent(object);
+
       return {
         imagePath: getObjectImagePath(object),
         fallbackSymbol: object.textContent || "",
@@ -700,6 +758,10 @@ function saveAltar() {
         herb: object.dataset.herb || "",
         form: object.dataset.form || "",
         color: object.dataset.color || "",
+        crystal: object.dataset.crystal || "",
+        tool: object.dataset.tool || "",
+        vessel: object.dataset.vessel || "",
+        deity: object.dataset.deity || "",
         scale: object.dataset.scale || "1",
         rotation: object.dataset.rotation || "0",
         flipped: object.dataset.flipped || "false",
@@ -708,6 +770,10 @@ function saveAltar() {
         lit: object.dataset.lit || "false",
         dressings: object.dataset.dressings || "[]",
         plaqueText: object.dataset.plaqueText || "",
+        altarObjectId: object.dataset.altarObjectId || "",
+        groupId: object.dataset.groupId || "",
+        leftPercent: position.leftPercent,
+        topPercent: position.topPercent,
         left: object.style.left || "0px",
         top: object.style.top || "0px",
         zIndex: object.style.zIndex || "10"
@@ -721,13 +787,15 @@ function saveAltar() {
     savedAt: new Date().toISOString(),
     background: altarStage.dataset.background || "",
     backgroundName: altarStage.dataset.backgroundName || "",
+    groups: altarGroups,
+    activeGroupId,
     objects
   };
 
   const savedAltars = getSavedAltars();
   savedAltars.unshift(altarData);
 
-  localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(savedAltars));
+  storeSavedAltars(savedAltars);
   showAltarToast(`Saved: ${altarData.name}`);
 }
 
@@ -742,6 +810,10 @@ function createSavedObject(savedObject) {
   object.dataset.herb = savedObject.herb || "";
   object.dataset.form = savedObject.form || "";
   object.dataset.color = savedObject.color || "";
+  object.dataset.crystal = savedObject.crystal || "";
+  object.dataset.tool = savedObject.tool || "";
+  object.dataset.vessel = savedObject.vessel || "";
+  object.dataset.deity = savedObject.deity || "";
   object.dataset.scale = savedObject.scale || "1";
   object.dataset.rotation = savedObject.rotation || "0";
   object.dataset.flipped = savedObject.flipped || "false";
@@ -749,28 +821,30 @@ function createSavedObject(savedObject) {
   object.dataset.glowing = savedObject.glowing || "false";
   object.dataset.lit = savedObject.lit || "false";
   object.dataset.dressings = savedObject.dressings || "[]";
+  object.dataset.plaqueText = savedObject.plaqueText || "";
+  object.dataset.altarObjectId = savedObject.altarObjectId || "";
+  object.dataset.groupId = savedObject.groupId || "";
 
-  object.style.left = savedObject.left || "0px";
-  object.style.top = savedObject.top || "0px";
   object.style.zIndex = savedObject.zIndex || "10";
 
   highestLayer = Math.max(highestLayer, Number(savedObject.zIndex || 10));
 
   if (savedObject.imagePath) {
-     const img = document.createElement("img");
-     img.src = savedObject.imagePath;
-     img.alt = savedObject.label || "altar object";
-     img.draggable = false;
-     object.appendChild(img);
-   } else {
-     object.textContent = savedObject.fallbackSymbol || "";
-   }
-   
+    const img = document.createElement("img");
+    img.src = savedObject.imagePath;
+    img.alt = savedObject.label || "altar object";
+    img.draggable = false;
+    object.appendChild(img);
+  } else {
+    object.textContent = savedObject.fallbackSymbol || "";
+  }
+
   object.setAttribute(
     "aria-label",
     `${savedObject.label || "Object"}. Click to select. Drag to move. Double click to remove.`
   );
 
+  applyStagePositionPercent(object, savedObject);
   updateObjectTransform(object);
 
   if (object.dataset.glowing === "true") {
@@ -792,40 +866,16 @@ function createSavedObject(savedObject) {
   return object;
 }
 
-function loadAltar() {
+function loadAltarById(altarId) {
   if (!altarStage) return;
 
   const savedAltars = getSavedAltars();
-
-  if (savedAltars.length === 0) {
-    showAltarToast("No saved altars found");
-    return;
-  }
-
-  const altarList = savedAltars
-    .map((altar, index) => {
-      const date = altar.savedAt
-        ? new Date(altar.savedAt).toLocaleDateString()
-        : "No date";
-
-      return `${index + 1}. ${altar.name || "Untitled Altar"} (${date})`;
-    })
-    .join("\n");
-
-  const choice = window.prompt(
-    `Which altar would you like to load?\n\n${altarList}`,
-    "1"
-  );
-
-  const selectedIndex = Number(choice) - 1;
-  const altarData = savedAltars[selectedIndex];
+  const altarData = savedAltars.find((altar) => altar.id === altarId);
 
   if (!altarData) {
-    showAltarToast("No altar selected");
+    showAltarToast("Altar not found");
     return;
   }
-
-  const objects = altarData.objects || [];
 
   altarStage.querySelectorAll(".altar-object").forEach((object) => {
     stopFlame(object);
@@ -841,13 +891,130 @@ function loadAltar() {
     altarStage.dataset.backgroundName = altarData.backgroundName || "";
   }
 
-  objects.forEach((savedObject) => {
+  altarGroups = Array.isArray(altarData.groups) ? altarData.groups : [];
+  activeGroupId = altarData.activeGroupId || null;
+
+  (altarData.objects || []).forEach((savedObject) => {
     const object = createSavedObject(savedObject);
     altarStage.appendChild(object);
+    keepObjectInsideStage(object);
   });
 
+  updateGroupIndicator();
   updateEmptyMessage();
+  closeSavedAltarsManager();
   showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
+}
+
+function renameSavedAltar(altarId) {
+  const savedAltars = getSavedAltars();
+  const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
+
+  if (!altar) return;
+
+  const newName = window.prompt("Rename this altar:", altar.name || "My Altar");
+
+  if (!newName || !newName.trim()) return;
+
+  altar.name = newName.trim();
+  altar.updatedAt = new Date().toISOString();
+
+  storeSavedAltars(savedAltars);
+  renderSavedAltarsManager();
+  showAltarToast("Altar renamed");
+}
+
+function deleteSavedAltar(altarId) {
+  const savedAltars = getSavedAltars();
+  const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
+
+  if (!altar) return;
+
+  const confirmed = window.confirm(
+    `Delete "${altar.name || "Untitled Altar"}"? This cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  storeSavedAltars(savedAltars.filter((savedAltar) => savedAltar.id !== altarId));
+  renderSavedAltarsManager();
+  showAltarToast("Altar deleted");
+}
+
+const savedAltarsManager = document.createElement("div");
+savedAltarsManager.className = "saved-altars-modal";
+savedAltarsManager.hidden = true;
+savedAltarsManager.innerHTML = `
+  <div class="saved-altars-card" role="dialog" aria-modal="true" aria-labelledby="saved-altars-title">
+    <button class="saved-altars-close" type="button" data-saved-altars-close aria-label="Close">
+      ×
+    </button>
+
+    <p class="eyebrow">Saved Sanctuaries</p>
+    <h2 id="saved-altars-title">Saved Altars</h2>
+
+    <div class="saved-altars-list" data-saved-altars-list></div>
+  </div>
+`;
+
+document.body.appendChild(savedAltarsManager);
+
+const savedAltarsList = savedAltarsManager.querySelector("[data-saved-altars-list]");
+const savedAltarsClose = savedAltarsManager.querySelector("[data-saved-altars-close]");
+
+function renderSavedAltarsManager() {
+  const savedAltars = getSavedAltars();
+
+  if (!savedAltarsList) return;
+
+  if (savedAltars.length === 0) {
+    savedAltarsList.innerHTML = `
+      <p class="saved-altars-empty">
+        No saved altars yet. Build one, then use Save Altar to keep it.
+      </p>
+    `;
+    return;
+  }
+
+  savedAltarsList.innerHTML = savedAltars
+    .map((altar) => {
+      const date = altar.savedAt
+        ? new Date(altar.savedAt).toLocaleDateString()
+        : "No date";
+
+      const itemCount = Array.isArray(altar.objects) ? altar.objects.length : 0;
+
+      return `
+        <article class="saved-altar-row" data-saved-altar-id="${altar.id}">
+          <div>
+            <h3>${altar.name || "Untitled Altar"}</h3>
+            <p>${date} · ${itemCount} item${itemCount === 1 ? "" : "s"}</p>
+          </div>
+
+          <div class="saved-altar-actions">
+            <button type="button" data-saved-action="load">Load</button>
+            <button type="button" data-saved-action="rename">Rename</button>
+            <button type="button" data-saved-action="delete">Delete</button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function openSavedAltarsManager() {
+  renderSavedAltarsManager();
+  savedAltarsManager.hidden = false;
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeSavedAltarsManager() {
+  savedAltarsManager.hidden = true;
+  document.body.classList.remove("altar-modal-open");
+}
+
+function loadAltar() {
+  openSavedAltarsManager();
 }
 
 function clearAltar() {
@@ -858,10 +1025,35 @@ function clearAltar() {
     object.remove();
   });
 
+  altarGroups = [];
+  activeGroupId = null;
+
   deselectObject();
   clearCandleDressingMode();
+  updateGroupIndicator();
   updateEmptyMessage();
 }
+
+savedAltarsClose.addEventListener("click", closeSavedAltarsManager);
+
+savedAltarsManager.addEventListener("click", (event) => {
+  if (event.target === savedAltarsManager) {
+    closeSavedAltarsManager();
+    return;
+  }
+
+  const button = event.target.closest("[data-saved-action]");
+  const row = event.target.closest("[data-saved-altar-id]");
+
+  if (!button || !row) return;
+
+  const altarId = row.dataset.savedAltarId;
+  const action = button.dataset.savedAction;
+
+  if (action === "load") loadAltarById(altarId);
+  if (action === "rename") renameSavedAltar(altarId);
+  if (action === "delete") deleteSavedAltar(altarId);
+});
 
 
 /* =========================================================
