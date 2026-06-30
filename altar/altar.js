@@ -429,7 +429,7 @@ function renderCabinetItems() {
     const searchable = [
       item.name,
       item.category,
-      ...(item.keywords || [])
+      ...(item.grimoireKeywords || [])
     ].join(" ").toLowerCase();
 
     return matchesCategory && searchable.includes(search);
@@ -442,49 +442,59 @@ function renderCabinetItems() {
 
   cabinetContent.innerHTML = items
     .map((item) => {
-      const keywords = (item.grimoireKeywords || [])
-        .slice(0, 3)
-        .map((keyword) => `<span>${keyword}</span>`)
-        .join("");
-
       if (item.background) {
         return `
-          <article class="cabinet-card">
-            <div class="cabinet-card-main">
-              <div>
-                <h3>${item.name}</h3>
-                ${keywords ? `<div class="cabinet-keywords">${keywords}</div>` : ""}
-              </div>
-            </div>
+          <button
+            type="button"
+            class="cabinet-choice-button"
+            data-background="${item.background}"
+            data-background-name="${item.name}">
+            ${item.name}
+          </button>
+        `;
+      }
 
-            <button
-              type="button"
-              class="cabinet-form-button"
-              data-background="${item.background}"
-              data-background-name="${item.name}">
-              Use Background
-            </button>
-          </article>
+      const forms = item.forms || [];
+
+      if (forms.length === 1) {
+        const form = forms[0];
+
+        return `
+          <button
+            type="button"
+            class="cabinet-choice-button"
+            data-image="${form.image || ""}"
+            data-label="${item.name}"
+            data-type="${form.type || ""}"
+            data-herb="${form.herb || ""}"
+            data-form="${form.form || ""}"
+            data-color="${form.color || ""}"
+            data-crystal="${form.crystal || ""}"
+            data-tool="${form.tool || ""}"
+            data-vessel="${form.vessel || ""}"
+            data-deity="${form.deity || ""}">
+            ${item.name}
+          </button>
         `;
       }
 
       return `
-        <article class="cabinet-card">
-          <div class="cabinet-card-main">
-            <div>
-              <h3>${item.name}</h3>
-              ${keywords ? `<div class="cabinet-keywords">${keywords}</div>` : ""}
-            </div>
-          </div>
+        <div class="cabinet-choice-wrap">
+          <button
+            type="button"
+            class="cabinet-choice-button"
+            data-form-menu-toggle>
+            ${item.name}
+          </button>
 
-          <div class="cabinet-form-row">
-            ${(item.forms || [])
+          <div class="cabinet-form-menu" hidden>
+            ${forms
               .map((form) => `
                 <button
                   type="button"
-                  class="cabinet-form-button"
+                  class="cabinet-form-option"
                   data-image="${form.image || ""}"
-                  data-label="${form.label === "Place" ? item.name : `${item.name} ${form.label}`}"
+                  data-label="${item.name} ${form.label}"
                   data-type="${form.type || ""}"
                   data-herb="${form.herb || ""}"
                   data-form="${form.form || ""}"
@@ -498,7 +508,7 @@ function renderCabinetItems() {
               `)
               .join("")}
           </div>
-        </article>
+        </div>
       `;
     })
     .join("");
@@ -1848,7 +1858,21 @@ if (altarCabinet) {
       return;
     }
 
-    const itemButton = event.target.closest(".cabinet-form-button[data-image]");
+    const menuToggle = event.target.closest("[data-form-menu-toggle]");
+
+   if (menuToggle) {
+     const wrap = menuToggle.closest(".cabinet-choice-wrap");
+     const menu = wrap.querySelector(".cabinet-form-menu");
+   
+     cabinetContent.querySelectorAll(".cabinet-form-menu").forEach((openMenu) => {
+       if (openMenu !== menu) openMenu.hidden = true;
+     });
+   
+     menu.hidden = !menu.hidden;
+     return;
+   }
+   
+   const itemButton = event.target.closest("[data-image]");
     if (!itemButton) return;
 
     placeObject({
