@@ -1133,6 +1133,8 @@ function makeDraggable(object) {
 
     object.style.left = `${x}px`;
     object.style.top = `${y}px`;
+    
+    updateObjectPositionPercent(object);
 
     if (object.dataset.groupId) {
       const groupObjects = getGroupObjects(object.dataset.groupId);
@@ -1145,6 +1147,8 @@ function makeDraggable(object) {
 
         groupObject.style.left = `${groupX + deltaX}px`;
         groupObject.style.top = `${groupY + deltaY}px`;
+
+        updateObjectPositionPercent(groupObject);
 
         keepObjectInsideStage(groupObject);
       });
@@ -1224,6 +1228,8 @@ function placeObject(options) {
   object.style.left = `${120 + column * 80}px`;
   object.style.top = `${280 + row * 70}px`;
 
+  updateObjectPositionPercent(object);
+
   updateObjectTransform(object);
   makeDraggable(object);
 
@@ -1255,6 +1261,8 @@ function duplicateObject(object) {
   clone.style.left = `${(parseFloat(object.style.left) || 0) + 24}px`;
   clone.style.top = `${(parseFloat(object.style.top) || 0) + 24}px`;
   clone.style.zIndex = highestLayer;
+
+  updateObjectPositionPercent(clone);
 
   clone.classList.remove("is-selected", "is-dragging", "can-receive-dressing");
 
@@ -1628,9 +1636,7 @@ document.addEventListener("pointerdown", (event) => {
 });
 
 window.addEventListener("resize", () => {
-  if (selectedObject) {
-    keepObjectInsideStage(selectedObject);
-  }
+  repositionAllObjectsFromPercent();
 });
 
 if (saveModalClose) {
@@ -1648,6 +1654,7 @@ if (saveModal) {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeSaveModal();
+    closeSavedAltarsManager();
   }
 });
 
