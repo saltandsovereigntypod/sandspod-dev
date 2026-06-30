@@ -7,6 +7,9 @@ const altarTools = document.querySelectorAll(".altar-item");
 const altarBackgroundButtons = document.querySelectorAll("[data-background]");
 const emptyMessage = document.querySelector("[data-empty-message]");
 const altarCabinet = document.querySelector(".altar-cabinet");
+const cabinetTabs = document.querySelector("[data-cabinet-tabs]");
+const cabinetContent = document.querySelector("[data-cabinet-content]");
+const cabinetSearch = document.querySelector("[data-cabinet-search]");
 const saveModal = document.querySelector("[data-save-modal]");
 const saveModalClose = document.querySelector("[data-save-modal-close]");
 
@@ -235,6 +238,277 @@ function changeAltarBackground(button) {
   altarStage.dataset.backgroundName = backgroundName;
 
   showAltarToast(`${backgroundName} selected`);
+}
+
+/* =========================================================
+   7B. CABINET DATA AND RENDERING
+   ========================================================= */
+
+const cabinetCategories = [
+  { id: "backgrounds", label: "Backgrounds", icon: "🌲" },
+  { id: "candles", label: "Candles", icon: "🕯️" },
+  { id: "herbs", label: "Herbs", icon: "🌿" },
+  { id: "crystals", label: "Crystals", icon: "💎" },
+  { id: "tools", label: "Tools", icon: "🗝️" },
+  { id: "deities", label: "Deities", icon: "👑" },
+  { id: "vessels", label: "Vessels", icon: "🏺" }
+];
+
+let activeCabinetCategory = "candles";
+let cabinetSearchTerm = "";
+
+const cabinetItems = [
+  {
+    category: "backgrounds",
+    name: "Forest Altar",
+    icon: "🌲",
+    keywords: ["forest", "green", "crossroads"],
+    background: "../assets/altar/backgrounds/forest-scene.png"
+  },
+  {
+    category: "backgrounds",
+    name: "Deity Shelf Altar",
+    icon: "🕯️",
+    keywords: ["shelf", "deity", "statues"],
+    background: "../assets/altar/backgrounds/shelf-deity-altar.png"
+  },
+
+  ...["white", "black", "green", "purple", "red", "orange", "yellow", "blue", "brown", "pink", "gold", "silver"].map((color) => ({
+    category: "candles",
+    name: `${color.charAt(0).toUpperCase() + color.slice(1)} Candle`,
+    icon: "🕯️",
+    keywords: [color, "candle", "fire"],
+    forms: [
+      {
+        label: "Place",
+        image: `../assets/altar/objects/candles/${color}-candle.${color === "white" || color === "black" ? "PNG" : "png"}`,
+        type: "candle",
+        color
+      }
+    ]
+  })),
+
+  {
+    category: "herbs",
+    name: "Rosemary",
+    icon: "🌿",
+    keywords: ["protection", "cleansing", "memory"],
+    forms: [
+      { label: "Sprig", image: "../assets/altar/objects/herbs/rosemary/rosemary-sprig.png", type: "herb", herb: "rosemary", form: "sprig" },
+      { label: "Loose", image: "../assets/altar/objects/herbs/rosemary/rosemary-loose.png", type: "herb", herb: "rosemary", form: "loose" },
+      { label: "Powder", image: "../assets/altar/objects/herbs/rosemary/rosemary-powder.png", type: "herb", herb: "rosemary", form: "powder" },
+      { label: "Oil", image: "../assets/altar/objects/herbs/rosemary/rosemary-oil.png", type: "oil", herb: "rosemary", form: "oil" }
+    ]
+  },
+  {
+    category: "herbs",
+    name: "Lavender",
+    icon: "🌿",
+    keywords: ["peace", "sleep", "calming"],
+    forms: [
+      { label: "Sprig", image: "../assets/altar/objects/herbs/lavender/lavender-sprig.png", type: "herb", herb: "lavender", form: "sprig" },
+      { label: "Loose", image: "../assets/altar/objects/herbs/lavender/lavender-loose.png", type: "herb", herb: "lavender", form: "loose" },
+      { label: "Powder", image: "../assets/altar/objects/herbs/lavender/lavender-powder.png", type: "herb", herb: "lavender", form: "powder" },
+      { label: "Oil", image: "../assets/altar/objects/herbs/lavender/lavender-oil.png", type: "oil", herb: "lavender", form: "oil" }
+    ]
+  },
+  {
+    category: "herbs",
+    name: "Mugwort",
+    icon: "🌿",
+    keywords: ["dreams", "intuition", "thresholds"],
+    forms: [
+      { label: "Sprig", image: "../assets/altar/objects/herbs/mugwort/mugwort-sprig.png", type: "herb", herb: "mugwort", form: "sprig" },
+      { label: "Loose", image: "../assets/altar/objects/herbs/mugwort/mugwort-loose.png", type: "herb", herb: "mugwort", form: "loose" },
+      { label: "Powder", image: "../assets/altar/objects/herbs/mugwort/mugwort-powder.png", type: "herb", herb: "mugwort", form: "powder" },
+      { label: "Oil", image: "../assets/altar/objects/herbs/mugwort/mugwort-oil.png", type: "oil", herb: "mugwort", form: "oil" }
+    ]
+  },
+  {
+    category: "herbs",
+    name: "Bay Leaf",
+    icon: "🌿",
+    keywords: ["wishes", "protection", "manifestation"],
+    forms: [
+      { label: "Sprig", image: "../assets/altar/objects/herbs/bay-leaf/bay-sprig.png", type: "herb", herb: "bay leaf", form: "sprig" },
+      { label: "Loose", image: "../assets/altar/objects/herbs/bay-leaf/bay-loose.png", type: "herb", herb: "bay leaf", form: "loose" },
+      { label: "Powder", image: "../assets/altar/objects/herbs/bay-leaf/bay-powder.png", type: "herb", herb: "bay leaf", form: "powder" },
+      { label: "Oil", image: "../assets/altar/objects/herbs/bay-leaf/bay-oil.png", type: "oil", herb: "bay leaf", form: "oil" }
+    ]
+  },
+
+  {
+    category: "crystals",
+    name: "Amethyst",
+    icon: "💎",
+    keywords: ["intuition", "dreams", "calm"],
+    forms: [
+      { label: "Point", image: "../assets/altar/objects/crystals/amethyst/amethyst-point.png", type: "crystal", crystal: "amethyst", form: "point" },
+      { label: "Chips", image: "../assets/altar/objects/crystals/amethyst/amethyst-chips.png", type: "crystal", crystal: "amethyst", form: "chips" },
+      { label: "Cluster", image: "../assets/altar/objects/crystals/amethyst/amethyst-cluster.png", type: "crystal", crystal: "amethyst", form: "cluster" },
+      { label: "Polished", image: "../assets/altar/objects/crystals/amethyst/amethyst-polished.png", type: "crystal", crystal: "amethyst", form: "polished" }
+    ]
+  },
+
+  {
+    category: "tools",
+    name: "Key",
+    icon: "🗝️",
+    keywords: ["thresholds", "unlocking", "Hekate"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/key/key.png", type: "tool", tool: "key", form: "standard" }]
+  },
+  {
+    category: "tools",
+    name: "Athame",
+    icon: "🗡️",
+    keywords: ["cutting", "will", "boundary"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/athame/athame.png", type: "tool", tool: "athame", form: "standard" }]
+  },
+  {
+    category: "tools",
+    name: "Raven Skull",
+    icon: "☠️",
+    keywords: ["death", "messages", "mystery"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/raven-skull/raven-skull.png", type: "tool", tool: "raven-skull", form: "standard" }]
+  },
+  {
+    category: "tools",
+    name: "Black Salt",
+    icon: "⚫",
+    keywords: ["protection", "banishing", "warding"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/black-salt/black-salt.png", type: "tool", tool: "black-salt", form: "pile" }]
+  },
+
+  {
+    category: "deities",
+    name: "Hekate Statue",
+    icon: "🗝️",
+    keywords: ["crossroads", "torches", "keys"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/deities/hekate/hekate-statue.png", type: "deity", deity: "hekate", form: "statue" }]
+  },
+
+  {
+    category: "vessels",
+    name: "Cauldron",
+    icon: "⚗️",
+    keywords: ["transformation", "fire", "spellwork"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/vessels/cauldron/cauldron.png", type: "vessel", vessel: "cauldron", form: "standard" }]
+  },
+  {
+    category: "vessels",
+    name: "Spell Jar",
+    icon: "🫙",
+    keywords: ["container", "spell", "intention"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/vessels/spell-jar/spell-jar.png", type: "vessel", vessel: "spell-jar", form: "standard" }]
+  }
+];
+
+function renderCabinetTabs() {
+  if (!cabinetTabs) return;
+
+  cabinetTabs.innerHTML = cabinetCategories
+    .map((category) => `
+      <button
+        type="button"
+        class="cabinet-tab ${category.id === activeCabinetCategory ? "is-active" : ""}"
+        data-cabinet-category="${category.id}">
+        <span>${category.icon}</span>
+        ${category.label}
+      </button>
+    `)
+    .join("");
+}
+
+function renderCabinetItems() {
+  if (!cabinetContent) return;
+
+  const search = cabinetSearchTerm.toLowerCase();
+
+  const items = cabinetItems.filter((item) => {
+    const matchesCategory = item.category === activeCabinetCategory;
+    const searchable = [
+      item.name,
+      item.category,
+      ...(item.keywords || [])
+    ].join(" ").toLowerCase();
+
+    return matchesCategory && searchable.includes(search);
+  });
+
+  if (items.length === 0) {
+    cabinetContent.innerHTML = `<p class="cabinet-empty">No cabinet items found.</p>`;
+    return;
+  }
+
+  cabinetContent.innerHTML = items
+    .map((item) => {
+      const keywords = (item.keywords || [])
+        .slice(0, 3)
+        .map((keyword) => `<span>${keyword}</span>`)
+        .join("");
+
+      if (item.background) {
+        return `
+          <article class="cabinet-card">
+            <div class="cabinet-card-main">
+              <span class="cabinet-card-icon">${item.icon}</span>
+              <div>
+                <h3>${item.name}</h3>
+                <div class="cabinet-keywords">${keywords}</div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="cabinet-form-button"
+              data-background="${item.background}"
+              data-background-name="${item.name}">
+              Use Background
+            </button>
+          </article>
+        `;
+      }
+
+      return `
+        <article class="cabinet-card">
+          <div class="cabinet-card-main">
+            <span class="cabinet-card-icon">${item.icon}</span>
+            <div>
+              <h3>${item.name}</h3>
+              <div class="cabinet-keywords">${keywords}</div>
+            </div>
+          </div>
+
+          <div class="cabinet-form-row">
+            ${(item.forms || [])
+              .map((form) => `
+                <button
+                  type="button"
+                  class="cabinet-form-button altar-item"
+                  data-image="${form.image || ""}"
+                  data-label="${form.label === "Place" ? item.name : `${item.name} ${form.label}`}"
+                  data-type="${form.type || ""}"
+                  data-herb="${form.herb || ""}"
+                  data-form="${form.form || ""}"
+                  data-color="${form.color || ""}"
+                  data-crystal="${form.crystal || ""}"
+                  data-tool="${form.tool || ""}"
+                  data-vessel="${form.vessel || ""}"
+                  data-deity="${form.deity || ""}">
+                  ${form.label}
+                </button>
+              `)
+              .join("")}
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderCabinet() {
+  renderCabinetTabs();
+  renderCabinetItems();
 }
 
 
@@ -1530,35 +1804,59 @@ toolbar.addEventListener("click", (event) => {
   if (action === "dress-candle") beginCandleDressing(selectedObject);
 });
 
-altarBackgroundButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    changeAltarBackground(button);
+if (cabinetTabs) {
+  cabinetTabs.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-cabinet-category]");
+    if (!button) return;
 
-    if (window.innerWidth <= 700) {
-      closeMobileCabinet();
-    }
+    activeCabinetCategory = button.dataset.cabinetCategory;
+    renderCabinet();
   });
-});
+}
 
-altarTools.forEach((tool) => {
-  tool.addEventListener("click", () => {
-    if (tool.dataset.background) return;
+if (cabinetSearch) {
+  cabinetSearch.addEventListener("input", () => {
+    cabinetSearchTerm = cabinetSearch.value || "";
+    renderCabinetItems();
+  });
+}
+
+if (altarCabinet) {
+  altarCabinet.addEventListener("click", (event) => {
+    const backgroundButton = event.target.closest("[data-background]");
+
+    if (backgroundButton) {
+      changeAltarBackground(backgroundButton);
+
+      if (window.innerWidth <= 700) {
+        closeMobileCabinet();
+      }
+
+      return;
+    }
+
+    const itemButton = event.target.closest(".altar-item");
+    if (!itemButton) return;
 
     placeObject({
-      imagePath: tool.dataset.image || "",
-      fallbackSymbol: tool.dataset.object || "",
-      label: tool.dataset.label || "object",
-      type: tool.dataset.type || "",
-      herb: tool.dataset.herb || "",
-      form: tool.dataset.form || "",
-      color: tool.dataset.color || ""
+      imagePath: itemButton.dataset.image || "",
+      fallbackSymbol: itemButton.dataset.object || "",
+      label: itemButton.dataset.label || "object",
+      type: itemButton.dataset.type || "",
+      herb: itemButton.dataset.herb || "",
+      form: itemButton.dataset.form || "",
+      color: itemButton.dataset.color || "",
+      crystal: itemButton.dataset.crystal || "",
+      tool: itemButton.dataset.tool || "",
+      vessel: itemButton.dataset.vessel || "",
+      deity: itemButton.dataset.deity || ""
     });
 
     if (window.innerWidth <= 700) {
       closeMobileCabinet();
     }
   });
-});
+}
 
 altarActionBar.addEventListener("click", (event) => {
   const button = event.target.closest("[data-global-action]");
@@ -1697,3 +1995,5 @@ if ("serviceWorker" in navigator) {
    ========================================================= */
 
 updateEmptyMessage();
+
+renderCabinet();
