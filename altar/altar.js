@@ -568,38 +568,50 @@ function showAltarInfoCard(object) {
 
   const label = object.dataset.label || "Altar Object";
   const typeLabel = getObjectTypeLabel(object);
-  const icon = getObjectIcon(object);
+  const activeGroup = object.dataset.groupId
+    ? altarGroups.find((group) => group.id === object.dataset.groupId)
+    : null;
+
   const dressings = getDressings(object);
+  const oils = dressings
+    .filter((dressing) => dressing.type === "oil")
+    .map((dressing) => dressing.herb)
+    .filter(Boolean);
 
-  let dressingMarkup = "";
+  const herbs = dressings
+    .filter((dressing) => dressing.type === "herb")
+    .map((dressing) => dressing.herb)
+    .filter(Boolean);
 
-  if (object.dataset.type === "candle" && dressings.length > 0) {
-    dressingMarkup = `
-      <div class="altar-info-card-section">
-        <p>Dressed with:</p>
-        <ul>
-          ${dressings
-            .map((dressing) => `<li>${formatDressingName(dressing)}</li>`)
-            .join("")}
-        </ul>
-      </div>
-    `;
-  }
+  const dressingMarkup =
+    oils.length || herbs.length
+      ? `
+        <div class="altar-info-card-section">
+          <p>Dressing</p>
+          ${oils.length ? `<p><strong>Oil:</strong> ${oils.join(", ")}</p>` : ""}
+          ${herbs.length ? `<p><strong>Herb:</strong> ${herbs.join(", ")}</p>` : ""}
+        </div>
+      `
+      : "";
+
+  const groupMarkup = `
+    <div class="altar-info-card-section">
+      <p><strong>Group:</strong> ${activeGroup ? activeGroup.name : "None"}</p>
+    </div>
+  `;
 
   altarInfoCard.innerHTML = `
     <div class="altar-info-card-inner">
-      <p class="altar-info-card-icon">${icon}</p>
       <h3>${label}</h3>
       <p class="altar-info-card-type">${typeLabel}</p>
+      ${groupMarkup}
       ${dressingMarkup}
-      <p class="altar-info-card-note">Placed by practitioner.</p>
     </div>
   `;
 
   altarInfoCard.hidden = false;
   altarInfoCard.classList.add("is-visible");
 }
-
 function hideAltarInfoCard() {
   if (!altarInfoCard) return;
 
