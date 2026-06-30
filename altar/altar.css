@@ -171,75 +171,59 @@ css = r'''/* =========================================================
 .altar-cabinet-content {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.55rem;
   align-items: flex-start;
   margin-top: 1rem;
 }
 
-.cabinet-card {
-  flex: 0 0 320px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 4.25rem;
-  padding: 0.6rem 0.7rem;
+.cabinet-choice-wrap {
+  position: relative;
+}
+
+.cabinet-choice-button,
+.cabinet-form-option {
+  min-height: 2.65rem;
   border: 1px solid rgba(185, 160, 93, 0.22);
-  border-radius: 0.9rem;
-  background: rgba(8, 10, 8, 0.48);
-}
-
-.cabinet-card-main {
-  min-width: 0;
-}
-
-.cabinet-card h3 {
-  max-width: none;
-  margin: 0;
-  color: var(--cream);
-  font-size: 1rem;
-  line-height: 1.05;
-}
-
-.cabinet-keywords {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-top: 0.35rem;
-}
-
-.cabinet-keywords span {
-  border: 1px solid rgba(185, 160, 93, 0.2);
-  border-radius: 999px;
-  padding: 0.15rem 0.45rem;
-  color: var(--gold);
-  background: rgba(185, 160, 93, 0.08);
-  font-size: 0.72rem;
-}
-
-.cabinet-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, auto);
-  justify-content: end;
-  gap: 0.35rem;
-}
-
-.cabinet-form-button {
-  min-height: 2rem;
-  border: 1px solid rgba(244, 236, 216, 0.22);
-  border-radius: 999px;
-  padding: 0.28rem 0.55rem;
-  color: var(--cream);
-  background: rgba(244, 236, 216, 0.08);
+  border-radius: 0.8rem;
+  padding: 0.5rem 0.8rem;
+  color: var(--muted);
+  background: rgba(244, 236, 216, 0.05);
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   cursor: pointer;
 }
 
-.cabinet-form-button:hover,
-.cabinet-form-button:focus-visible {
+.cabinet-choice-button:hover,
+.cabinet-choice-button:focus-visible,
+.cabinet-form-option:hover,
+.cabinet-form-option:focus-visible {
   border-color: var(--gold);
-  background: rgba(185, 160, 93, 0.18);
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.14);
+}
+
+.cabinet-form-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 20;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 9rem;
+  padding: 0.45rem;
+  border: 1px solid rgba(185, 160, 93, 0.32);
+  border-radius: 0.85rem;
+  background: rgba(10, 8, 6, 0.96);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+.cabinet-form-menu[hidden] {
+  display: none;
+}
+
+.cabinet-form-option {
+  width: 100%;
+  text-align: left;
 }
 
 .cabinet-empty {
