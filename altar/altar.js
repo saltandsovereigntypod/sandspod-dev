@@ -1491,7 +1491,11 @@ function placeObject(options) {
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
   object.dataset.color = color || "";
-  object.dataset.scale = type === "cloth" ? "3" : isMobile ? "1.8" : "1";
+  const startingScale = type === "cloth"
+     ? "3"
+     : String(Math.max(0.75, Math.min(1.35, altarStage.clientWidth / 900)));
+
+  object.dataset.scale = startingScale;
   object.dataset.rotation = "0";
   object.dataset.flipped = "false";
   object.dataset.locked = "false";
@@ -1517,14 +1521,14 @@ function placeObject(options) {
     `${label || "Object"}. Click to select. Drag to move. Double click to remove.`
   );
 
-  const existingObjects = altarStage.querySelectorAll(".altar-object").length;
-  const row = Math.floor(existingObjects / 5);
-  const column = existingObjects % 5;
-
-  object.style.left = `${120 + column * 80}px`;
-  object.style.top = `${280 + row * 70}px`;
-
-  updateObjectPositionPercent(object);
+   const scale = Number(object.dataset.scale || 1);
+   const centerX = altarStage.clientWidth / 2;
+   const centerY = altarStage.clientHeight / 2;
+   
+   object.style.left = `${centerX - (object.offsetWidth * scale) / 2}px`;
+   object.style.top = `${centerY - (object.offsetHeight * scale) / 2}px`;
+   
+   updateObjectPositionPercent(object);
 
   updateObjectTransform(object);
   makeDraggable(object);
