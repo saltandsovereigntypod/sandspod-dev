@@ -825,14 +825,21 @@
      background-position: center center;
    }
 
-   @media (max-width: 520px) {
+@media (max-width: 520px) {
   .altar-stage-wrap {
-    overflow-x: auto;
+    overflow: hidden;
   }
 
   .altar-stage {
-    width: 720px;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  .altar-empty-message {
+    top: 30%;
+    width: 70%;
+    font-size: 0.8rem;
   }
 }
 
