@@ -1,0 +1,525 @@
+/* =========================================================
+   ALTAR STORAGE
+   Local saves, cloud saves, saved altar manager, load/clear
+   ========================================================= */
+
+function getStagePositionPercent(object) {
+  const scale = Number(object.dataset.scale || 1);
+  const leftPx = parseFloat(object.style.left) || 0;
+  const topPx = parseFloat(object.style.top) || 0;
+
+  const visualWidth = object.offsetWidth * scale;
+  const visualHeight = object.offsetHeight * scale;
+
+  const centerX = leftPx + visualWidth / 2;
+  const centerY = topPx + visualHeight / 2;
+
+  return {
+    leftPercent: altarStage.clientWidth ? centerX / altarStage.clientWidth : 0,
+    topPercent: altarStage.clientHeight ? centerY / altarStage.clientHeight : 0,
+    sizePercent: altarStage.clientWidth ? visualWidth / altarStage.clientWidth : 0.08
+  };
+}
+
+function applyStagePositionPercent(object, savedObject) {
+  const leftPercent =
+    typeof savedObject.leftPercent === "number" ? savedObject.leftPercent : 0.5;
+
+  const topPercent =
+    typeof savedObject.topPercent === "number" ? savedObject.topPercent : 0.5;
+
+  const sizePercent =
+    typeof savedObject.sizePercent === "number" ? savedObject.sizePercent : null;
+
+  if (sizePercent) {
+    const newVisualWidth = altarStage.clientWidth * sizePercent;
+    const newScale = newVisualWidth / object.offsetWidth;
+
+    object.dataset.scale = String(newScale);
+    updateObjectTransform(object);
+  }
+
+  const scale = Number(object.dataset.scale || 1);
+  const visualWidth = object.offsetWidth * scale;
+  const visualHeight = object.offsetHeight * scale;
+
+  const centerX = leftPercent * altarStage.clientWidth;
+  const centerY = topPercent * altarStage.clientHeight;
+
+  object.dataset.leftPercent = String(leftPercent);
+  object.dataset.topPercent = String(topPercent);
+
+  if (sizePercent) {
+    object.dataset.sizePercent = String(sizePercent);
+  }
+
+  object.style.left = `${centerX - visualWidth / 2}px`;
+  object.style.top = `${centerY - visualHeight / 2}px`;
+}
+
+function updateObjectPositionPercent(object) {
+  if (!altarStage || !object) return;
+
+  const position = getStagePositionPercent(object);
+
+  object.dataset.leftPercent = String(position.leftPercent);
+  object.dataset.topPercent = String(position.topPercent);
+  object.dataset.sizePercent = String(position.sizePercent);
+}
+
+function repositionAllObjectsFromPercent() {
+  if (!altarStage) return;
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    applyStagePositionPercent(object, {
+      leftPercent: Number(object.dataset.leftPercent),
+      topPercent: Number(object.dataset.topPercent),
+      sizePercent: Number(object.dataset.sizePercent)
+    });
+
+    keepObjectInsideStage(object);
+  });
+}
+
+function getLocalSavedAltars() {
+  const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
+
+  if (!saved) return [];
+
+  try {
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return [];
+  }
+}
+
+function storeLocalSavedAltars(savedAltars) {
+  localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(savedAltars));
+}
+
+async function getSavedAltars() {
+  const user = await ensureAltarUser();
+
+  if (!user) {
+    return getLocalSavedAltars();
+  }
+
+  const { data, error } = await db
+    .from(ALTAR_CLOUD_TABLE)
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Could not load cloud saves");
+    return [];
+  }
+
+  return data.map((row) => ({
+    ...(row.altar_data || {}),
+    id: row.id,
+    name: row.name,
+    savedAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+}
+
+async function migrateLocalAltarsToCloud() {
+  const user = await ensureAltarUser();
+
+  if (!user) return;
+
+  const alreadyMigrated = localStorage.getItem(ALTAR_MIGRATION_KEY);
+  if (alreadyMigrated === "true") return;
+
+  const localAltars = getLocalSavedAltars();
+
+  if (localAltars.length === 0) {
+    localStorage.setItem(ALTAR_MIGRATION_KEY, "true");
+    return;
+  }
+
+  const rows = localAltars.map((altar) => ({
+    user_id: user.id,
+    name: altar.name || "My Altar",
+    altar_data: altar
+  }));
+
+  const { error } = await db.from(ALTAR_CLOUD_TABLE).insert(rows);
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Local altar migration failed");
+    return;
+  }
+
+  localStorage.setItem(ALTAR_MIGRATION_KEY, "true");
+  showAltarToast("Local altars synced");
+}
+
+async function saveAltar() {
+  if (!altarStage) return;
+
+  const altarName =
+    window.prompt("Name this altar save:", "My Altar") || "My Altar";
+
+  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
+    const position = getStagePositionPercent(object);
+
+    return {
+      imagePath: getObjectImagePath(object),
+      fallbackSymbol: object.textContent || "",
+      label: object.dataset.label || "object",
+      type: object.dataset.type || "",
+      herb: object.dataset.herb || "",
+      form: object.dataset.form || "",
+      color: object.dataset.color || "",
+      crystal: object.dataset.crystal || "",
+      tool: object.dataset.tool || "",
+      vessel: object.dataset.vessel || "",
+      deity: object.dataset.deity || "",
+      scale: object.dataset.scale || "1",
+      rotation: object.dataset.rotation || "0",
+      flipped: object.dataset.flipped || "false",
+      locked: object.dataset.locked || "false",
+      glowing: object.dataset.glowing || "false",
+      lit: object.dataset.lit || "false",
+      dressings: object.dataset.dressings || "[]",
+      plaqueText: object.dataset.plaqueText || "",
+      altarObjectId: object.dataset.altarObjectId || "",
+      groupId: object.dataset.groupId || "",
+      leftPercent: position.leftPercent,
+      topPercent: position.topPercent,
+      sizePercent: position.sizePercent,
+      zIndex: object.style.zIndex || "10"
+    };
+  });
+
+  const altarData = {
+    name: altarName.trim() || "My Altar",
+    savedAt: new Date().toISOString(),
+    background: altarStage.dataset.background || "",
+    backgroundName: altarStage.dataset.backgroundName || "",
+    groups: altarGroups,
+    activeGroupId,
+    objects
+  };
+
+  const user = await ensureAltarUser();
+
+  if (!user) {
+    const savedAltars = getLocalSavedAltars();
+
+    savedAltars.unshift({
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      ...altarData
+    });
+
+    storeLocalSavedAltars(savedAltars);
+    showAltarToast(`Saved locally: ${altarData.name}`);
+    return;
+  }
+
+  const { error } = await db.from(ALTAR_CLOUD_TABLE).insert({
+    user_id: user.id,
+    name: altarData.name,
+    altar_data: altarData
+  });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Cloud save failed");
+    return;
+  }
+
+  showAltarToast(`Saved: ${altarData.name}`);
+}
+
+function createSavedObject(savedObject) {
+  const object = document.createElement("button");
+
+  object.type = "button";
+  object.className = "altar-object";
+
+  object.dataset.label = savedObject.label || "object";
+  object.dataset.type = savedObject.type || "";
+  object.dataset.herb = savedObject.herb || "";
+  object.dataset.form = savedObject.form || "";
+  object.dataset.color = savedObject.color || "";
+  object.dataset.crystal = savedObject.crystal || "";
+  object.dataset.tool = savedObject.tool || "";
+  object.dataset.vessel = savedObject.vessel || "";
+  object.dataset.deity = savedObject.deity || "";
+  object.dataset.scale = savedObject.scale || "1";
+  object.dataset.rotation = savedObject.rotation || "0";
+  object.dataset.flipped = savedObject.flipped || "false";
+  object.dataset.locked = savedObject.locked || "false";
+  object.dataset.glowing = savedObject.glowing || "false";
+  object.dataset.lit = savedObject.lit || "false";
+  object.dataset.dressings = savedObject.dressings || "[]";
+  object.dataset.plaqueText = savedObject.plaqueText || "";
+  object.dataset.altarObjectId = savedObject.altarObjectId || "";
+  object.dataset.groupId = savedObject.groupId || "";
+
+  object.style.zIndex = savedObject.zIndex || "10";
+
+  highestLayer = Math.max(highestLayer, Number(savedObject.zIndex || 10));
+
+  if (savedObject.imagePath) {
+    const img = document.createElement("img");
+    img.src = savedObject.imagePath;
+    img.alt = savedObject.label || "altar object";
+    img.draggable = false;
+    object.appendChild(img);
+  } else {
+    object.textContent = savedObject.fallbackSymbol || "";
+  }
+
+  object.setAttribute(
+    "aria-label",
+    `${savedObject.label || "Object"}. Click to select. Drag to move. Double click to remove.`
+  );
+
+  if (object.dataset.glowing === "true") {
+    object.classList.add("has-glow");
+  }
+
+  if (object.dataset.locked === "true") {
+    object.classList.add("is-locked");
+  }
+
+  if (object.dataset.lit === "true") {
+    object.classList.add("is-lit");
+    startFlame(object);
+  }
+
+  updateCandleDressingVisuals(object);
+  makeDraggable(object);
+
+  return object;
+}
+
+async function loadAltarById(altarId) {
+  if (!altarStage) return;
+
+  const savedAltars = await getSavedAltars();
+  const altarData = savedAltars.find((altar) => altar.id === altarId);
+
+  if (!altarData) {
+    showAltarToast("Altar not found");
+    return;
+  }
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  deselectObject();
+  clearCandleDressingMode();
+
+  if (altarData.background) {
+    altarStage.style.backgroundImage = `url("${altarData.background}")`;
+    altarStage.dataset.background = altarData.background;
+    altarStage.dataset.backgroundName = altarData.backgroundName || "";
+  }
+
+  altarGroups = Array.isArray(altarData.groups) ? altarData.groups : [];
+  activeGroupId = altarData.activeGroupId || null;
+
+  (altarData.objects || []).forEach((savedObject) => {
+    const object = createSavedObject(savedObject);
+    altarStage.appendChild(object);
+
+    const img = object.querySelector("img");
+
+    function positionLoadedObject() {
+      applyStagePositionPercent(object, savedObject);
+      updateObjectTransform(object);
+      keepObjectInsideStage(object);
+      updateObjectPositionPercent(object);
+    }
+
+    if (img && !img.complete) {
+      img.addEventListener("load", positionLoadedObject, { once: true });
+    } else {
+      positionLoadedObject();
+    }
+  });
+
+  updateGroupIndicator();
+  syncGroupObjectClasses();
+  updateEmptyMessage();
+  closeSavedAltarsManager();
+  showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
+}
+
+async function renameSavedAltar(altarId) {
+  const savedAltars = await getSavedAltars();
+  const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
+
+  if (!altar) return;
+
+  const newName = window.prompt("Rename this altar:", altar.name || "My Altar");
+
+  if (!newName || !newName.trim()) return;
+
+  const user = await ensureAltarUser();
+
+  if (!user) {
+    altar.name = newName.trim();
+    altar.updatedAt = new Date().toISOString();
+    storeLocalSavedAltars(savedAltars);
+  } else {
+    const { error } = await db
+      .from(ALTAR_CLOUD_TABLE)
+      .update({
+        name: newName.trim(),
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", altarId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error(error);
+      showAltarToast("Rename failed");
+      return;
+    }
+  }
+
+  await renderSavedAltarsManager();
+  showAltarToast("Altar renamed");
+}
+
+async function deleteSavedAltar(altarId) {
+  const savedAltars = await getSavedAltars();
+  const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
+
+  if (!altar) return;
+
+  const confirmed = window.confirm(
+    `Delete "${altar.name || "Untitled Altar"}"? This cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  const user = await ensureAltarUser();
+
+  if (!user) {
+    storeLocalSavedAltars(
+      savedAltars.filter((savedAltar) => savedAltar.id !== altarId)
+    );
+  } else {
+    const { error } = await db
+      .from(ALTAR_CLOUD_TABLE)
+      .delete()
+      .eq("id", altarId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error(error);
+      showAltarToast("Delete failed");
+      return;
+    }
+  }
+
+  await renderSavedAltarsManager();
+  showAltarToast("Altar deleted");
+}
+
+const savedAltarsManager = document.createElement("div");
+savedAltarsManager.className = "saved-altars-modal";
+savedAltarsManager.hidden = true;
+savedAltarsManager.innerHTML = `
+  <div class="saved-altars-card" role="dialog" aria-modal="true" aria-labelledby="saved-altars-title">
+    <button class="saved-altars-close" type="button" data-saved-altars-close aria-label="Close">
+      ×
+    </button>
+
+    <p class="eyebrow">Saved Sanctuaries</p>
+    <h2 id="saved-altars-title">Saved Altars</h2>
+
+    <div class="saved-altars-list" data-saved-altars-list></div>
+  </div>
+`;
+
+document.body.appendChild(savedAltarsManager);
+
+const savedAltarsList = savedAltarsManager.querySelector("[data-saved-altars-list]");
+const savedAltarsClose = savedAltarsManager.querySelector("[data-saved-altars-close]");
+
+async function renderSavedAltarsManager() {
+  const savedAltars = await getSavedAltars();
+
+  if (!savedAltarsList) return;
+
+  if (savedAltars.length === 0) {
+    savedAltarsList.innerHTML = `
+      <p class="saved-altars-empty">
+        No saved altars yet. Build one, then use Save Altar to keep it.
+      </p>
+    `;
+    return;
+  }
+
+  savedAltarsList.innerHTML = savedAltars
+    .map((altar) => {
+      const date = altar.savedAt
+        ? new Date(altar.savedAt).toLocaleDateString()
+        : "No date";
+
+      const itemCount = Array.isArray(altar.objects) ? altar.objects.length : 0;
+
+      return `
+        <article class="saved-altar-row" data-saved-altar-id="${altar.id}">
+          <div>
+            <h3>${altar.name || "Untitled Altar"}</h3>
+            <p>${date} · ${itemCount} item${itemCount === 1 ? "" : "s"}</p>
+          </div>
+
+          <div class="saved-altar-actions">
+            <button type="button" data-saved-action="load">Load</button>
+            <button type="button" data-saved-action="rename">Rename</button>
+            <button type="button" data-saved-action="delete">Delete</button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+async function openSavedAltarsManager() {
+  await migrateLocalAltarsToCloud();
+  await renderSavedAltarsManager();
+
+  savedAltarsManager.hidden = false;
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeSavedAltarsManager() {
+  savedAltarsManager.hidden = true;
+  document.body.classList.remove("altar-modal-open");
+}
+
+async function loadAltar() {
+  await openSavedAltarsManager();
+}
+
+function clearAltar() {
+  if (!altarStage) return;
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  altarGroups = [];
+  activeGroupId = null;
+
+  deselectObject();
+  clearCandleDressingMode();
+  updateGroupIndicator();
+  updateEmptyMessage();
+}
