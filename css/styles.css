@@ -711,8 +711,14 @@ summary:focus-visible {
   display: grid;
   place-items: center;
   padding: 1rem;
-  background: rgba(5, 4, 3, 0.74);
-  backdrop-filter: blur(10px);
+  background: rgba(5, 4, 3, 0.78);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.26s ease;
+}
+
+.sanctuary-modal.is-visible {
+  opacity: 1;
 }
 
 .sanctuary-modal[hidden] {
@@ -724,13 +730,19 @@ summary:focus-visible {
   width: min(720px, 100%);
   max-height: min(760px, 92vh);
   overflow-y: auto;
-  padding: clamp(1.35rem, 4vw, 2.4rem);
+  padding: clamp(1.35rem, 4vw, 2.5rem);
   border: 1px solid rgba(185, 160, 93, 0.42);
   border-radius: 1.35rem;
   background:
     radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
     linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
   box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+  transform: translateY(0.7rem) scale(0.985);
+  transition: transform 0.26s ease;
+}
+
+.sanctuary-modal.is-visible .sanctuary-modal-card {
+  transform: translateY(0) scale(1);
 }
 
 .sanctuary-modal-close {
@@ -760,8 +772,21 @@ summary:focus-visible {
   color: var(--cream);
 }
 
-.sanctuary-modal-card > p {
+.sanctuary-modal-card > div > p {
   max-width: 58ch;
+}
+
+.sanctuary-auth-form {
+  margin-top: 1.25rem;
+}
+
+.sanctuary-auth-actions {
+  margin-top: 1rem;
+}
+
+.sanctuary-signed-in-email {
+  margin-top: 1rem;
+  color: var(--gold);
 }
 
 body.sanctuary-modal-open {
