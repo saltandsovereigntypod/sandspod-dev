@@ -2,12 +2,6 @@
    6. GENERAL UI HELPERS
    ========================================================= */
 
-function updateEmptyMessage() {
-  if (!altarStage || !emptyMessage) return;
-
-  emptyMessage.hidden = altarStage.querySelectorAll(".altar-object").length > 0;
-}
-
 function updateObjectTransform(object) {
   const scale = Number(object.dataset.scale || 1);
   const rotation = Number(object.dataset.rotation || 0);
@@ -22,34 +16,6 @@ function getObjectImagePath(object) {
   );
 
   return img ? img.getAttribute("src") : "";
-}
-
-function isUserSignedIn() {
-  return typeof currentUser !== "undefined" && currentUser;
-}
-
-async function ensureAltarUser() {
-  if (isUserSignedIn()) return currentUser;
-
-  if (typeof getCurrentUser === "function") {
-    return await getCurrentUser();
-  }
-
-  return null;
-}
-
-function openSaveModal() {
-  if (!saveModal) return;
-
-  saveModal.hidden = false;
-  document.body.classList.add("altar-modal-open");
-}
-
-function closeSaveModal() {
-  if (!saveModal) return;
-
-  saveModal.hidden = true;
-  document.body.classList.remove("altar-modal-open");
 }
 
 /* =========================================================
@@ -84,9 +50,6 @@ const cabinetCategories = [
   { id: "deities", label: "Deities", icon: "👑" },
   { id: "vessels", label: "Vessels", icon: "🏺" }
 ];
-
-let activeCabinetCategory = "candles";
-let cabinetSearchTerm = "";
 
 const cabinetItems = [
   {
