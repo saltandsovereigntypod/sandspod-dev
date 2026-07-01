@@ -436,21 +436,20 @@
 
 .altar-info-card {
   position: absolute;
-  left: 50%;
-  bottom: 0.75rem;
+  left: 0.75rem;
+  top: 0.75rem;
+  bottom: auto;
   z-index: 997;
-  width: min(13rem, calc(100% - 1rem));
-  transform: translateX(-50%) translateY(0.5rem);
+  width: min(11rem, calc(100% - 1.5rem));
+  transform: translateY(-0.25rem);
   opacity: 0;
   pointer-events: none;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .altar-info-card.is-visible {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .altar-info-card[hidden] {
@@ -954,11 +953,12 @@ body.altar-modal-open {
     font-size: 0.78rem;
   }
 
-  .altar-info-card {
-    bottom: 5.8rem;
-    width: min(13rem, calc(100% - 1rem));
-    z-index: 1090;
-  }
+   .altar-info-card {
+     left: 0.5rem;
+     top: 0.5rem;
+     bottom: auto;
+     width: min(10rem, calc(100% - 1rem));
+   }
 
   .altar-cabinet {
     position: fixed;
