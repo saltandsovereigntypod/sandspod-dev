@@ -173,7 +173,7 @@ altarActionBar.addEventListener("click", (event) => {
 
       if (!isUserSignedIn()) {
         shouldSaveAfterAuth = true;
-        openSaveModal();
+        openSanctuaryModal();
         return;
       }
 
@@ -259,33 +259,12 @@ window.addEventListener("resize", () => {
    MODALS
    ========================================================= */
 
-if (saveModalClose) {
-
-  saveModalClose.addEventListener("click", closeSaveModal);
-
-}
-
-if (saveModal) {
-
-  saveModal.addEventListener("click", (event) => {
-
-    if (event.target === saveModal) {
-      closeSaveModal();
-    }
-
-  });
-
-}
-
 savedAltarsClose.addEventListener("click", closeSavedAltarsManager);
 
 savedAltarsManager.addEventListener("click", (event) => {
-
   if (event.target === savedAltarsManager) {
-
     closeSavedAltarsManager();
     return;
-
   }
 
   const button = event.target.closest("[data-saved-action]");
@@ -296,7 +275,6 @@ savedAltarsManager.addEventListener("click", (event) => {
   const altarId = row.dataset.savedAltarId;
 
   switch (button.dataset.savedAction) {
-
     case "load":
       loadAltarById(altarId);
       break;
@@ -308,9 +286,7 @@ savedAltarsManager.addEventListener("click", (event) => {
     case "delete":
       deleteSavedAltar(altarId);
       break;
-
   }
-
 });
 
 
@@ -319,14 +295,10 @@ savedAltarsManager.addEventListener("click", (event) => {
    ========================================================= */
 
 document.addEventListener("keydown", (event) => {
-
   if (event.key === "Escape") {
-
-    closeSaveModal();
+    closeSanctuaryModal();
     closeSavedAltarsManager();
-
   }
-
 });
 
 
@@ -335,24 +307,18 @@ document.addEventListener("keydown", (event) => {
    ========================================================= */
 
 document.addEventListener("saltAuthSuccess", async () => {
-
-  closeSaveModal();
+  closeSanctuaryModal();
 
   await migrateLocalAltarsToCloud();
 
   if (shouldSaveAfterAuth) {
-
     shouldSaveAfterAuth = false;
-
     await saveAltar();
-
     showAltarToast("Your altar has been saved");
-
     return;
   }
 
   showAltarToast("Signed in");
-
 });
 
 
