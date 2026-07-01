@@ -178,48 +178,76 @@
           ×
         </button>
     
-        <p class="eyebrow">The Sanctuary</p>
+        <div data-sanctuary-signed-out>
+          <p class="eyebrow">The Sanctuary</p>
     
-        <h2 id="sanctuary-modal-title">Enter Your Sanctuary</h2>
+          <h2 id="sanctuary-modal-title">Enter Your Sanctuary</h2>
     
-        <p>
-          Continue as a guest, or sign in to save your altar, grimoire, rituals,
-          notes, and magical practice across devices.
-        </p>
+          <p>
+            Whether you're here to build an altar, write in your Book of Shadows, or simply explore,
+            this space belongs to you.
+          </p>
     
-        <form class="altar-auth-form" data-auth-form>
-          <label>
-            Email
-            <input type="email" name="email" autocomplete="email" />
-          </label>
+          <p>
+            Continue as a guest, or create a free Sanctuary account to safely keep your practice
+            across all of your devices.
+          </p>
     
-          <label>
-            Password
-            <input type="password" name="password" autocomplete="current-password" />
-          </label>
+          <form class="altar-auth-form sanctuary-auth-form" data-auth-form>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" />
+            </label>
     
-          <div class="altar-auth-actions">
-            <button class="button button--primary" type="submit" data-auth-action="signin">
-              Open My Sanctuary
+            <label>
+              Password
+              <input type="password" name="password" autocomplete="current-password" />
+            </label>
+    
+            <div class="altar-auth-actions sanctuary-auth-actions">
+              <button class="button button--primary" type="submit" data-auth-action="signin">
+                Open My Sanctuary
+              </button>
+    
+              <button class="button" type="button" data-auth-action="signup">
+                Create Sanctuary
+              </button>
+    
+              <button class="button button--ghost" type="button" data-sanctuary-guest>
+                Continue as Guest →
+              </button>
+            </div>
+    
+            <p class="altar-auth-status" data-auth-status role="status" aria-live="polite">
+              Your private practice always belongs to you. Nothing is shared publicly unless you choose to share it.
+            </p>
+          </form>
+        </div>
+    
+        <div data-sanctuary-signed-in hidden>
+          <p class="eyebrow">The Sanctuary</p>
+    
+          <h2>Welcome back.</h2>
+    
+          <p>
+            Your sanctuary is open. Your altar, grimoire, rituals, notes, and saved practice can follow
+            you across your devices.
+          </p>
+    
+          <p class="sanctuary-signed-in-email">
+            Signed in as <strong data-sanctuary-email></strong>
+          </p>
+    
+          <div class="altar-auth-actions sanctuary-auth-actions">
+            <button class="button button--primary" type="button" data-sanctuary-continue>
+              Continue
             </button>
     
-            <button class="button" type="button" data-auth-action="signup">
-              Create Sanctuary
-            </button>
-    
-            <button class="button button--ghost" type="button" data-sanctuary-guest>
-              Continue as Guest
-            </button>
-    
-            <button class="button button--ghost" type="button" data-auth-action="signout" hidden>
+            <button class="button button--ghost" type="button" data-auth-action="signout">
               Sign Out
             </button>
           </div>
-    
-          <p class="altar-auth-status" data-auth-status role="status" aria-live="polite">
-            Continue as a guest, or sign in to save across devices.
-          </p>
-        </form>
+        </div>
       </div>
     </div>
 
