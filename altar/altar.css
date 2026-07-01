@@ -449,11 +449,7 @@
 
 .altar-info-card.is-visible {
   opacity: 1;
-  transform: translateY(0);
-}
-
-.altar-info-card[hidden] {
-  display: none;
+  transform: translateX(-50%) translateY(0);
 }
 
 .altar-info-card-inner {
@@ -954,10 +950,16 @@ body.altar-modal-open {
   }
 
    .altar-info-card {
-     left: 0.5rem;
-     top: 0.5rem;
+     position: absolute;
+     left: 0.75rem;
+     top: 0.75rem;
      bottom: auto;
-     width: min(10rem, calc(100% - 1rem));
+     z-index: 997;
+     width: min(11rem, calc(100% - 1.5rem));
+     transform: translateY(-0.25rem);
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity 0.2s ease, transform 0.2s ease;
    }
 
   .altar-cabinet {
@@ -1115,25 +1117,4 @@ body.altar-modal-open {
     display: grid;
     grid-template-columns: 1fr;
   }
-}
-'''
-
-path = Path('/mnt/data/altar-clean.css')
-path.write_text(css)
-print(path)
-
-.cabinet-tab {
-  min-height: 2.45rem;
-  border-radius: 999px;
-  padding: 0.35rem 0.55rem;
-  font-size: 0.72rem;
-}
-
-.cabinet-tab span {
-  font-size: 1rem;
-}
-
-.altar-cabinet-tabs {
-  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
-  gap: 0.35rem;
 }
