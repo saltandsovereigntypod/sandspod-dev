@@ -1229,10 +1229,22 @@ function loadAltarById(altarId) {
 
   (altarData.objects || []).forEach((savedObject) => {
     const object = createSavedObject(savedObject);
-    altarStage.appendChild(object);
-    applyStagePositionPercent(object, savedObject);
-    updateObjectTransform(object);
-    keepObjectInsideStage(object);
+      altarStage.appendChild(object);
+      
+      const img = object.querySelector("img");
+      
+      function positionLoadedObject() {
+        applyStagePositionPercent(object, savedObject);
+        updateObjectTransform(object);
+        keepObjectInsideStage(object);
+        updateObjectPositionPercent(object);
+      }
+      
+      if (img && !img.complete) {
+        img.addEventListener("load", positionLoadedObject, { once: true });
+      } else {
+        positionLoadedObject();
+      }
   });
 
   updateGroupIndicator();
