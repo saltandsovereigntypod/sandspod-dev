@@ -1273,10 +1273,10 @@ function createSavedObject(savedObject) {
   return object;
 }
 
-function loadAltarById(altarId) {
+async function loadAltarById(altarId) {
   if (!altarStage) return;
 
-  const savedAltars = getSavedAltars();
+  const savedAltars = await getSavedAltars();
   const altarData = savedAltars.find((altar) => altar.id === altarId);
 
   if (!altarData) {
@@ -1328,7 +1328,7 @@ function loadAltarById(altarId) {
   showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
 }
 
-function renameSavedAltar(altarId) {
+async function renameSavedAltar(altarId)
   const savedAltars = getSavedAltars();
   const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
 
@@ -1346,8 +1346,8 @@ function renameSavedAltar(altarId) {
   showAltarToast("Altar renamed");
 }
 
-function deleteSavedAltar(altarId) {
-  const savedAltars = getSavedAltars();
+async function deleteSavedAltar(altarId)
+  const savedAltars = await getSavedAltars();
   const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
 
   if (!altar) return;
@@ -1459,7 +1459,7 @@ function clearAltar() {
 
 savedAltarsClose.addEventListener("click", closeSavedAltarsManager);
 
-savedAltarsManager.addEventListener("click", (event) => {
+savedAltarsManager.addEventListener("click", async (event) => {
   if (event.target === savedAltarsManager) {
     closeSavedAltarsManager();
     return;
@@ -1473,9 +1473,9 @@ savedAltarsManager.addEventListener("click", (event) => {
   const altarId = row.dataset.savedAltarId;
   const action = button.dataset.savedAction;
 
-  if (action === "load") loadAltarById(altarId);
-  if (action === "rename") renameSavedAltar(altarId);
-  if (action === "delete") deleteSavedAltar(altarId);
+ if (action === "load") await loadAltarById(altarId);
+ if (action === "rename") await renameSavedAltar(altarId);
+ if (action === "delete") await deleteSavedAltar(altarId);
 });
 
 
