@@ -34,6 +34,9 @@ const ALTAR_GRIMOIRE_HANDOFF_KEY = "saltAndSovereigntyAltarToGrimoire";
 
 const ALTAR_STORAGE_KEY = "saltAndSovereigntySavedAltars";
 
+const ALTAR_CLOUD_TABLE = "saved_altars";
+const ALTAR_MIGRATION_KEY = "saltAndSovereigntyAltarsMigratedToCloud";
+
 const CANDLE_HERB_OVERLAY_SRC =
   "../assets/altar/overlays/candle-herb-overlay.png";
 
@@ -1058,7 +1061,7 @@ function repositionAllObjectsFromPercent() {
   });
 }
 
-function getSavedAltars() {
+function getLocalSavedAltars() {
   const saved = localStorage.getItem(ALTAR_STORAGE_KEY);
 
   if (!saved) return [];
@@ -1071,8 +1074,64 @@ function getSavedAltars() {
   }
 }
 
-function storeSavedAltars(savedAltars) {
+function storeLocalSavedAltars(savedAltars) {
   localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(savedAltars));
+}
+
+async function getSavedAltars() {
+  if (!isUserSignedIn()) {
+    return getLocalSavedAltars();
+  }
+
+  const { data, error } = await db
+    .from(ALTAR_CLOUD_TABLE)
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Could not load cloud saves");
+    return [];
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    savedAt: row.created_at,
+    updatedAt: row.updated_at,
+    ...(row.altar_data || {})
+  }));
+}
+
+async function migrateLocalAltarsToCloud() {
+  if (!isUserSignedIn()) return;
+
+  const alreadyMigrated = localStorage.getItem(ALTAR_MIGRATION_KEY);
+  if (alreadyMigrated === "true") return;
+
+  const localAltars = getLocalSavedAltars();
+  if (localAltars.length === 0) {
+    localStorage.setItem(ALTAR_MIGRATION_KEY, "true");
+    return;
+  }
+
+  const rows = localAltars.map((altar) => ({
+    user_id: currentUser.id,
+    name: altar.name || "My Altar",
+    altar_data: altar
+  }));
+
+  const { error } = await db.from(ALTAR_CLOUD_TABLE).insert(rows);
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Local altar migration failed");
+    return;
+  }
+
+  localStorage.setItem(ALTAR_MIGRATION_KEY, "true");
+  showAltarToast("Local altars synced");
 }
 
 function saveAltar() {
