@@ -449,7 +449,7 @@
 
 .altar-info-card.is-visible {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .altar-info-card-inner {
