@@ -13,21 +13,54 @@ function rememberSanctuaryChoice() {
   localStorage.setItem(SANCTUARY_CHOICE_KEY, "true");
 }
 
-function closeSanctuaryModal() {
-  const modal = document.querySelector("[data-sanctuary-modal]");
+function getSanctuaryModal() {
+  return document.querySelector("[data-sanctuary-modal]");
+}
+
+function updateSanctuaryModalForUser() {
+  const modal = getSanctuaryModal();
   if (!modal) return;
 
-  modal.hidden = true;
-  document.body.classList.remove("sanctuary-modal-open");
+  const signedOutView = modal.querySelector("[data-sanctuary-signed-out]");
+  const signedInView = modal.querySelector("[data-sanctuary-signed-in]");
+  const signedInEmail = modal.querySelector("[data-sanctuary-email]");
+
+  const isSignedIn = Boolean(currentUser);
+
+  if (signedOutView) signedOutView.hidden = isSignedIn;
+  if (signedInView) signedInView.hidden = !isSignedIn;
+
+  if (signedInEmail && currentUser?.email) {
+    signedInEmail.textContent = currentUser.email;
+  }
+}
+
+function closeSanctuaryModal() {
+  const modal = getSanctuaryModal();
+  if (!modal) return;
+
+  modal.classList.remove("is-visible");
+
+  window.setTimeout(() => {
+    modal.hidden = true;
+    document.body.classList.remove("sanctuary-modal-open");
+  }, 260);
+
   rememberSanctuaryChoice();
 }
 
 function openSanctuaryModal() {
-  const modal = document.querySelector("[data-sanctuary-modal]");
+  const modal = getSanctuaryModal();
   if (!modal) return;
+
+  updateSanctuaryModalForUser();
 
   modal.hidden = false;
   document.body.classList.add("sanctuary-modal-open");
+
+  requestAnimationFrame(() => {
+    modal.classList.add("is-visible");
+  });
 }
 
 function shouldShowSanctuaryModal() {
@@ -41,24 +74,26 @@ function shouldShowSanctuaryModal() {
 document.addEventListener("click", (event) => {
   const guestButton = event.target.closest("[data-sanctuary-guest]");
   const closeButton = event.target.closest("[data-sanctuary-close]");
+  const continueButton = event.target.closest("[data-sanctuary-continue]");
 
-  if (guestButton || closeButton) {
+  if (guestButton || closeButton || continueButton) {
     closeSanctuaryModal();
   }
 });
 
 document.addEventListener("saltAuthSuccess", () => {
+  updateSanctuaryModalForUser();
   closeSanctuaryModal();
 });
 
 document.addEventListener("saltAuthChanged", () => {
-  if (currentUser) {
-    closeSanctuaryModal();
-  }
+  updateSanctuaryModalForUser();
 });
 
 window.addEventListener("load", () => {
   window.setTimeout(() => {
+    updateSanctuaryModalForUser();
+
     if (shouldShowSanctuaryModal()) {
       openSanctuaryModal();
     }
