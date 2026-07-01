@@ -698,3 +698,72 @@ summary:focus-visible {
     transform: none;
   }
 }
+
+/* =========================================================
+   SANCTUARY MODAL
+   Shared welcome / authentication modal
+   ========================================================= */
+
+.sanctuary-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.74);
+  backdrop-filter: blur(10px);
+}
+
+.sanctuary-modal[hidden] {
+  display: none;
+}
+
+.sanctuary-modal-card {
+  position: relative;
+  width: min(720px, 100%);
+  max-height: min(760px, 92vh);
+  overflow-y: auto;
+  padding: clamp(1.35rem, 4vw, 2.4rem);
+  border: 1px solid rgba(185, 160, 93, 0.42);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.sanctuary-modal-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.24);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.sanctuary-modal-close:hover,
+.sanctuary-modal-close:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.18);
+}
+
+.sanctuary-modal-card h2 {
+  max-width: none;
+  margin-bottom: 0.75rem;
+  color: var(--cream);
+}
+
+.sanctuary-modal-card > p {
+  max-width: 58ch;
+}
+
+body.sanctuary-modal-open {
+  overflow: hidden;
+}
