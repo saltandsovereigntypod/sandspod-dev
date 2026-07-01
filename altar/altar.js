@@ -210,6 +210,16 @@ function isUserSignedIn() {
   return typeof currentUser !== "undefined" && currentUser;
 }
 
+async function ensureAltarUser() {
+  if (isUserSignedIn()) return currentUser;
+
+  if (typeof getCurrentUser === "function") {
+    return await getCurrentUser();
+  }
+
+  return null;
+}
+
 function openSaveModal() {
   if (!saveModal) return;
 
@@ -1079,14 +1089,16 @@ function storeLocalSavedAltars(savedAltars) {
 }
 
 async function getSavedAltars() {
-  if (!isUserSignedIn()) {
-    return getLocalSavedAltars();
-  }
+   const user = await ensureAltarUser();
+   
+   if (!user) {
+     return getLocalSavedAltars();
+   }
 
   const { data, error } = await db
     .from(ALTAR_CLOUD_TABLE)
     .select("*")
-    .eq("user_id", currentUser.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -1182,7 +1194,9 @@ async function saveAltar() {
     objects
   };
 
-  if (!isUserSignedIn()) {
+ const user = await ensureAltarUser();
+
+ if (!user) {
     const savedAltars = getLocalSavedAltars();
     savedAltars.unshift({
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -1195,7 +1209,7 @@ async function saveAltar() {
   }
 
   const { error } = await db.from(ALTAR_CLOUD_TABLE).insert({
-    user_id: currentUser.id,
+    user_id: user.id,
     name: altarData.name,
     altar_data: altarData
   });
