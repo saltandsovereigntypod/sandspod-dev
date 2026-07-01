@@ -1095,13 +1095,13 @@ async function getSavedAltars() {
     return [];
   }
 
-  return data.map((row) => ({
-    id: row.id,
-    name: row.name,
-    savedAt: row.created_at,
-    updatedAt: row.updated_at,
-    ...(row.altar_data || {})
-  }));
+   return data.map((row) => ({
+     ...(row.altar_data || {}),
+     id: row.id,
+     name: row.name,
+     savedAt: row.created_at,
+     updatedAt: row.updated_at
+   }));
 }
 
 async function migrateLocalAltarsToCloud() {
