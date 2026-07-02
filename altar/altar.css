@@ -1119,4 +1119,106 @@ body.altar-modal-open {
   }
 }
 
+/* =========================================================
+   SAVED ALTARS LIBRARY
+   ========================================================= */
 
+.saved-altars-library {
+  width: min(920px, calc(100vw - 2rem));
+}
+
+.saved-altars-header {
+  max-width: 42rem;
+  margin-bottom: 1.25rem;
+}
+
+.saved-altars-header h2 {
+  max-width: none;
+  margin-bottom: 0.5rem;
+}
+
+.saved-altars-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.saved-altar-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1.15rem;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.12), transparent 16rem),
+    rgba(244, 236, 216, 0.045);
+}
+
+.saved-altar-symbol {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(185, 160, 93, 0.3);
+  border-radius: 50%;
+  background: rgba(185, 160, 93, 0.08);
+  font-size: 1.25rem;
+}
+
+.saved-altar-body h3 {
+  max-width: none;
+  margin-bottom: 0.35rem;
+  color: var(--cream);
+}
+
+.saved-altar-body p {
+  margin-bottom: 0.35rem;
+}
+
+.saved-altar-date {
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.saved-altar-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.saved-altar-actions button {
+  border: 1px solid rgba(244, 236, 216, 0.22);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  cursor: pointer;
+}
+
+.saved-altar-actions button:hover,
+.saved-altar-actions button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.14);
+}
+
+.saved-altars-empty {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1.15rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: rgba(244, 236, 216, 0.045);
+}
+
+.saved-altars-empty h3 {
+  max-width: none;
+}
+
+@media (min-width: 760px) {
+  .saved-altars-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
