@@ -8,7 +8,17 @@ function updateObjectTransform(object) {
   const rotation = Number(object.dataset.rotation || 0);
   const flipped = object.dataset.flipped === "true" ? -1 : 1;
 
-  object.style.transform = `scaleX(${flipped}) scale(${scale}) rotate(${rotation}deg)`;
+  object.style.transform =
+    `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale}) scaleX(${flipped})`;
+
+  const light = object.querySelector(".candle-light");
+
+  if (light) {
+    const lightSize = 220 + (scale * 70);
+
+    light.style.width = `${lightSize}px`;
+    light.style.height = `${lightSize}px`;
+  }
 }
 
 function getObjectImagePath(object) {
@@ -455,6 +465,12 @@ function placeObject(options) {
     object.textContent = fallbackSymbol || "";
   }
 
+   if (type === "candle") {
+     const light = document.createElement("div");
+     light.className = "candle-light";
+     object.prepend(light);
+   }
+
   object.setAttribute(
     "aria-label",
     `${label || "Object"}. Click to select. Drag to move. Double click to remove.`
@@ -510,6 +526,15 @@ function duplicateObject(object) {
   clone.classList.remove("is-selected", "is-dragging", "can-receive-dressing");
 
   updateCandleDressingVisuals(clone);
+
+   if (
+     clone.dataset.type === "candle" &&
+     !clone.querySelector(".candle-light")
+   ) {
+     const light = document.createElement("div");
+     light.className = "candle-light";
+     clone.prepend(light);
+   }
 
   if (clone.dataset.lit === "true") {
     startFlame(clone);
