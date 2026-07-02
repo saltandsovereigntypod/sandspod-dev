@@ -792,3 +792,134 @@ summary:focus-visible {
 body.sanctuary-modal-open {
   overflow: hidden;
 }
+
+/* =========================================================
+   MY SANCTUARY PANEL
+   ========================================================= */
+
+.nav-sanctuary-button {
+  border: 1px solid rgba(185, 160, 93, 0.35);
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  cursor: pointer;
+}
+
+.nav-sanctuary-button:hover,
+.nav-sanctuary-button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+.my-sanctuary-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  pointer-events: none;
+}
+
+.my-sanctuary-panel[hidden] {
+  display: none;
+}
+
+.my-sanctuary-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 4, 3, 0.55);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.my-sanctuary-card {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(390px, 100%);
+  height: 100%;
+  padding: 2rem 1.35rem;
+  border-left: 1px solid rgba(185, 160, 93, 0.36);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.15), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: -28px 0 80px rgba(0, 0, 0, 0.55);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  pointer-events: auto;
+}
+
+.my-sanctuary-panel.is-visible {
+  pointer-events: auto;
+}
+
+.my-sanctuary-panel.is-visible .my-sanctuary-backdrop {
+  opacity: 1;
+}
+
+.my-sanctuary-panel.is-visible .my-sanctuary-card {
+  transform: translateX(0);
+}
+
+.my-sanctuary-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.24);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.my-sanctuary-card h2 {
+  max-width: none;
+  margin-bottom: 0.5rem;
+  color: var(--cream);
+}
+
+.my-sanctuary-user {
+  margin-bottom: 1.25rem;
+  color: var(--gold);
+  font-size: 0.95rem;
+}
+
+.my-sanctuary-links {
+  display: grid;
+  gap: 0.65rem;
+  padding-block: 1rem;
+  border-block: 1px solid rgba(185, 160, 93, 0.22);
+}
+
+.my-sanctuary-links a,
+.my-sanctuary-links span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.05);
+  text-decoration: none;
+}
+
+.my-sanctuary-links a:hover,
+.my-sanctuary-links a:focus-visible {
+  background: rgba(185, 160, 93, 0.14);
+}
+
+.my-sanctuary-links em {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.my-sanctuary-actions {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
