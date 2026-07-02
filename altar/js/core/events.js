@@ -176,10 +176,20 @@ if (altarCabinet) {
 }
 
 document.addEventListener("click", (event) => {
+  const openCabinetButton = event.target.closest("[data-open-cabinet-overlay]");
   const closeCabinetButton = event.target.closest("[data-close-cabinet-overlay]");
+  const openApothecaryButton = event.target.closest("[data-open-apothecary-overlay]");
+
+  if (openCabinetButton) {
+    openAltarCabinetOverlay();
+  }
 
   if (closeCabinetButton) {
     closeAltarCabinetOverlay();
+  }
+
+  if (openApothecaryButton) {
+    showAltarToast("My Apothecary is coming next.");
   }
 });
 
