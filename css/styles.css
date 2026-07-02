@@ -1574,3 +1574,115 @@ body:has(.sanctuary-submission-form) h1 {
     max-height: none;
   }
 }
+
+/* =========================================================
+   CREATOR DASHBOARD V2
+   ========================================================= */
+
+.creator-dashboard-sidebar button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.creator-dashboard-sidebar button.is-active {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+.creator-dashboard-sidebar button strong {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.45rem;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  color: var(--forest);
+  background: var(--gold);
+  font-size: 0.72rem;
+}
+
+.admin-submission-list-item {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.admin-submission-open {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-submission-open em {
+  width: fit-content;
+  border-radius: 999px;
+  margin-top: 0.35rem;
+  padding: 0.16rem 0.45rem;
+  color: var(--forest);
+  background: var(--gold);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.admin-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.16);
+}
+
+.admin-card-actions button {
+  border: 1px solid rgba(244, 236, 216, 0.18);
+  border-radius: 999px;
+  padding: 0.28rem 0.5rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.045);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.admin-card-actions button:hover,
+.admin-card-actions button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.12);
+}
+
+.admin-submission-list-item.is-active {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.08);
+}
+
+.admin-review-heading h2 {
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+}
+
+.admin-message-thread {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.my-submission-message.is-admin-message {
+  border-left-color: var(--gold);
+}
+
+.my-submission-message.is-user-message {
+  border-left-color: var(--silver);
+}
+
+[data-admin-submission-status] {
+  min-height: 1.5rem;
+  color: var(--gold);
+  font-style: italic;
+}
