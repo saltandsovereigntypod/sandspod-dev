@@ -422,3 +422,5 @@ renderCabinet();
 
 resizeLightingCanvas();
 renderLighting();
+
+
