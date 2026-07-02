@@ -1,5 +1,5 @@
 /* =========================================================
-   ADMIN SUBMISSION REVIEW
+   CREATOR DASHBOARD
    Private review queue for Salt & Sovereignty submissions
    ========================================================= */
 
@@ -9,6 +9,9 @@ const SALT_ADMIN_IDS = [
 ];
 
 let adminSubmissionFilter = "pending";
+let adminSubmissionSearch = "";
+let adminSubmissionPage = 1;
+let adminSubmissionPageSize = 25;
 let adminSubmissions = [];
 let activeAdminSubmission = null;
 
@@ -49,7 +52,8 @@ function formatAdminStatus(status) {
     needs_revision: "Needs Revision",
     approved: "Approved",
     rejected: "Rejected",
-    published: "Published"
+    published: "Published",
+    archived: "Archived"
   };
 
   return labels[status] || status || "Pending Review";
@@ -69,7 +73,7 @@ async function requireSubmissionAdmin() {
   await getCurrentUser();
 
   if (!isSaltSubmissionAdmin()) {
-    document.querySelector(".admin-submissions-page").innerHTML = `
+    document.querySelector(".creator-dashboard").innerHTML = `
       <div class="section-intro">
         <p class="eyebrow">Private Admin</p>
         <h1>Access Restricted</h1>
@@ -83,18 +87,48 @@ async function requireSubmissionAdmin() {
   return true;
 }
 
+async function autoArchiveOldSubmissions() {
+  if (!isSaltSubmissionAdmin()) return;
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 90);
+
+  const { error } = await db
+    .from("community_submissions")
+    .update({
+      status: "archived",
+      archived_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .in("status", ["published", "rejected"])
+    .lt("last_activity_at", cutoff.toISOString());
+
+  if (error) {
+    console.error(error);
+  }
+}
+
 async function loadAdminSubmissions() {
   if (!isSaltSubmissionAdmin()) return;
 
   adminSubmissionStatus("Loading submissions...");
 
+  const from = (adminSubmissionPage - 1) * adminSubmissionPageSize;
+  const to = from + adminSubmissionPageSize - 1;
+
   let query = db
     .from("community_submissions")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   if (adminSubmissionFilter !== "all") {
     query = query.eq("status", adminSubmissionFilter);
+  }
+
+  if (adminSubmissionSearch.trim()) {
+    const term = `%${adminSubmissionSearch.trim()}%`;
+    query = query.or(`title.ilike.${term},body.ilike.${term},display_name.ilike.${term}`);
   }
 
   const { data, error } = await query;
@@ -107,6 +141,7 @@ async function loadAdminSubmissions() {
 
   adminSubmissions = data || [];
   renderAdminSubmissionList();
+  updateAdminPagination();
   adminSubmissionStatus("");
 }
 
@@ -115,9 +150,7 @@ function renderAdminSubmissionList() {
   if (!list) return;
 
   if (adminSubmissions.length === 0) {
-    list.innerHTML = `
-      <p class="my-sanctuary-empty">No submissions found for this filter.</p>
-    `;
+    list.innerHTML = `<p class="my-sanctuary-empty">No submissions found.</p>`;
     return;
   }
 
@@ -133,6 +166,11 @@ function renderAdminSubmissionList() {
       </button>
     `)
     .join("");
+}
+
+function updateAdminPagination() {
+  const label = document.querySelector("[data-admin-page-label]");
+  if (label) label.textContent = `Page ${adminSubmissionPage}`;
 }
 
 async function loadAdminSubmissionMessages(submissionId) {
@@ -184,24 +222,6 @@ async function renderAdminSubmissionDetail(submissionId) {
         ${escapeAdminSubmissionHTML(submission.body).replaceAll("\n", "<br>")}
       </div>
 
-      <label>
-        Response visible to submitter
-        <textarea rows="5" data-admin-reviewer-response>${escapeAdminSubmissionHTML(submission.reviewer_response || "")}</textarea>
-      </label>
-
-      <label>
-        Private moderator notes
-        <textarea rows="4" data-admin-moderator-notes>${escapeAdminSubmissionHTML(submission.moderator_notes || "")}</textarea>
-      </label>
-
-      <div class="admin-submission-actions">
-        <button type="button" data-admin-status-action="approved">Approve</button>
-        <button type="button" data-admin-status-action="needs_revision">Needs Revision</button>
-        <button type="button" data-admin-status-action="published">Mark Published</button>
-        <button type="button" data-admin-status-action="rejected">Reject</button>
-        <button type="button" data-admin-save-response>Save Response</button>
-      </div>
-
       <section class="admin-submission-messages">
         <h3>Conversation</h3>
 
@@ -215,12 +235,12 @@ async function renderAdminSubmissionDetail(submissionId) {
                   </div>
                 `)
                 .join("")
-            : `<p class="my-submission-muted">No messages yet.</p>`
+            : `<p class="my-submission-muted">No conversation yet.</p>`
         }
 
         <form data-admin-message-form>
           <label>
-            Send a message
+            Message visible to submitter
             <textarea name="message" rows="3"></textarea>
           </label>
 
@@ -229,6 +249,21 @@ async function renderAdminSubmissionDetail(submissionId) {
           </button>
         </form>
       </section>
+
+      <label>
+        Private moderator notes
+        <textarea rows="4" data-admin-moderator-notes>${escapeAdminSubmissionHTML(submission.moderator_notes || "")}</textarea>
+      </label>
+
+      <div class="admin-submission-actions">
+        <button type="button" data-admin-status-action="pending">Pending</button>
+        <button type="button" data-admin-status-action="approved">Approve</button>
+        <button type="button" data-admin-status-action="needs_revision">Needs Revision</button>
+        <button type="button" data-admin-status-action="published">Mark Published</button>
+        <button type="button" data-admin-status-action="rejected">Reject</button>
+        <button type="button" data-admin-status-action="archived">Archive</button>
+        <button type="button" data-admin-save-notes>Save Notes</button>
+      </div>
     </article>
   `;
 }
@@ -236,21 +271,18 @@ async function renderAdminSubmissionDetail(submissionId) {
 async function updateAdminSubmissionStatus(status) {
   if (!activeAdminSubmission) return;
 
-  const response = document.querySelector("[data-admin-reviewer-response]")?.value || "";
   const notes = document.querySelector("[data-admin-moderator-notes]")?.value || "";
 
   const patch = {
     status,
-    reviewer_response: response,
     moderator_notes: notes,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    last_activity_at: new Date().toISOString()
   };
 
-  if (status === "published") {
-    patch.published_at = new Date().toISOString();
-  }
-
-  if (["approved", "needs_revision", "rejected", "published"].includes(status)) {
+  if (status === "published") patch.published_at = new Date().toISOString();
+  if (status === "archived") patch.archived_at = new Date().toISOString();
+  if (["approved", "needs_revision", "rejected", "published", "archived"].includes(status)) {
     patch.reviewed_at = new Date().toISOString();
   }
 
@@ -265,30 +297,21 @@ async function updateAdminSubmissionStatus(status) {
     return;
   }
 
-  adminSubmissionStatus("Submission updated.");
+  adminSubmissionFilter = status;
+  adminSubmissionPage = 1;
+  adminSubmissionStatus(`Moved to ${formatAdminStatus(status)}.`);
   await loadAdminSubmissions();
-
-  const stillVisible = adminSubmissions.find((item) => item.id === activeAdminSubmission.id);
-
-  if (stillVisible) {
-    await renderAdminSubmissionDetail(activeAdminSubmission.id);
-  } else {
-    document.querySelector("[data-admin-submission-detail]").innerHTML = `
-      <p class="my-sanctuary-empty">Submission updated and moved out of this filter.</p>
-    `;
-  }
+  await renderAdminSubmissionDetail(activeAdminSubmission.id);
 }
 
-async function saveAdminSubmissionResponse() {
+async function saveAdminSubmissionNotes() {
   if (!activeAdminSubmission) return;
 
-  const response = document.querySelector("[data-admin-reviewer-response]")?.value || "";
   const notes = document.querySelector("[data-admin-moderator-notes]")?.value || "";
 
   const { error } = await db
     .from("community_submissions")
     .update({
-      reviewer_response: response,
       moderator_notes: notes,
       updated_at: new Date().toISOString()
     })
@@ -296,21 +319,23 @@ async function saveAdminSubmissionResponse() {
 
   if (error) {
     console.error(error);
-    adminSubmissionStatus("Could not save response.");
+    adminSubmissionStatus("Could not save notes.");
     return;
   }
 
-  adminSubmissionStatus("Response saved.");
+  adminSubmissionStatus("Notes saved.");
 }
 
 document.addEventListener("click", async (event) => {
   const filterButton = event.target.closest("[data-admin-filter]");
   const itemButton = event.target.closest("[data-admin-submission-id]");
   const statusButton = event.target.closest("[data-admin-status-action]");
-  const saveResponseButton = event.target.closest("[data-admin-save-response]");
+  const saveNotesButton = event.target.closest("[data-admin-save-notes]");
+  const pageButton = event.target.closest("[data-admin-page]");
 
   if (filterButton) {
     adminSubmissionFilter = filterButton.dataset.adminFilter;
+    adminSubmissionPage = 1;
     await loadAdminSubmissions();
   }
 
@@ -322,9 +347,32 @@ document.addEventListener("click", async (event) => {
     await updateAdminSubmissionStatus(statusButton.dataset.adminStatusAction);
   }
 
-  if (saveResponseButton) {
-    await saveAdminSubmissionResponse();
+  if (saveNotesButton) {
+    await saveAdminSubmissionNotes();
   }
+
+  if (pageButton) {
+    if (pageButton.dataset.adminPage === "prev") {
+      adminSubmissionPage = Math.max(1, adminSubmissionPage - 1);
+    }
+
+    if (pageButton.dataset.adminPage === "next") {
+      adminSubmissionPage += 1;
+    }
+
+    await loadAdminSubmissions();
+  }
+});
+
+document.addEventListener("input", async (event) => {
+  const search = event.target.closest("[data-admin-search]");
+  if (!search) return;
+
+  adminSubmissionSearch = search.value || "";
+  adminSubmissionPage = 1;
+
+  window.clearTimeout(document.adminSearchTimeout);
+  document.adminSearchTimeout = window.setTimeout(loadAdminSubmissions, 250);
 });
 
 document.addEventListener("submit", async (event) => {
@@ -338,18 +386,26 @@ document.addEventListener("submit", async (event) => {
   const message = form.message.value.trim();
   if (!message) return;
 
-  const { error } = await db.from("community_submission_messages").insert({
+  const { error: messageError } = await db.from("community_submission_messages").insert({
     submission_id: activeAdminSubmission.id,
     user_id: currentUser.id,
     sender_role: "admin",
     message
   });
 
-  if (error) {
-    console.error(error);
+  if (messageError) {
+    console.error(messageError);
     adminSubmissionStatus("Message could not be sent.");
     return;
   }
+
+  await db
+    .from("community_submissions")
+    .update({
+      last_activity_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", activeAdminSubmission.id);
 
   form.reset();
   adminSubmissionStatus("Message sent.");
@@ -358,7 +414,9 @@ document.addEventListener("submit", async (event) => {
 
 window.addEventListener("load", async () => {
   const allowed = await requireSubmissionAdmin();
+
   if (allowed) {
+    await autoArchiveOldSubmissions();
     await loadAdminSubmissions();
   }
 });
