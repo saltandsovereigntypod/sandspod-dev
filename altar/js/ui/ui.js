@@ -9,7 +9,8 @@ toolbar.hidden = true;
 toolbar.innerHTML = `
   <button type="button" data-action="smaller" title="Make smaller">−</button>
   <button type="button" data-action="larger" title="Make larger">+</button>
-  <button type="button" data-action="rotate" title="Rotate">↻</button>
+  <button type="button" data-action="rotate-left" title="Rotate left">↺</button>
+  <button type="button" data-action="rotate-right" title="Rotate right">↻</button>
   <button type="button" data-action="delete" title="Delete">🗑</button>
   <button type="button" data-action="forward" title="Bring forward">⬆</button>
   <button type="button" data-action="backward" title="Send backward">⬇</button>
@@ -25,6 +26,8 @@ const altarActionBar = document.createElement("div");
 altarActionBar.className = "altar-action-bar";
 altarActionBar.innerHTML = `
   <div class="altar-action-group">
+    <button type="button" data-global-action="undo">↶ Undo</button>
+    <button type="button" data-global-action="redo">↷ Redo</button>
     <button type="button" data-global-action="save-altar">💾 Save</button>
     <button type="button" data-global-action="load-altar">📂 Load</button>
   </div>
