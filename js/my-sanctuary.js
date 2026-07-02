@@ -86,6 +86,13 @@ function createMySanctuaryPanel() {
               Open Sanctuary
             </button>
 
+            <button
+              class="button button--google"
+              type="button"
+              data-my-sanctuary-google>
+              Continue with Google
+            </button>
+
             <button class="button" type="button" data-my-sanctuary-signup>
               Create Sanctuary
             </button>
@@ -401,6 +408,7 @@ document.addEventListener("click", async (event) => {
   const dashboardButton = event.target.closest("[data-my-sanctuary-dashboard]");
   const viewButton = event.target.closest("[data-my-sanctuary-view-button]");
   const signUpButton = event.target.closest("[data-my-sanctuary-signup]");
+  const googleButton = event.target.closest("[data-my-sanctuary-google]");
   const signOutButton = event.target.closest("[data-my-sanctuary-signout]");
 
   if (openButton) openMySanctuaryPanel();
@@ -414,6 +422,14 @@ document.addEventListener("click", async (event) => {
     setMySanctuaryView(viewButton.dataset.mySanctuaryViewButton);
   }
 
+   if (googleButton) {
+     try {
+       await signInWithGoogle();
+     } catch (error) {
+       showMySanctuaryNotice(error.message);
+     }
+   }
+      
   if (signUpButton) {
     const panel = document.querySelector("[data-my-sanctuary-panel]");
     const authForm = panel?.querySelector("[data-my-sanctuary-auth-form]");
