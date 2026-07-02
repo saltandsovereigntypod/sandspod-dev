@@ -57,34 +57,43 @@
             </p>
           </div>
         </div>
-
-        <aside class="altar-cabinet" data-altar-cabinet>
-          <div class="altar-cabinet-header">
-            <div>
-              <h2>Cabinet</h2>
-              <p>Search, choose a category, then place what belongs on your altar.</p>
-            </div>
-        
-            <label class="altar-cabinet-search">
-              <span class="sr-only">Search cabinet</span>
-              <input
-                type="search"
-                placeholder="Search cabinet..."
-                data-cabinet-search
-              />
-            </label>
-          </div>
-        
-          <div class="altar-cabinet-tabs" data-cabinet-tabs></div>
-        
-          <div class="altar-cabinet-content" data-cabinet-content></div>
-        
-          <p class="altar-note">
-            Click an object to place it. Some items include forms like sprig, loose, powder, oil, point, or polished.
-          </p>
-        </aside>
       </section>
     </main>
+
+    <div class="altar-cabinet-overlay" data-altar-cabinet-overlay hidden>
+      <button class="altar-cabinet-backdrop" type="button" data-close-cabinet-overlay aria-label="Close cabinet"></button>
+    
+      <aside class="altar-cabinet" data-altar-cabinet>
+        <button class="altar-cabinet-close" type="button" data-close-cabinet-overlay aria-label="Close cabinet">
+          ×
+        </button>
+    
+        <div class="altar-cabinet-header">
+          <div>
+            <p class="eyebrow">The Cabinet</p>
+            <h2>Choose What Belongs</h2>
+            <p>Search, choose a category, then place what belongs on your altar.</p>
+          </div>
+    
+          <label class="altar-cabinet-search">
+            <span class="sr-only">Search cabinet</span>
+            <input
+              type="search"
+              placeholder="Search cabinet..."
+              data-cabinet-search
+            />
+          </label>
+        </div>
+    
+        <div class="altar-cabinet-tabs" data-cabinet-tabs></div>
+    
+        <div class="altar-cabinet-content" data-cabinet-content></div>
+    
+        <p class="altar-note">
+          Click an object to place it. Some items include forms like sprig, loose, powder, oil, point, or polished.
+        </p>
+      </aside>
+    </div>
 
     <div class="sanctuary-modal" data-sanctuary-modal hidden>
       <div class="sanctuary-modal-card" role="dialog" aria-modal="true" aria-labelledby="sanctuary-modal-title">
@@ -172,7 +181,7 @@
   <script src="../js/sanctuary-modal.js"></script>
   <script src="../js/my-settings.js"></script>
   <script src="../js/my-rituals.js"></script>
-  <script src="js/submissions.js"></script>
+  <script src="../js/submissions.js"></script>  
   <script src="../js/my-sanctuary.js"></script>
   
   <!-- Website -->
@@ -192,7 +201,6 @@
   
   <!-- Altar Storage + Events -->
   <script src="js/core/storage.js"></script>
-  <script src="altar.js"></script>
   <script src="js/core/events.js"></script>
   </body>
 </html>
