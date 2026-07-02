@@ -225,6 +225,7 @@ function resizeObject(object, amount) {
 
     keepObjectInsideStage(item);
     updateObjectPositionPercent(item);
+    renderLighting();
   });
 }
 
