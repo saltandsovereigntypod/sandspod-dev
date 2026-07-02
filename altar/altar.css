@@ -341,7 +341,7 @@
       transparent 100%);
 
   filter:
-    blur(2px)
+    blur(2px);
     
   animation: candleBaseGlow 2.2s ease-in-out infinite alternate;
 }
@@ -370,7 +370,7 @@
       transparent 100%);
 
   filter:
-      blur(.35px)
+      blur(.35px);
       
   animation:
       candleTopDance var(--flame-flicker-speed,1.6s)
