@@ -27,8 +27,8 @@ function createMySanctuaryPanel() {
       </p>
 
       <nav class="my-sanctuary-links" aria-label="Sanctuary navigation">
-        <a href="/sandspod/altar/">🕯 Digital Altar</a>
-        <a href="/sandspod/grimoire/index.html">📖 Book of Shadows</a>
+        <a href="/altar/">🕯 Digital Altar</a>
+        <a href="/grimoire/index.html">📖 Book of Shadows</a>
         <span>🌙 Saved Rituals <em>Coming soon</em></span>
         <span>✨ Community Grimoire <em>Coming soon</em></span>
         <span>⚙ Settings <em>Coming soon</em></span>
