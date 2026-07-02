@@ -1156,3 +1156,79 @@ body.sanctuary-modal-open {
   padding: 1rem;
   background: rgba(244, 236, 216, 0.045);
 }
+
+/* =========================================================
+   SUBMISSIONS
+   ========================================================= */
+
+.sanctuary-submission-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 760px;
+  border: 1px solid var(--line);
+  border-radius: 1.15rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: linear-gradient(145deg, rgba(38, 61, 46, 0.82), rgba(17, 21, 18, 0.9));
+  box-shadow: var(--shadow);
+}
+
+.my-submissions-list {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.my-submission-card {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  background: rgba(244, 236, 216, 0.045);
+  overflow: hidden;
+}
+
+.my-submission-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border: 0;
+  padding: 0.9rem 1rem;
+  color: var(--cream);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.my-submission-toggle strong {
+  display: block;
+}
+
+.my-submission-toggle small {
+  display: block;
+  color: var(--gold);
+  font-size: 0.8rem;
+}
+
+.my-submission-detail {
+  border-top: 1px solid rgba(185, 160, 93, 0.18);
+  padding: 1rem;
+}
+
+.my-submission-response,
+.my-submission-message {
+  border-left: 3px solid var(--gold);
+  margin: 0.85rem 0;
+  padding: 0.75rem 0.85rem;
+  background: rgba(185, 160, 93, 0.08);
+}
+
+.my-submission-muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.my-submission-reply-form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
