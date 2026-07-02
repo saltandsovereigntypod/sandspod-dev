@@ -1057,3 +1057,17 @@ body.sanctuary-modal-open {
     width: 100%;
   }
 }
+
+.my-sanctuary-links a,
+.my-sanctuary-links span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-sanctuary-links strong,
+.my-sanctuary-links small {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+}
