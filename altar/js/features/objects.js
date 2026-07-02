@@ -297,10 +297,10 @@ function makeDraggable(object) {
      
     activeObject = object;
 
-    const objectRect = object.getBoundingClientRect();
+    const stageRect = altarStage.getBoundingClientRect();
 
-    offsetX = event.clientX - objectRect.left;
-    offsetY = event.clientY - objectRect.top;
+    offsetX = event.clientX - stageRect.left - (parseFloat(object.style.left) || 0);
+    offsetY = event.clientY - stageRect.top - (parseFloat(object.style.top) || 0);
 
     object.setPointerCapture(event.pointerId);
     object.classList.add("is-dragging");
