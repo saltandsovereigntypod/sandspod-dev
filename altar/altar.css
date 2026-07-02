@@ -1222,3 +1222,93 @@ body.altar-modal-open {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* =========================================================
+   CABINET OVERLAY
+   ========================================================= */
+
+.altar-cabinet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.altar-cabinet-overlay[hidden] {
+  display: none;
+}
+
+.altar-cabinet-overlay.is-visible {
+  opacity: 1;
+}
+
+.altar-cabinet-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(5, 4, 3, 0.72);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+
+.altar-cabinet-overlay .altar-cabinet {
+  position: relative;
+  z-index: 2;
+  width: min(1100px, 100%);
+  max-height: min(780px, 90vh);
+  overflow-y: auto;
+  margin: 0;
+  transform: translateY(0.6rem) scale(0.99);
+  transition: transform 0.22s ease;
+}
+
+.altar-cabinet-overlay.is-visible .altar-cabinet {
+  transform: translateY(0) scale(1);
+}
+
+.altar-cabinet-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2.35rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.24);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+body.altar-cabinet-overlay-open {
+  overflow: hidden;
+}
+
+@media (max-width: 700px) {
+  .altar-cabinet-overlay {
+    align-items: end;
+    padding: 0;
+  }
+
+  .altar-cabinet-overlay .altar-cabinet {
+    width: 100%;
+    max-height: 86vh;
+    border-radius: 1.2rem 1.2rem 0 0;
+    padding-bottom: 2rem;
+  }
+
+  .altar-cabinet-overlay .altar-cabinet::before {
+    content: "";
+    display: block;
+    width: 3.4rem;
+    height: 0.25rem;
+    margin: 0 auto 0.75rem;
+    border-radius: 999px;
+    background: rgba(244, 236, 216, 0.35);
+  }
+}
