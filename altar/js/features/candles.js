@@ -238,6 +238,9 @@ function renderLighting() {
         stageRect.top +
         rect.height * 0.10;
 
+      const candleScale = Number(candle.dataset.scale || 1);
+      const lightRadius = Math.max(110, 170 * candleScale);
+      
       const gradient =
         lightingContext.createRadialGradient(
           x,
@@ -245,7 +248,7 @@ function renderLighting() {
           0,
           x,
           y,
-          180
+          lightRadius
         );
 
       gradient.addColorStop(0, "rgba(255,245,210,.40)");
@@ -259,7 +262,7 @@ function renderLighting() {
       lightingContext.arc(
         x,
         y,
-        180,
+        lightRadius,
         0,
         Math.PI * 2
       );
