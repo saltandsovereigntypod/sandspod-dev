@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submission Review | Salt & Sovereignty</title>
+    <link rel="stylesheet" href="../../css/styles.css" />
+  </head>
+
+  <body>
+    <header class="site-header" data-header>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="../../index.html">
+          <span class="brand-mark" aria-hidden="true">S&S</span>
+          <span>Salt & Sovereignty</span>
+        </a>
+      </nav>
+    </header>
+
+    <main class="section admin-submissions-page">
+      <div class="section-intro">
+        <p class="eyebrow">Private Admin</p>
+        <h1>Submission Review</h1>
+        <p>Review offerings, update status, leave responses, and decide where each submission belongs.</p>
+      </div>
+
+      <p class="form-status" data-admin-submission-status role="status" aria-live="polite"></p>
+
+      <div class="admin-submission-filters">
+        <button type="button" data-admin-filter="pending">Pending</button>
+        <button type="button" data-admin-filter="needs_revision">Needs Revision</button>
+        <button type="button" data-admin-filter="approved">Approved</button>
+        <button type="button" data-admin-filter="published">Published</button>
+        <button type="button" data-admin-filter="rejected">Rejected</button>
+        <button type="button" data-admin-filter="all">All</button>
+      </div>
+
+      <div class="admin-submissions-grid">
+        <section class="admin-submission-list" data-admin-submission-list></section>
+
+        <section class="admin-submission-detail" data-admin-submission-detail>
+          <p class="my-sanctuary-empty">Choose a submission to review.</p>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-config.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/admin-submissions.js"></script>
+    <script src="../../script.js"></script>
+  </body>
+</html>
