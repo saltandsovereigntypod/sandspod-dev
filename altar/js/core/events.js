@@ -305,7 +305,15 @@ document.addEventListener("pointerdown", (event) => {
 
 window.addEventListener("resize", () => {
 
-  requestAnimationFrame(repositionAllObjectsFromPercent);
+  requestAnimationFrame(() => {
+
+    repositionAllObjectsFromPercent();
+
+    resizeLightingCanvas();
+
+    renderLighting();
+
+  });
 
 });
 
@@ -401,3 +409,6 @@ document.addEventListener("saltAuthSuccess", async () => {
 
 updateEmptyMessage();
 renderCabinet();
+
+resizeLightingCanvas();
+renderLighting();
