@@ -95,6 +95,45 @@
   font-style: italic;
 }
 
+.altar-workspace-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: min(1500px, 100%);
+  margin: 0 auto -0.25rem;
+  gap: 1rem;
+}
+
+.altar-workspace-tool {
+  border: 1px solid rgba(185, 160, 93, 0.35);
+  border-radius: 999px;
+  padding: 0.6rem 0.9rem;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.14), transparent 70%),
+    rgba(10, 8, 6, 0.72);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.altar-workspace-tool:hover,
+.altar-workspace-tool:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+@media (max-width: 560px) {
+  .altar-workspace-tools {
+    gap: 0.5rem;
+  }
+
+  .altar-workspace-tool {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.78rem;
+  }
+}
 
 /* =========================================================
    12. ALTAR CABINET
