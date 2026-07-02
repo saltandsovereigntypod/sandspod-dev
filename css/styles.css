@@ -1286,3 +1286,110 @@ body:has(.sanctuary-submission-form) h1 {
   font-size: 1rem;
   line-height: 1.2;
 }
+
+/* =========================================================
+   ADMIN SUBMISSIONS
+   ========================================================= */
+
+.admin-submission-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.admin-submission-filters button,
+.admin-submission-actions button {
+  border: 1px solid rgba(244, 236, 216, 0.22);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-submissions-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-submission-list,
+.admin-submission-detail {
+  border: 1px solid var(--line);
+  border-radius: 1.15rem;
+  padding: 1rem;
+  background: linear-gradient(145deg, rgba(38, 61, 46, 0.82), rgba(17, 21, 18, 0.9));
+  box-shadow: var(--shadow);
+}
+
+.admin-submission-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-submission-list-item {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 0.85rem;
+  padding: 0.8rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.045);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-submission-list-item span {
+  color: var(--gold);
+}
+
+.admin-submission-list-item small {
+  color: var(--muted);
+}
+
+.admin-submission-review h2 {
+  max-width: none;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+}
+
+.admin-submission-meta {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.admin-submission-meta p {
+  margin: 0;
+}
+
+.admin-submission-body {
+  border: 1px solid rgba(185, 160, 93, 0.2);
+  border-radius: 1rem;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.045);
+  color: var(--cream);
+}
+
+.admin-submission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.admin-submission-messages {
+  border-top: 1px solid rgba(185, 160, 93, 0.22);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+@media (max-width: 850px) {
+  .admin-submissions-grid {
+    grid-template-columns: 1fr;
+  }
+}
