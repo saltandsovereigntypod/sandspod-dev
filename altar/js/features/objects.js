@@ -10,15 +10,6 @@ function updateObjectTransform(object) {
 
   object.style.transform =
     `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale}) scaleX(${flipped})`;
-
-  const light = object.querySelector(".candle-light");
-
-  if (light) {
-    const lightSize = 220 + (scale * 70);
-
-    light.style.width = `${lightSize}px`;
-    light.style.height = `${lightSize}px`;
-  }
 }
 
 function getObjectImagePath(object) {
@@ -524,11 +515,6 @@ function duplicateObject(object) {
   clone.classList.remove("is-selected", "is-dragging", "can-receive-dressing");
 
   updateCandleDressingVisuals(clone);
-
-   if (
-     clone.dataset.type === "candle" &&
-     !clone.querySelector(".candle-light")
-   ) 
 
   if (clone.dataset.lit === "true") {
     startFlame(clone);
