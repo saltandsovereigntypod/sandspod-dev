@@ -1399,3 +1399,178 @@ body:has(.sanctuary-submission-form) h1 {
   border-top: 1px solid rgba(185, 160, 93, 0.22);
   padding-top: 1rem;
 }
+
+/* =========================================================
+   CREATOR DASHBOARD
+   ========================================================= */
+
+.creator-dashboard {
+  padding-top: clamp(2rem, 5vw, 4rem);
+}
+
+.creator-dashboard-header h1 {
+  max-width: none;
+  font-size: clamp(3rem, 8vw, 6rem);
+}
+
+.creator-dashboard-header p {
+  max-width: 760px;
+}
+
+.creator-dashboard-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(240px, 340px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.creator-dashboard-sidebar,
+.creator-dashboard-inbox,
+.creator-dashboard-detail {
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgba(38, 61, 46, 0.82), rgba(17, 21, 18, 0.9));
+  box-shadow: var(--shadow);
+}
+
+.creator-dashboard-sidebar {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  position: sticky;
+  top: 5.5rem;
+}
+
+.creator-dashboard-sidebar button,
+.admin-pagination button,
+.admin-submission-actions button {
+  border: 1px solid rgba(244, 236, 216, 0.2);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.055);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.creator-dashboard-inbox {
+  padding: 0.75rem;
+}
+
+.creator-search input {
+  margin-bottom: 0.75rem;
+}
+
+.admin-submission-list {
+  display: grid;
+  gap: 0.5rem;
+  max-height: calc(100vh - 18rem);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.admin-submission-list-item {
+  display: grid;
+  gap: 0.15rem;
+  border: 1px solid rgba(185, 160, 93, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.045);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-submission-list-item strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.admin-submission-list-item span {
+  color: var(--gold);
+  font-size: 0.78rem;
+}
+
+.admin-submission-list-item small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.admin-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.creator-dashboard-detail {
+  padding: 1rem;
+  max-height: calc(100vh - 10rem);
+  overflow-y: auto;
+}
+
+.admin-submission-review h2 {
+  max-width: none;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.admin-submission-meta {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-submission-meta p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.admin-submission-body {
+  border: 1px solid rgba(185, 160, 93, 0.2);
+  border-radius: 0.9rem;
+  margin: 1rem 0;
+  padding: 0.9rem;
+  background: rgba(244, 236, 216, 0.045);
+  color: var(--cream);
+  font-size: 0.95rem;
+}
+
+.admin-submission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.admin-submission-messages {
+  border-top: 1px solid rgba(185, 160, 93, 0.22);
+  border-bottom: 1px solid rgba(185, 160, 93, 0.22);
+  margin: 1rem 0;
+  padding: 1rem 0;
+}
+
+.admin-submission-messages h3 {
+  font-size: 1.4rem;
+}
+
+@media (max-width: 1050px) {
+  .creator-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .creator-dashboard-sidebar {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .admin-submission-list,
+  .creator-dashboard-detail {
+    max-height: none;
+  }
+}
