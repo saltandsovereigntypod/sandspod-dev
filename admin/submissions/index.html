@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Submission Review | Salt & Sovereignty</title>
+    <title>Creator Dashboard | Salt & Sovereignty</title>
     <link rel="stylesheet" href="../../css/styles.css" />
   </head>
 
@@ -17,28 +17,44 @@
       </nav>
     </header>
 
-    <main class="section admin-submissions-page">
-      <div class="section-intro">
-        <p class="eyebrow">Private Admin</p>
-        <h1>Submission Review</h1>
-        <p>Review offerings, update status, leave responses, and decide where each submission belongs.</p>
+    <main class="creator-dashboard section">
+      <div class="creator-dashboard-header">
+        <div>
+          <p class="eyebrow">Private Admin</p>
+          <h1>Creator Dashboard</h1>
+          <p>Review offerings, respond to submitters, track ideas, and curate what belongs in Salt & Sovereignty.</p>
+        </div>
       </div>
 
       <p class="form-status" data-admin-submission-status role="status" aria-live="polite"></p>
 
-      <div class="admin-submission-filters">
-        <button type="button" data-admin-filter="pending">Pending</button>
-        <button type="button" data-admin-filter="needs_revision">Needs Revision</button>
-        <button type="button" data-admin-filter="approved">Approved</button>
-        <button type="button" data-admin-filter="published">Published</button>
-        <button type="button" data-admin-filter="rejected">Rejected</button>
-        <button type="button" data-admin-filter="all">All</button>
-      </div>
+      <div class="creator-dashboard-layout">
+        <aside class="creator-dashboard-sidebar">
+          <button type="button" data-admin-filter="pending">Pending</button>
+          <button type="button" data-admin-filter="needs_revision">Needs Revision</button>
+          <button type="button" data-admin-filter="approved">Approved</button>
+          <button type="button" data-admin-filter="published">Published</button>
+          <button type="button" data-admin-filter="rejected">Rejected</button>
+          <button type="button" data-admin-filter="archived">Archived</button>
+          <button type="button" data-admin-filter="all">All</button>
+        </aside>
 
-      <div class="admin-submissions-grid">
-        <section class="admin-submission-list" data-admin-submission-list></section>
+        <section class="creator-dashboard-inbox">
+          <label class="creator-search">
+            <span class="sr-only">Search submissions</span>
+            <input type="search" placeholder="Search submissions..." data-admin-search />
+          </label>
 
-        <section class="admin-submission-detail" data-admin-submission-detail>
+          <div class="admin-submission-list" data-admin-submission-list></div>
+
+          <div class="admin-pagination">
+            <button type="button" data-admin-page="prev">← Previous</button>
+            <span data-admin-page-label>Page 1</span>
+            <button type="button" data-admin-page="next">Next →</button>
+          </div>
+        </section>
+
+        <section class="creator-dashboard-detail" data-admin-submission-detail>
           <p class="my-sanctuary-empty">Choose a submission to review.</p>
         </section>
       </div>
