@@ -241,6 +241,14 @@ function createMySanctuaryPanel() {
           </button>
         </form>
 
+        <div class="my-sanctuary-admin-link" data-sanctuary-admin-link hidden>
+           <p class="eyebrow">Admin</p>
+         
+           <a class="button button--ghost" href="/admin/submissions/">
+             Review Community Submissions →
+           </a>
+         </div>
+
         <button class="button button--ghost" type="button" data-my-sanctuary-dashboard>
           ← Back to Sanctuary
         </button>
@@ -272,6 +280,18 @@ function setMySanctuaryView(view) {
    if (view === "submissions" && typeof renderMySubmissionsList === "function") {
      renderMySubmissionsList();
    }
+}
+
+function updateSanctuaryAdminLink() {
+  const adminLink = document.querySelector("[data-sanctuary-admin-link]");
+  if (!adminLink) return;
+
+  const adminIds = [
+    "ddc5463e-1551-498b-b5af-79ce52ac591c",
+    "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
+  ];
+
+  adminLink.hidden = !currentUser || !adminIds.includes(currentUser.id);
 }
 
 function updateMySanctuaryPanel() {
@@ -309,6 +329,8 @@ function updateMySanctuaryPanel() {
   if (signOutButton) {
     signOutButton.hidden = !isSignedIn;
   }
+
+   updateSanctuaryAdminLink();
 
   if (isSignedIn && mySanctuaryView !== "auth" && mySanctuaryView !== "rituals" && mySanctuaryView !== "settings") {
     setMySanctuaryView("dashboard");
