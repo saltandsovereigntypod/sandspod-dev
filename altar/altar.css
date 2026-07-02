@@ -359,7 +359,7 @@
 .altar-object.is-extinguishing[data-type="candle"]::after {
   content: "";
   position: absolute;
-  top: 10%;
+  top: -3%;
   left: 50%;
   width: 10%;
   height: 22%;
