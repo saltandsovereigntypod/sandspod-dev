@@ -175,11 +175,13 @@ function keepObjectInsideStage(object) {
   let x = parseFloat(object.style.left) || 0;
   let y = parseFloat(object.style.top) || 0;
 
-  const maxX = altarStage.clientWidth - visualWidth;
-  const maxY = altarStage.clientHeight - visualHeight;
+  const minX = visualWidth / 2;
+  const minY = visualHeight / 2;
+  const maxX = altarStage.clientWidth - visualWidth / 2;
+  const maxY = altarStage.clientHeight - visualHeight / 2;
 
-  x = Math.max(0, Math.min(x, Math.max(0, maxX)));
-  y = Math.max(0, Math.min(y, Math.max(0, maxY)));
+  x = Math.max(minX, Math.min(x, maxX));
+  y = Math.max(minY, Math.min(y, maxY));
 
   object.style.left = `${x}px`;
   object.style.top = `${y}px`;
@@ -199,8 +201,8 @@ function resizeObject(object, amount) {
     const oldLeft = parseFloat(item.style.left) || 0;
     const oldTop = parseFloat(item.style.top) || 0;
 
-    const centerX = oldLeft + (item.offsetWidth * oldScale) / 2;
-    const centerY = oldTop + (item.offsetHeight * oldScale) / 2;
+    const centerX = oldLeft;
+    const centerY = oldTop;
 
     let newScale = oldScale + amount;
     const maxScale = item.dataset.type === "cloth" ? 18 : 3;
@@ -211,8 +213,8 @@ function resizeObject(object, amount) {
     item.dataset.scale = String(newScale);
     updateObjectTransform(item);
 
-    item.style.left = `${centerX - (item.offsetWidth * newScale) / 2}px`;
-    item.style.top = `${centerY - (item.offsetHeight * newScale) / 2}px`;
+    item.style.left = `${centerX}px`;
+    item.style.top = `${centerY}px`;
 
     keepObjectInsideStage(item);
     updateObjectPositionPercent(item);
@@ -329,11 +331,16 @@ function makeDraggable(object) {
       x = Math.max(minX, Math.min(x, maxX));
       y = Math.max(minY, Math.min(y, maxY));
     } else {
-      const maxX = altarStage.clientWidth - object.offsetWidth * scale;
-      const maxY = altarStage.clientHeight - object.offsetHeight * scale;
-
-      x = Math.max(0, Math.min(x, Math.max(0, maxX)));
-      y = Math.max(0, Math.min(y, Math.max(0, maxY)));
+      const visualWidth = object.offsetWidth * scale;
+      const visualHeight = object.offsetHeight * scale;
+      
+      const minX = visualWidth / 2;
+      const minY = visualHeight / 2;
+      const maxX = altarStage.clientWidth - visualWidth / 2;
+      const maxY = altarStage.clientHeight - visualHeight / 2;
+      
+      x = Math.max(minX, Math.min(x, maxX));
+      y = Math.max(minY, Math.min(y, maxY));
     }
 
     const oldX = parseFloat(object.style.left) || 0;
@@ -469,9 +476,9 @@ function placeObject(options) {
   const centerX = altarStage.clientWidth / 2;
   const centerY = altarStage.clientHeight / 2;
 
-  object.style.left = `${centerX - (object.offsetWidth * scale) / 2}px`;
-  object.style.top = `${centerY - (object.offsetHeight * scale) / 2}px`;
-
+  object.style.left = `${centerX}px`;
+  object.style.top = `${centerY}px`;
+   
   updateObjectPositionPercent(object);
   updateObjectTransform(object);
   makeDraggable(object);
