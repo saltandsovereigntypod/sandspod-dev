@@ -143,8 +143,6 @@ if (altarCabinet) {
     if (backgroundButton) {
       changeAltarBackground(backgroundButton);
 
-      closeAltarCabinetOverlay();
-
       return;
     }
 
@@ -183,8 +181,6 @@ if (altarCabinet) {
       vessel: itemButton.dataset.vessel || "",
       deity: itemButton.dataset.deity || ""
     });
-
-    closeAltarCabinetOverlay();
   });
 }
 
