@@ -12,50 +12,67 @@ toolbar.addEventListener("click", (event) => {
 
   switch (button.dataset.action) {
     case "smaller":
+      pushAltarUndoSnapshot();
       resizeObject(selectedObject, -0.1);
       break;
 
     case "larger":
+      pushAltarUndoSnapshot();
       resizeObject(selectedObject, 0.1);
       break;
 
-    case "rotate":
-      rotateObject(selectedObject);
-      break;
+    case "rotate-left":
+        pushAltarUndoSnapshot();
+        rotateObject(selectedObject, -15);
+        break;
+      
+      case "rotate-right":
+        pushAltarUndoSnapshot();
+        rotateObject(selectedObject, 15);
+        break;
 
     case "delete":
+      pushAltarUndoSnapshot();
       deleteObject(selectedObject);
       break;
 
     case "forward":
+      pushAltarUndoSnapshot();
       bringForward(selectedObject);
       break;
 
     case "backward":
+      pushAltarUndoSnapshot();
       sendBackward(selectedObject);
       break;
 
     case "flip":
+      pushAltarUndoSnapshot();
       flipObject(selectedObject);
       break;
 
     case "lock":
+      pushAltarUndoSnapshot();
       toggleLock(selectedObject);
       break;
 
     case "duplicate":
+      pushAltarUndoSnapshot();
       duplicateObject(selectedObject);
       break;
 
     case "glow":
+      pushAltarUndoSnapshot();
       toggleGlow(selectedObject);
       break;
 
     case "light":
+      pushAltarUndoSnapshot();
       toggleLight(selectedObject);
       break;
 
     case "dress-candle":
+      pushAltarUndoSnapshot();
       beginCandleDressing(selectedObject);
       break;
   }
@@ -178,15 +195,25 @@ altarActionBar.addEventListener("click", (event) => {
 
   switch (button.dataset.globalAction) {
 
-    case "select-ritual-items":
+    case "undo":
+     undoAltarChange();
+     return;
+   
+    case "redo":
+     redoAltarChange();
+     return;
+        
+     case "select-ritual-items":
       toggleRitualSelectionMode();
       return;
 
     case "group-ritual-items":
+      pushAltarUndoSnapshot();
       groupSelectedRitualItems();
       return;
 
     case "ungroup-ritual-items":
+      pushAltarUndoSnapshot();
       ungroupCurrentItems();
       return;
 
@@ -210,10 +237,12 @@ altarActionBar.addEventListener("click", (event) => {
       return;
 
     case "clear-altar":
+      pushAltarUndoSnapshot();
       clearAltar();
       return;
 
     case "light-all":
+      pushAltarUndoSnapshot();
 
       altarStage
         .querySelectorAll('.altar-object[data-type="candle"]')
@@ -230,6 +259,7 @@ altarActionBar.addEventListener("click", (event) => {
       return;
 
     case "extinguish-all":
+      pushAltarUndoSnapshot();
 
       altarStage
         .querySelectorAll('.altar-object[data-type="candle"]')
@@ -320,6 +350,23 @@ savedAltarsManager.addEventListener("click", (event) => {
    ========================================================= */
 
 document.addEventListener("keydown", (event) => {
+  const isUndo = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z";
+  const isRedo =
+    (event.metaKey || event.ctrlKey) &&
+    (event.key.toLowerCase() === "y" || (event.shiftKey && event.key.toLowerCase() === "z"));
+
+  if (isUndo && !event.shiftKey) {
+    event.preventDefault();
+    undoAltarChange();
+    return;
+  }
+
+  if (isRedo) {
+    event.preventDefault();
+    redoAltarChange();
+    return;
+  }
+
   if (event.key === "Escape") {
     closeSanctuaryModal();
     closeSavedAltarsManager();
