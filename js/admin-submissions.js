@@ -1,11 +1,21 @@
 /* =========================================================
-   CREATOR DASHBOARD
-   Private review queue for Salt & Sovereignty submissions
+   CREATOR DASHBOARD V2
+   Private review inbox for Salt & Sovereignty submissions
    ========================================================= */
 
 const SALT_ADMIN_IDS = [
   "ddc5463e-1551-498b-b5af-79ce52ac591c",
   "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
+];
+
+const ADMIN_STATUS_FILTERS = [
+  "pending",
+  "needs_revision",
+  "approved",
+  "published",
+  "rejected",
+  "archived",
+  "all"
 ];
 
 let adminSubmissionFilter = "pending";
@@ -14,6 +24,7 @@ let adminSubmissionPage = 1;
 let adminSubmissionPageSize = 25;
 let adminSubmissions = [];
 let activeAdminSubmission = null;
+let adminUnreadCounts = {};
 
 function isSaltSubmissionAdmin() {
   return currentUser && SALT_ADMIN_IDS.includes(currentUser.id);
@@ -21,7 +32,16 @@ function isSaltSubmissionAdmin() {
 
 function adminSubmissionStatus(message) {
   const status = document.querySelector("[data-admin-submission-status]");
-  if (status) status.textContent = message || "";
+  if (!status) return;
+
+  status.textContent = message || "";
+
+  if (message) {
+    window.clearTimeout(adminSubmissionStatus.timeout);
+    adminSubmissionStatus.timeout = window.setTimeout(() => {
+      status.textContent = "";
+    }, 2800);
+  }
 }
 
 function escapeAdminSubmissionHTML(value) {
@@ -103,9 +123,69 @@ async function autoArchiveOldSubmissions() {
     .in("status", ["published", "rejected"])
     .lt("last_activity_at", cutoff.toISOString());
 
+  if (error) console.error(error);
+}
+
+async function getUnreadAdminMessages() {
+  const { data, error } = await db
+    .from("community_submission_messages")
+    .select("submission_id, community_submissions(status)")
+    .eq("sender_role", "user")
+    .eq("read_by_admin", false);
+
   if (error) {
     console.error(error);
+    return {};
   }
+
+  const counts = {
+    pending: 0,
+    needs_revision: 0,
+    approved: 0,
+    published: 0,
+    rejected: 0,
+    archived: 0,
+    all: 0,
+    bySubmission: {}
+  };
+
+  (data || []).forEach((message) => {
+    const status = message.community_submissions?.status || "pending";
+
+    counts.all += 1;
+    counts[status] = (counts[status] || 0) + 1;
+    counts.bySubmission[message.submission_id] =
+      (counts.bySubmission[message.submission_id] || 0) + 1;
+  });
+
+  return counts;
+}
+
+async function updateAdminUnreadCounts() {
+  adminUnreadCounts = await getUnreadAdminMessages();
+  renderAdminFilterButtons();
+}
+
+function renderAdminFilterButtons() {
+  const sidebar = document.querySelector(".creator-dashboard-sidebar");
+  if (!sidebar) return;
+
+  sidebar.innerHTML = ADMIN_STATUS_FILTERS
+    .map((filter) => {
+      const count = adminUnreadCounts[filter] || 0;
+      const label = filter === "all" ? "All" : formatAdminStatus(filter);
+
+      return `
+        <button
+          type="button"
+          class="${filter === adminSubmissionFilter ? "is-active" : ""}"
+          data-admin-filter="${filter}">
+          <span>${label}</span>
+          ${count ? `<strong>${count}</strong>` : ""}
+        </button>
+      `;
+    })
+    .join("");
 }
 
 async function loadAdminSubmissions() {
@@ -128,7 +208,9 @@ async function loadAdminSubmissions() {
 
   if (adminSubmissionSearch.trim()) {
     const term = `%${adminSubmissionSearch.trim()}%`;
-    query = query.or(`title.ilike.${term},body.ilike.${term},display_name.ilike.${term}`);
+    query = query.or(
+      `title.ilike.${term},body.ilike.${term},display_name.ilike.${term}`
+    );
   }
 
   const { data, error } = await query;
@@ -140,6 +222,8 @@ async function loadAdminSubmissions() {
   }
 
   adminSubmissions = data || [];
+
+  await updateAdminUnreadCounts();
   renderAdminSubmissionList();
   updateAdminPagination();
   adminSubmissionStatus("");
@@ -155,16 +239,30 @@ function renderAdminSubmissionList() {
   }
 
   list.innerHTML = adminSubmissions
-    .map((submission) => `
-      <button
-        class="admin-submission-list-item"
-        type="button"
-        data-admin-submission-id="${submission.id}">
-        <strong>${escapeAdminSubmissionHTML(submission.title)}</strong>
-        <span>${formatAdminSubmissionType(submission.submission_type)}</span>
-        <small>${formatAdminStatus(submission.status)} · ${formatAdminDate(submission.created_at)}</small>
-      </button>
-    `)
+    .map((submission) => {
+      const unread = adminUnreadCounts.bySubmission?.[submission.id] || 0;
+
+      return `
+        <article
+          class="admin-submission-list-item ${activeAdminSubmission?.id === submission.id ? "is-active" : ""}"
+          data-admin-submission-id="${submission.id}">
+          <button type="button" class="admin-submission-open" data-admin-open-submission>
+            <strong>${escapeAdminSubmissionHTML(submission.title)}</strong>
+            <span>${formatAdminSubmissionType(submission.submission_type)}</span>
+            <small>${formatAdminStatus(submission.status)} · ${formatAdminDate(submission.created_at)}</small>
+            ${unread ? `<em>${unread} unread</em>` : ""}
+          </button>
+
+          <div class="admin-card-actions">
+            <button type="button" data-admin-card-status="approved">Approve</button>
+            <button type="button" data-admin-card-status="needs_revision">Revision</button>
+            <button type="button" data-admin-card-status="published">Publish</button>
+            <button type="button" data-admin-card-status="rejected">Reject</button>
+            <button type="button" data-admin-card-status="archived">Archive</button>
+          </div>
+        </article>
+      `;
+    })
     .join("");
 }
 
@@ -188,6 +286,17 @@ async function loadAdminSubmissionMessages(submissionId) {
   return data || [];
 }
 
+async function markSubmissionMessagesRead(submissionId) {
+  const { error } = await db
+    .from("community_submission_messages")
+    .update({ read_by_admin: true })
+    .eq("submission_id", submissionId)
+    .eq("sender_role", "user")
+    .eq("read_by_admin", false);
+
+  if (error) console.error(error);
+}
+
 async function renderAdminSubmissionDetail(submissionId) {
   const detail = document.querySelector("[data-admin-submission-detail]");
   if (!detail) return;
@@ -197,13 +306,18 @@ async function renderAdminSubmissionDetail(submissionId) {
 
   activeAdminSubmission = submission;
 
+  await markSubmissionMessagesRead(submission.id);
+  await updateAdminUnreadCounts();
+
   const messages = await loadAdminSubmissionMessages(submission.id);
   const tags = Array.isArray(submission.tags) ? submission.tags : [];
 
   detail.innerHTML = `
     <article class="admin-submission-review">
-      <p class="eyebrow">${formatAdminSubmissionType(submission.submission_type)}</p>
-      <h2>${escapeAdminSubmissionHTML(submission.title)}</h2>
+      <div class="admin-review-heading">
+        <p class="eyebrow">${formatAdminSubmissionType(submission.submission_type)}</p>
+        <h2>${escapeAdminSubmissionHTML(submission.title)}</h2>
+      </div>
 
       <div class="admin-submission-meta">
         <p><strong>Status:</strong> ${formatAdminStatus(submission.status)}</p>
@@ -225,18 +339,20 @@ async function renderAdminSubmissionDetail(submissionId) {
       <section class="admin-submission-messages">
         <h3>Conversation</h3>
 
-        ${
-          messages.length
-            ? messages
-                .map((message) => `
-                  <div class="my-submission-message">
-                    <strong>${message.sender_role === "admin" ? "Salt & Sovereignty" : "Submitter"}</strong>
-                    <p>${escapeAdminSubmissionHTML(message.message)}</p>
-                  </div>
-                `)
-                .join("")
-            : `<p class="my-submission-muted">No conversation yet.</p>`
-        }
+        <div class="admin-message-thread">
+          ${
+            messages.length
+              ? messages
+                  .map((message) => `
+                    <div class="my-submission-message ${message.sender_role === "admin" ? "is-admin-message" : "is-user-message"}">
+                      <strong>${message.sender_role === "admin" ? "Salt & Sovereignty" : "Submitter"}</strong>
+                      <p>${escapeAdminSubmissionHTML(message.message)}</p>
+                    </div>
+                  `)
+                  .join("")
+              : `<p class="my-submission-muted">No conversation yet.</p>`
+          }
+        </div>
 
         <form data-admin-message-form>
           <label>
@@ -255,23 +371,26 @@ async function renderAdminSubmissionDetail(submissionId) {
         <textarea rows="4" data-admin-moderator-notes>${escapeAdminSubmissionHTML(submission.moderator_notes || "")}</textarea>
       </label>
 
-      <div class="admin-submission-actions">
-        <button type="button" data-admin-status-action="pending">Pending</button>
-        <button type="button" data-admin-status-action="approved">Approve</button>
-        <button type="button" data-admin-status-action="needs_revision">Needs Revision</button>
-        <button type="button" data-admin-status-action="published">Mark Published</button>
-        <button type="button" data-admin-status-action="rejected">Reject</button>
-        <button type="button" data-admin-status-action="archived">Archive</button>
-        <button type="button" data-admin-save-notes>Save Notes</button>
-      </div>
+      <button class="button button--primary button--small" type="button" data-admin-save-notes>
+        Save Moderator Notes
+      </button>
     </article>
   `;
+
+  renderAdminSubmissionList();
 }
 
-async function updateAdminSubmissionStatus(status) {
-  if (!activeAdminSubmission) return;
+async function updateAdminSubmissionStatus(submissionId, status) {
+  const submission =
+    adminSubmissions.find((item) => item.id === submissionId) ||
+    activeAdminSubmission;
 
-  const notes = document.querySelector("[data-admin-moderator-notes]")?.value || "";
+  if (!submission) return;
+
+  const notes =
+    submission.id === activeAdminSubmission?.id
+      ? document.querySelector("[data-admin-moderator-notes]")?.value || ""
+      : submission.moderator_notes || "";
 
   const patch = {
     status,
@@ -282,6 +401,7 @@ async function updateAdminSubmissionStatus(status) {
 
   if (status === "published") patch.published_at = new Date().toISOString();
   if (status === "archived") patch.archived_at = new Date().toISOString();
+
   if (["approved", "needs_revision", "rejected", "published", "archived"].includes(status)) {
     patch.reviewed_at = new Date().toISOString();
   }
@@ -289,7 +409,7 @@ async function updateAdminSubmissionStatus(status) {
   const { error } = await db
     .from("community_submissions")
     .update(patch)
-    .eq("id", activeAdminSubmission.id);
+    .eq("id", submission.id);
 
   if (error) {
     console.error(error);
@@ -297,11 +417,20 @@ async function updateAdminSubmissionStatus(status) {
     return;
   }
 
-  adminSubmissionFilter = status;
-  adminSubmissionPage = 1;
   adminSubmissionStatus(`Moved to ${formatAdminStatus(status)}.`);
+
   await loadAdminSubmissions();
-  await renderAdminSubmissionDetail(activeAdminSubmission.id);
+
+  const nextSubmission = adminSubmissions[0];
+
+  if (nextSubmission) {
+    await renderAdminSubmissionDetail(nextSubmission.id);
+  } else {
+    activeAdminSubmission = null;
+    document.querySelector("[data-admin-submission-detail]").innerHTML = `
+      <p class="my-sanctuary-empty">No submissions left in this view.</p>
+    `;
+  }
 }
 
 async function saveAdminSubmissionNotes() {
@@ -323,28 +452,39 @@ async function saveAdminSubmissionNotes() {
     return;
   }
 
-  adminSubmissionStatus("Notes saved.");
+  adminSubmissionStatus("Moderator notes saved.");
 }
 
 document.addEventListener("click", async (event) => {
   const filterButton = event.target.closest("[data-admin-filter]");
-  const itemButton = event.target.closest("[data-admin-submission-id]");
-  const statusButton = event.target.closest("[data-admin-status-action]");
+  const openButton = event.target.closest("[data-admin-open-submission]");
+  const cardStatusButton = event.target.closest("[data-admin-card-status]");
   const saveNotesButton = event.target.closest("[data-admin-save-notes]");
   const pageButton = event.target.closest("[data-admin-page]");
 
   if (filterButton) {
     adminSubmissionFilter = filterButton.dataset.adminFilter;
     adminSubmissionPage = 1;
+    activeAdminSubmission = null;
+
     await loadAdminSubmissions();
+
+    document.querySelector("[data-admin-submission-detail]").innerHTML = `
+      <p class="my-sanctuary-empty">Choose a submission to review.</p>
+    `;
   }
 
-  if (itemButton) {
-    await renderAdminSubmissionDetail(itemButton.dataset.adminSubmissionId);
+  if (openButton) {
+    const card = openButton.closest("[data-admin-submission-id]");
+    await renderAdminSubmissionDetail(card.dataset.adminSubmissionId);
   }
 
-  if (statusButton) {
-    await updateAdminSubmissionStatus(statusButton.dataset.adminStatusAction);
+  if (cardStatusButton) {
+    const card = cardStatusButton.closest("[data-admin-submission-id]");
+    await updateAdminSubmissionStatus(
+      card.dataset.adminSubmissionId,
+      cardStatusButton.dataset.adminCardStatus
+    );
   }
 
   if (saveNotesButton) {
@@ -360,7 +500,12 @@ document.addEventListener("click", async (event) => {
       adminSubmissionPage += 1;
     }
 
+    activeAdminSubmission = null;
     await loadAdminSubmissions();
+
+    document.querySelector("[data-admin-submission-detail]").innerHTML = `
+      <p class="my-sanctuary-empty">Choose a submission to review.</p>
+    `;
   }
 });
 
@@ -386,12 +531,15 @@ document.addEventListener("submit", async (event) => {
   const message = form.message.value.trim();
   if (!message) return;
 
-  const { error: messageError } = await db.from("community_submission_messages").insert({
-    submission_id: activeAdminSubmission.id,
-    user_id: currentUser.id,
-    sender_role: "admin",
-    message
-  });
+  const { error: messageError } = await db
+    .from("community_submission_messages")
+    .insert({
+      submission_id: activeAdminSubmission.id,
+      user_id: currentUser.id,
+      sender_role: "admin",
+      message,
+      read_by_admin: true
+    });
 
   if (messageError) {
     console.error(messageError);
