@@ -430,7 +430,6 @@ async function deleteSavedAltar(altarId) {
 }
 
 const savedAltarsManager = document.createElement("div");
-const savedAltarsManager = document.createElement("div");
 savedAltarsManager.className = "saved-altars-modal";
 savedAltarsManager.hidden = true;
 savedAltarsManager.innerHTML = `
