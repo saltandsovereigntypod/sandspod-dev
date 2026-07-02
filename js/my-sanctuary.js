@@ -120,6 +120,7 @@ function createMySanctuaryPanel() {
            <a href="/altar/">🕯 My Digital Altar</a>
            <a href="/grimoire/index.html">📖 My Book of Shadows</a>
            <button type="button" data-my-sanctuary-view-button="rituals">🌙 My Saved Rituals</button>
+           <button type="button" data-my-sanctuary-cabinet>🗄 Cabinet</button>
            <a href="/submit/">✦ Offer to the Sanctuary</a>
            <span>✨ Community Grimoire <em>Coming soon</em></span>
            <button type="button" data-my-sanctuary-view-button="submissions">📬 My Submissions</button>
@@ -407,6 +408,7 @@ document.addEventListener("click", async (event) => {
   const backButton = event.target.closest("[data-my-sanctuary-back]");
   const dashboardButton = event.target.closest("[data-my-sanctuary-dashboard]");
   const viewButton = event.target.closest("[data-my-sanctuary-view-button]");
+  const cabinetButton = event.target.closest("[data-my-sanctuary-cabinet]");
   const signUpButton = event.target.closest("[data-my-sanctuary-signup]");
   const googleButton = event.target.closest("[data-my-sanctuary-google]");
   const signOutButton = event.target.closest("[data-my-sanctuary-signout]");
@@ -421,6 +423,14 @@ document.addEventListener("click", async (event) => {
   if (viewButton) {
     setMySanctuaryView(viewButton.dataset.mySanctuaryViewButton);
   }
+
+  if (cabinetButton) {
+     closeMySanctuaryPanel();
+   
+     if (typeof openAltarCabinetOverlay === "function") {
+       openAltarCabinetOverlay();
+     }
+   }
 
    if (googleButton) {
      try {
