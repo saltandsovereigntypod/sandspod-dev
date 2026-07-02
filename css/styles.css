@@ -923,3 +923,27 @@ body.sanctuary-modal-open {
   gap: 0.65rem;
   margin-top: 1.25rem;
 }
+
+.my-sanctuary-auth-form {
+  margin: 1rem 0 1.15rem;
+}
+
+.my-sanctuary-auth-actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.my-sanctuary-notice {
+  margin: 0.75rem 0;
+  border: 1px solid rgba(185, 160, 93, 0.3);
+  border-radius: 0.85rem;
+  padding: 0.65rem 0.8rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.1);
+  font-size: 0.9rem;
+}
+
+.my-sanctuary-notice[hidden] {
+  display: none;
+}
