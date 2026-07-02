@@ -342,9 +342,7 @@
 
   filter:
     blur(2px)
-    drop-shadow(0 0 10px rgba(255,220,120,.85))
-    drop-shadow(0 0 18px rgba(255,180,70,.45));
-
+    
   animation: candleBaseGlow 2.2s ease-in-out infinite alternate;
 }
 
@@ -373,10 +371,7 @@
 
   filter:
       blur(.35px)
-      drop-shadow(0 0 8px rgba(255,220,120,.8))
-      drop-shadow(0 0 20px rgba(255,170,60,.55))
-      drop-shadow(0 0 36px rgba(255,160,45,.18));
-
+      
   animation:
       candleTopDance var(--flame-flicker-speed,1.6s)
       ease-in-out infinite alternate,
