@@ -19,6 +19,149 @@ function getObjectImagePath(object) {
   return img ? img.getAttribute("src") : "";
 }
 
+const altarUndoStack = [];
+const altarRedoStack = [];
+let dragStartSnapshot = null;
+
+function captureAltarSnapshot() {
+  if (!altarStage) return null;
+
+  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
+    const position = getStagePositionPercent(object);
+
+    return {
+      imagePath: getObjectImagePath(object),
+      fallbackSymbol: object.textContent || "",
+      label: object.dataset.label || "object",
+      type: object.dataset.type || "",
+      herb: object.dataset.herb || "",
+      form: object.dataset.form || "",
+      color: object.dataset.color || "",
+      crystal: object.dataset.crystal || "",
+      tool: object.dataset.tool || "",
+      vessel: object.dataset.vessel || "",
+      deity: object.dataset.deity || "",
+      scale: object.dataset.scale || "1",
+      rotation: object.dataset.rotation || "0",
+      flipped: object.dataset.flipped || "false",
+      locked: object.dataset.locked || "false",
+      glowing: object.dataset.glowing || "false",
+      lit: object.dataset.lit || "false",
+      dressings: object.dataset.dressings || "[]",
+      plaqueText: object.dataset.plaqueText || "",
+      altarObjectId: object.dataset.altarObjectId || "",
+      groupId: object.dataset.groupId || "",
+      leftPercent: position.leftPercent,
+      topPercent: position.topPercent,
+      sizePercent: position.sizePercent,
+      zIndex: object.style.zIndex || "10"
+    };
+  });
+
+  return {
+    background: altarStage.dataset.background || "",
+    backgroundName: altarStage.dataset.backgroundName || "",
+    groups: Array.isArray(altarGroups) ? JSON.parse(JSON.stringify(altarGroups)) : [],
+    activeGroupId,
+    objects
+  };
+}
+
+function pushAltarUndoSnapshot(snapshot = captureAltarSnapshot()) {
+  if (!snapshot) return;
+
+  altarUndoStack.push(snapshot);
+
+  if (altarUndoStack.length > 60) {
+    altarUndoStack.shift();
+  }
+
+  altarRedoStack.length = 0;
+}
+
+function restoreAltarSnapshot(snapshot) {
+  if (!snapshot || !altarStage) return;
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  deselectObject();
+  clearCandleDressingMode();
+
+  if (snapshot.background) {
+    altarStage.style.backgroundImage = `url("${snapshot.background}")`;
+    altarStage.dataset.background = snapshot.background;
+    altarStage.dataset.backgroundName = snapshot.backgroundName || "";
+  }
+
+  altarGroups = Array.isArray(snapshot.groups) ? JSON.parse(JSON.stringify(snapshot.groups)) : [];
+  activeGroupId = snapshot.activeGroupId || null;
+
+  highestLayer = 10;
+
+  (snapshot.objects || []).forEach((savedObject) => {
+    const object = createSavedObject(savedObject);
+    altarStage.appendChild(object);
+
+    highestLayer = Math.max(highestLayer, Number(savedObject.zIndex || 10));
+
+    const img = object.querySelector("img");
+
+    function positionRestoredObject() {
+      applyStagePositionPercent(object, savedObject);
+      updateObjectTransform(object);
+      keepObjectInsideStage(object);
+      updateObjectPositionPercent(object);
+    }
+
+    if (img && !img.complete) {
+      img.addEventListener("load", positionRestoredObject, { once: true });
+    } else {
+      positionRestoredObject();
+    }
+  });
+
+  updateGroupIndicator();
+  syncGroupObjectClasses();
+  updateEmptyMessage();
+}
+
+function undoAltarChange() {
+  if (altarUndoStack.length === 0) {
+    showAltarToast("Nothing to undo");
+    return;
+  }
+
+  const currentSnapshot = captureAltarSnapshot();
+  const previousSnapshot = altarUndoStack.pop();
+
+  if (currentSnapshot) {
+    altarRedoStack.push(currentSnapshot);
+  }
+
+  restoreAltarSnapshot(previousSnapshot);
+  showAltarToast("Undone");
+}
+
+function redoAltarChange() {
+  if (altarRedoStack.length === 0) {
+    showAltarToast("Nothing to redo");
+    return;
+  }
+
+  const currentSnapshot = captureAltarSnapshot();
+  const nextSnapshot = altarRedoStack.pop();
+
+  if (currentSnapshot) {
+    altarUndoStack.push(currentSnapshot);
+  }
+
+  restoreAltarSnapshot(nextSnapshot);
+  showAltarToast("Redone");
+}
+
 function keepObjectInsideStage(object) {
   if (!altarStage || !object) return;
 
@@ -75,13 +218,14 @@ function resizeObject(object, amount) {
   });
 }
 
-function rotateObject(object) {
+function rotateObject(object, amount = 15) {
   if (!object || object.dataset.locked === "true") return;
 
-  const rotation = Number(object.dataset.rotation || 0) + 15;
+  const rotation = Number(object.dataset.rotation || 0) + amount;
 
   object.dataset.rotation = String(rotation);
   updateObjectTransform(object);
+  updateObjectPositionPercent(object);
 }
 
 function bringForward(object) {
@@ -149,6 +293,8 @@ function makeDraggable(object) {
 
     if (object.dataset.locked === "true") return;
 
+    dragStartSnapshot = captureAltarSnapshot();
+     
     activeObject = object;
 
     const objectRect = object.getBoundingClientRect();
@@ -218,11 +364,19 @@ function makeDraggable(object) {
 
   object.addEventListener("pointerup", () => {
     object.classList.remove("is-dragging");
+     if (dragStartSnapshot) {
+        pushAltarUndoSnapshot(dragStartSnapshot);
+        dragStartSnapshot = null;
+      }
     activeObject = null;
   });
 
   object.addEventListener("pointercancel", () => {
     object.classList.remove("is-dragging");
+     if (dragStartSnapshot) {
+        pushAltarUndoSnapshot(dragStartSnapshot);
+        dragStartSnapshot = null;
+      }
     activeObject = null;
   });
 
@@ -233,6 +387,8 @@ function makeDraggable(object) {
 
     if (object.dataset.locked === "true") return;
 
+     pushAltarUndoSnapshot();
+
     resizeObject(object, event.deltaY < 0 ? 0.1 : -0.1);
   });
 
@@ -242,6 +398,7 @@ function makeDraggable(object) {
 }
 
 function placeObject(options) {
+   pushAltarUndoSnapshot();
   if (!altarStage) return;
 
   const {
@@ -323,6 +480,8 @@ function placeObject(options) {
 function deleteObject(object) {
   if (!object) return;
 
+   pushAltarUndoSnapshot();
+
   if (object === selectedObject) {
     clearCandleDressingMode();
   }
@@ -335,6 +494,8 @@ function deleteObject(object) {
 
 function duplicateObject(object) {
   if (!object || !altarStage) return;
+
+   pushAltarUndoSnapshot();
 
   const clone = object.cloneNode(true);
 
