@@ -72,6 +72,8 @@ function toggleLight(object) {
     object.classList.add("is-lit");
     startFlame(object);
   }
+
+   renderLighting();
 }
 
 function canDressCandle(object) {
@@ -187,4 +189,83 @@ function dressCandle(candle) {
   updateCandleDressingVisuals(candle);
   selectObject(candle);
   clearCandleDressingMode();
+}
+
+/* =========================================================
+   LIGHTING ENGINE
+   ========================================================= */
+
+const lightingCanvas =
+  document.querySelector("[data-lighting-layer]");
+
+const lightingContext =
+  lightingCanvas?.getContext("2d");
+
+function resizeLightingCanvas() {
+
+  if (!lightingCanvas || !altarStage) return;
+
+  lightingCanvas.width = altarStage.clientWidth;
+  lightingCanvas.height = altarStage.clientHeight;
+
+}
+
+function renderLighting() {
+
+  if (!lightingCanvas || !lightingContext || !altarStage) return;
+
+  lightingContext.clearRect(
+    0,
+    0,
+    lightingCanvas.width,
+    lightingCanvas.height
+  );
+
+  altarStage
+    .querySelectorAll('.altar-object[data-type="candle"][data-lit="true"]')
+    .forEach((candle) => {
+
+      const rect = candle.getBoundingClientRect();
+      const stageRect = altarStage.getBoundingClientRect();
+
+      const x =
+        rect.left -
+        stageRect.left +
+        rect.width / 2;
+
+      const y =
+        rect.top -
+        stageRect.top +
+        rect.height * 0.10;
+
+      const gradient =
+        lightingContext.createRadialGradient(
+          x,
+          y,
+          0,
+          x,
+          y,
+          180
+        );
+
+      gradient.addColorStop(0, "rgba(255,245,210,.40)");
+      gradient.addColorStop(.18, "rgba(255,220,150,.25)");
+      gradient.addColorStop(.45, "rgba(255,180,80,.12)");
+      gradient.addColorStop(1, "rgba(255,180,80,0)");
+
+      lightingContext.fillStyle = gradient;
+
+      lightingContext.beginPath();
+      lightingContext.arc(
+        x,
+        y,
+        180,
+        0,
+        Math.PI * 2
+      );
+
+      lightingContext.fill();
+
+    });
+
 }
