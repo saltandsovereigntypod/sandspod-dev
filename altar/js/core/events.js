@@ -66,6 +66,58 @@ toolbar.addEventListener("click", (event) => {
    CABINET
    ========================================================= */
 
+function openAltarCabinetOverlay() {
+  const overlay = document.querySelector("[data-altar-cabinet-overlay]");
+  if (!overlay) return;
+
+  overlay.hidden = false;
+  document.body.classList.add("altar-cabinet-overlay-open");
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-visible");
+  });
+
+  renderCabinet();
+}
+
+function closeAltarCabinetOverlay() {
+  const overlay = document.querySelector("[data-altar-cabinet-overlay]");
+  if (!overlay) return;
+
+  overlay.classList.remove("is-visible");
+  document.body.classList.remove("altar-cabinet-overlay-open");
+
+  window.setTimeout(() => {
+    overlay.hidden = true;
+  }, 220);
+}
+
+function openAltarCabinetOverlay() {
+  const overlay = document.querySelector("[data-altar-cabinet-overlay]");
+  if (!overlay) return;
+
+  overlay.hidden = false;
+  document.body.classList.add("altar-cabinet-overlay-open");
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-visible");
+  });
+
+  renderCabinet();
+}
+
+function closeAltarCabinetOverlay() {
+  const overlay = document.querySelector("[data-altar-cabinet-overlay]");
+  if (!overlay) return;
+
+  overlay.classList.remove("is-visible");
+  document.body.classList.remove("altar-cabinet-overlay-open");
+
+  window.setTimeout(() => {
+    overlay.hidden = true;
+  }, 220);
+}
+
 if (cabinetTabs) {
   cabinetTabs.addEventListener("click", (event) => {
     const button = event.target.closest("[data-cabinet-category]");
@@ -91,9 +143,7 @@ if (altarCabinet) {
     if (backgroundButton) {
       changeAltarBackground(backgroundButton);
 
-      if (window.innerWidth <= 700) {
-        closeMobileCabinet();
-      }
+      closeAltarCabinetOverlay();
 
       return;
     }
@@ -134,12 +184,17 @@ if (altarCabinet) {
       deity: itemButton.dataset.deity || ""
     });
 
-    if (window.innerWidth <= 700) {
-      closeMobileCabinet();
-    }
+    closeAltarCabinetOverlay();
   });
 }
 
+document.addEventListener("click", (event) => {
+  const closeCabinetButton = event.target.closest("[data-close-cabinet-overlay]");
+
+  if (closeCabinetButton) {
+    closeAltarCabinetOverlay();
+  }
+});
 
 /* =========================================================
    ACTION BAR
@@ -298,6 +353,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeSanctuaryModal();
     closeSavedAltarsManager();
+    closeAltarCabinetOverlay();
   }
 });
 
