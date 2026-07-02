@@ -203,7 +203,11 @@ function createMySanctuaryPanel() {
 
           <label>
             Default Altar Background
-            <input type="text" name="default_altar_background" placeholder="Optional for now" />
+            <select name="default_altar_background">
+              <option value="">No default</option>
+              <option value="Forest Altar">Forest Altar</option>
+              <option value="Deity Shelf Altar">Deity Shelf Altar</option>
+            </select>
           </label>
 
           <label class="my-sanctuary-check">
