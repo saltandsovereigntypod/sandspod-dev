@@ -353,6 +353,7 @@ function makeDraggable(object) {
     object.style.top = `${y}px`;
 
     updateObjectPositionPercent(object);
+    renderLighting();
 
     if (object.dataset.groupId) {
       const groupObjects = getGroupObjects(object.dataset.groupId);
@@ -491,6 +492,7 @@ function placeObject(options) {
 
   selectObject(object);
   updateEmptyMessage();
+  renderLighting();
 }
 
 function deleteObject(object) {
@@ -505,6 +507,7 @@ function deleteObject(object) {
   stopFlame(object);
   object.remove();
   deselectObject();
+  renderLighting();
   updateEmptyMessage();
 }
 
@@ -545,4 +548,5 @@ function duplicateObject(object) {
   altarStage.appendChild(clone);
   selectObject(clone);
   updateEmptyMessage();
+  renderLighting();
 }
