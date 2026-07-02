@@ -74,6 +74,13 @@ mobileCabinetToggle.textContent = "✦ Add Items";
 mobileCabinetToggle.setAttribute("aria-expanded", "false");
 
 if (altarStage) {
+
+  const lightingCanvas = document.createElement("canvas");
+  lightingCanvas.className = "altar-lighting-layer";
+  lightingCanvas.setAttribute("data-lighting-layer", "");
+
+  altarStage.appendChild(lightingCanvas);
+
   altarStage.after(altarActionBar);
   altarStage.appendChild(toolbar);
   altarStage.appendChild(altarGroupIndicator);
