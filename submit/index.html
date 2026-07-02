@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offer to the Sanctuary | Salt & Sovereignty</title>
+    <meta
+      name="description"
+      content="Submit a ritual, story, dream, question, or reflection to Salt & Sovereignty."
+    />
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+
+  <body>
+    <header class="site-header" data-header>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark" aria-hidden="true">S&S</span>
+          <span>Salt & Sovereignty</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../index.html#about">About</a>
+          <a href="../index.html#podcast">Podcast</a>
+          <a href="../index.html#blog">Blog</a>
+          <button class="nav-sanctuary-button" type="button" data-my-sanctuary-open>
+            My Sanctuary
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main class="section">
+      <div class="section-intro">
+        <p class="eyebrow">The Sanctuary</p>
+        <h1>Offer to the Sanctuary</h1>
+        <p>
+          Share a ritual, story, dream, question, reflection, or piece of your practice for review.
+          Every offering is personally reviewed before finding its place within Salt & Sovereignty.
+        </p>
+      </div>
+
+      <form class="sanctuary-submission-form" data-community-submission-form>
+        <label>
+          What would you like to offer?
+          <select name="submission_type" required>
+            <option value="community_grimoire">Community Grimoire</option>
+            <option value="podcast">Podcast Story or Question</option>
+            <option value="blog">Blog or Journal Submission</option>
+            <option value="ritual_experience">Ritual Experience</option>
+            <option value="dream_experience">Dream Experience</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          Title
+          <input type="text" name="title" required />
+        </label>
+
+        <label>
+          Your Submission
+          <textarea name="body" rows="10" required></textarea>
+        </label>
+
+        <label>
+          Publish or reference as
+          <select name="display_as">
+            <option value="anonymous">Anonymous</option>
+            <option value="preferred_name">Preferred Name</option>
+            <option value="magical_name">Magical Name</option>
+          </select>
+        </label>
+
+        <label>
+          Tags
+          <input type="text" name="tags" placeholder="Hekate, protection, dreamwork" />
+        </label>
+
+        <label class="my-sanctuary-check">
+          <input type="checkbox" name="original_work_confirmed" required />
+          I confirm this is my own work, or that I have permission to share it.
+        </label>
+
+        <label class="my-sanctuary-check">
+          <input type="checkbox" name="terms_agreed" required />
+          <span>
+            I have read and agree to the
+            <a href="../submission-terms.html" target="_blank" rel="noopener">Submission Terms</a>.
+          </span>
+        </label>
+
+        <button class="button button--primary" type="submit">
+          ✦ Offer to the Sanctuary
+        </button>
+
+        <p class="form-status" data-community-submission-status role="status" aria-live="polite"></p>
+      </form>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/my-settings.js"></script>
+    <script src="../js/submissions.js"></script>
+    <script src="../js/my-sanctuary.js"></script>
+    <script src="../script.js"></script>
+  </body>
+</html>
