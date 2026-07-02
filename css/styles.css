@@ -1393,3 +1393,9 @@ body:has(.sanctuary-submission-form) h1 {
     grid-template-columns: 1fr;
   }
 }
+
+.my-sanctuary-admin-link {
+  margin: 1.25rem 0;
+  border-top: 1px solid rgba(185, 160, 93, 0.22);
+  padding-top: 1rem;
+}
