@@ -466,12 +466,6 @@ function placeObject(options) {
     object.textContent = fallbackSymbol || "";
   }
 
-   if (type === "candle") {
-     const light = document.createElement("div");
-     light.className = "candle-light";
-     object.prepend(light);
-   }
-
   object.setAttribute(
     "aria-label",
     `${label || "Object"}. Click to select. Drag to move. Double click to remove.`
@@ -533,11 +527,7 @@ function duplicateObject(object) {
    if (
      clone.dataset.type === "candle" &&
      !clone.querySelector(".candle-light")
-   ) {
-     const light = document.createElement("div");
-     light.className = "candle-light";
-     clone.prepend(light);
-   }
+   ) 
 
   if (clone.dataset.lit === "true") {
     startFlame(clone);
