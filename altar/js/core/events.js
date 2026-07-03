@@ -2,9 +2,60 @@
    EVENTS
    ========================================================= */
 
+let toolbarHoldInterval = null;
+let toolbarHoldTimeout = null;
+
+function stopToolbarHoldAction() {
+  window.clearTimeout(toolbarHoldTimeout);
+  window.clearInterval(toolbarHoldInterval);
+
+  toolbarHoldTimeout = null;
+  toolbarHoldInterval = null;
+}
+
+function startToolbarHoldAction(action) {
+  stopToolbarHoldAction();
+
+  if (!selectedObject) return;
+
+  const holdActions = {
+    smaller: () => resizeObject(selectedObject, -0.04),
+    larger: () => resizeObject(selectedObject, 0.04),
+    "rotate-left": () => rotateObject(selectedObject, -3),
+    "rotate-right": () => rotateObject(selectedObject, 3)
+  };
+
+  const holdAction = holdActions[action];
+
+  if (!holdAction) return;
+
+  toolbarHoldTimeout = window.setTimeout(() => {
+    pushAltarUndoSnapshot();
+
+    toolbarHoldInterval = window.setInterval(() => {
+      if (!selectedObject) {
+        stopToolbarHoldAction();
+        return;
+      }
+
+      holdAction();
+      updateObjectPositionPercent(selectedObject);
+    }, 70);
+  }, 280);
+}
+
 toolbar.addEventListener("pointerdown", (event) => {
   event.stopPropagation();
+
+  const button = event.target.closest("button");
+  if (!button || !selectedObject) return;
+
+  startToolbarHoldAction(button.dataset.action);
 });
+
+toolbar.addEventListener("pointerup", stopToolbarHoldAction);
+toolbar.addEventListener("pointercancel", stopToolbarHoldAction);
+toolbar.addEventListener("pointerleave", stopToolbarHoldAction);
 
 toolbar.addEventListener("click", (event) => {
   const button = event.target.closest("button");
