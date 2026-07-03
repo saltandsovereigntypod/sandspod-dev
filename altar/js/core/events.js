@@ -109,6 +109,30 @@ function closeAltarCabinetOverlay() {
   }, 220);
 }
 
+function openAltarApothecaryOverlay() {
+  const overlay = document.querySelector("[data-altar-apothecary-overlay]");
+  if (!overlay) return;
+
+  overlay.hidden = false;
+  document.body.classList.add("altar-cabinet-overlay-open");
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-visible");
+  });
+}
+
+function closeAltarApothecaryOverlay() {
+  const overlay = document.querySelector("[data-altar-apothecary-overlay]");
+  if (!overlay) return;
+
+  overlay.classList.remove("is-visible");
+  document.body.classList.remove("altar-cabinet-overlay-open");
+
+  window.setTimeout(() => {
+    overlay.hidden = true;
+  }, 220);
+}
+
 if (cabinetTabs) {
   cabinetTabs.addEventListener("click", (event) => {
     const button = event.target.closest("[data-cabinet-category]");
@@ -179,6 +203,7 @@ document.addEventListener("click", (event) => {
   const openCabinetButton = event.target.closest("[data-open-cabinet-overlay]");
   const closeCabinetButton = event.target.closest("[data-close-cabinet-overlay]");
   const openApothecaryButton = event.target.closest("[data-open-apothecary-overlay]");
+  const closeApothecaryButton = event.target.closest("[data-close-apothecary-overlay]");
 
   if (openCabinetButton) {
     openAltarCabinetOverlay();
@@ -189,7 +214,11 @@ document.addEventListener("click", (event) => {
   }
 
   if (openApothecaryButton) {
-    showAltarToast("My Apothecary is coming next.");
+    openAltarApothecaryOverlay();
+  }
+
+  if (closeApothecaryButton) {
+    closeAltarApothecaryOverlay();
   }
 });
 
@@ -389,6 +418,7 @@ document.addEventListener("keydown", (event) => {
     closeSanctuaryModal();
     closeSavedAltarsManager();
     closeAltarCabinetOverlay();
+    closeAltarApothecaryOverlay();
   }
 });
 
