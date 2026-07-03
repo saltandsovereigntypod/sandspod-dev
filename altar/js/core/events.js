@@ -408,13 +408,17 @@ document.addEventListener("pointerdown", (event) => {
   const clickedObject = event.target.closest(".altar-object");
   const clickedToolbar = event.target.closest(".altar-toolbar");
   const clickedActionBar = event.target.closest(".altar-action-bar");
+  const clickedInfoCard = event.target.closest(".altar-info-card");
+  const clickedModal = event.target.closest(".altar-cabinet-overlay, .saved-altars-modal, .altar-save-modal");
 
-  if (!clickedObject && !clickedToolbar && !clickedActionBar) {
+  if (!clickedObject && !clickedToolbar && !clickedActionBar && !clickedInfoCard && !clickedModal) {
 
     deselectObject();
     clearCandleDressingMode();
 
   }
+
+});
 
 });
 
