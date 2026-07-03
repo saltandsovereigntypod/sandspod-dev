@@ -1729,3 +1729,18 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
     margin-bottom: 5.75rem;
   }
 }
+
+/* =========================================================
+   MOBILE TOOLBAR TAP FIXES
+   Prevent iOS double-tap zoom on altar controls
+   ========================================================= */
+
+.altar-toolbar,
+.altar-toolbar button {
+  touch-action: manipulation;
+}
+
+.altar-action-bar,
+.altar-action-bar button {
+  touch-action: manipulation;
+}
