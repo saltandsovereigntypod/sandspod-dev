@@ -467,7 +467,6 @@ async function loadAltarById(altarId) {
   updateEmptyMessage();
   closeSavedAltarsManager();
   showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
-}
 
 async function renameSavedAltar(altarId) {
   const savedAltars = await getSavedAltars();
