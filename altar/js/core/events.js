@@ -22,14 +22,14 @@ toolbar.addEventListener("click", (event) => {
       break;
 
     case "rotate-left":
-        pushAltarUndoSnapshot();
-        rotateObject(selectedObject, -15);
-        break;
-      
-      case "rotate-right":
-        pushAltarUndoSnapshot();
-        rotateObject(selectedObject, 15);
-        break;
+      pushAltarUndoSnapshot();
+      rotateObject(selectedObject, -15);
+      break;
+
+    case "rotate-right":
+      pushAltarUndoSnapshot();
+      rotateObject(selectedObject, 15);
+      break;
 
     case "delete":
       pushAltarUndoSnapshot();
@@ -113,8 +113,6 @@ function openAltarApothecaryOverlay() {
   const overlay = document.querySelector("[data-altar-apothecary-overlay]");
   if (!overlay) return;
 
-  renderApothecaryShell();
-
   overlay.hidden = false;
   document.body.classList.add("altar-cabinet-overlay-open");
 
@@ -133,73 +131,6 @@ function closeAltarApothecaryOverlay() {
   window.setTimeout(() => {
     overlay.hidden = true;
   }, 220);
-}
-
-function renderApothecaryShell() {
-  const overlay = document.querySelector("[data-altar-apothecary-overlay]");
-  if (!overlay) return;
-
-  const card = overlay.querySelector(".altar-cabinet");
-  if (!card) return;
-
-  card.innerHTML = `
-    <button class="altar-cabinet-close" type="button" data-close-apothecary-overlay aria-label="Close">
-      ×
-    </button>
-
-    <div class="altar-cabinet-header apothecary-header">
-      <div>
-        <p class="eyebrow">The Apothecary</p>
-        <h2>Magical Inventory</h2>
-        <p>
-          A future home for herbs, oils, crystals, correspondences, warnings, recipes, substitutions, and ritual notes.
-        </p>
-      </div>
-
-      <div class="apothecary-status-card">
-        <strong>Version 2.0 shell</strong>
-        <span>Front-end safe. Supabase wiring comes later.</span>
-      </div>
-    </div>
-
-    <div class="apothecary-tabs" role="tablist" aria-label="Apothecary sections">
-      <button type="button" class="is-active" data-apothecary-tab="browse">Browse</button>
-      <button type="button" data-apothecary-tab="inventory">Inventory</button>
-      <button type="button" data-apothecary-tab="favorites">Favorites</button>
-      <button type="button" data-apothecary-tab="recipes">Recipes</button>
-      <button type="button" data-apothecary-tab="substitutions">Substitutions</button>
-    </div>
-
-    <div class="apothecary-grid">
-      <article class="apothecary-card">
-        <p class="eyebrow">Browse</p>
-        <h3>Correspondence Library</h3>
-        <p>Search magical uses, elements, planets, deities, mundane notes, and safety warnings.</p>
-        <button type="button" disabled>Coming soon</button>
-      </article>
-
-      <article class="apothecary-card">
-        <p class="eyebrow">Create</p>
-        <h3>Add Custom Item</h3>
-        <p>Create your own herb, oil, crystal, powder, salt, water, or ritual ingredient.</p>
-        <button type="button" disabled>Create item</button>
-      </article>
-
-      <article class="apothecary-card">
-        <p class="eyebrow">Inventory</p>
-        <h3>Track What You Have</h3>
-        <p>Mark items as owned, out of stock, growing, harvesting, or wishlisted.</p>
-        <button type="button" disabled>Open inventory</button>
-      </article>
-
-      <article class="apothecary-card">
-        <p class="eyebrow">Ritual Use</p>
-        <h3>Place or Dress</h3>
-        <p>Eventually, items can be placed on the altar or used to dress candles directly.</p>
-        <button type="button" disabled>Use in ritual</button>
-      </article>
-    </div>
-  `;
 }
 
 if (cabinetTabs) {
@@ -221,30 +152,10 @@ if (cabinetSearch) {
 
 if (altarCabinet) {
   altarCabinet.addEventListener("click", (event) => {
-
     const backgroundButton = event.target.closest("[data-background]");
 
     if (backgroundButton) {
       changeAltarBackground(backgroundButton);
-
-      return;
-    }
-
-    const menuToggle = event.target.closest("[data-form-menu-toggle]");
-
-    if (menuToggle) {
-      const wrap = menuToggle.closest(".cabinet-choice-wrap");
-      const menu = wrap.querySelector(".cabinet-form-menu");
-
-      cabinetContent
-        .querySelectorAll(".cabinet-form-menu")
-        .forEach((openMenu) => {
-          if (openMenu !== menu) {
-            openMenu.hidden = true;
-          }
-        });
-
-      menu.hidden = !menu.hidden;
       return;
     }
 
@@ -291,27 +202,26 @@ document.addEventListener("click", (event) => {
   }
 });
 
+
 /* =========================================================
    ACTION BAR
    ========================================================= */
 
 altarActionBar.addEventListener("click", (event) => {
-
   const button = event.target.closest("[data-global-action]");
 
   if (!button || !altarStage) return;
 
   switch (button.dataset.globalAction) {
-
     case "undo":
-     undoAltarChange();
-     return;
-   
+      undoAltarChange();
+      return;
+
     case "redo":
-     redoAltarChange();
-     return;
-        
-     case "select-ritual-items":
+      redoAltarChange();
+      return;
+
+    case "select-ritual-items":
       toggleRitualSelectionMode();
       return;
 
@@ -338,7 +248,6 @@ altarActionBar.addEventListener("click", (event) => {
       return;
 
     case "save-altar":
-
       if (!isUserSignedIn()) {
         shouldSaveAfterAuth = true;
         openSanctuaryModal();
@@ -363,41 +272,36 @@ altarActionBar.addEventListener("click", (event) => {
       altarStage
         .querySelectorAll('.altar-object[data-type="candle"]')
         .forEach((candle) => {
-
           if (candle.dataset.lit === "true") return;
 
           candle.dataset.lit = "true";
           candle.classList.add("is-lit");
           startFlame(candle);
-
         });
 
+      renderLighting();
       return;
 
-        case "extinguish-all":
-          pushAltarUndoSnapshot();
-    
-          altarStage
-            .querySelectorAll('.altar-object[data-type="candle"]')
-            .forEach((candle) => {
-    
-              candle.dataset.lit = "false";
-              candle.classList.remove("is-lit", "has-flame-glow", "is-flame-glowing");
-    
-              stopFlame(candle);
-              extinguishFlame(candle);
-    
-              candle.querySelectorAll(".candle-flame, .candle-glow, .flame-glow").forEach((effect) => {
-                effect.remove();
-              });
-    
-            });
-    
-          renderLighting();
-    
-          return;
-  }
+    case "extinguish-all":
+      pushAltarUndoSnapshot();
 
+      altarStage
+        .querySelectorAll('.altar-object[data-type="candle"]')
+        .forEach((candle) => {
+          candle.dataset.lit = "false";
+          candle.classList.remove("is-lit", "has-flame-glow", "is-flame-glowing");
+
+          stopFlame(candle);
+          extinguishFlame(candle);
+
+          candle.querySelectorAll(".candle-flame, .candle-glow, .flame-glow").forEach((effect) => {
+            effect.remove();
+          });
+        });
+
+      renderLighting();
+      return;
+  }
 });
 
 
@@ -406,7 +310,6 @@ altarActionBar.addEventListener("click", (event) => {
    ========================================================= */
 
 document.addEventListener("pointerdown", (event) => {
-
   if (!altarStage) return;
 
   const clickedObject = event.target.closest(".altar-object");
@@ -416,28 +319,18 @@ document.addEventListener("pointerdown", (event) => {
   const clickedModal = event.target.closest(".altar-cabinet-overlay, .saved-altars-modal, .altar-save-modal");
 
   if (!clickedObject && !clickedToolbar && !clickedActionBar && !clickedInfoCard && !clickedModal) {
-
     deselectObject();
     clearCandleDressingMode();
-
   }
-
 });
-
-});
-
 
 window.addEventListener("resize", () => {
-
   requestAnimationFrame(() => {
-
     repositionAllObjectsFromPercent();
-
     resizeLightingCanvas();
-
     renderLighting();
-
   });
+});
 
 
 /* =========================================================
@@ -535,5 +428,3 @@ renderCabinet();
 
 resizeLightingCanvas();
 renderLighting();
-
-
