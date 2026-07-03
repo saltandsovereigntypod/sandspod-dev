@@ -483,3 +483,9 @@ renderCabinet();
 resizeLightingCanvas();
 renderLighting();
 
+window.setTimeout(() => {
+  if (typeof restoreWorkingAltarDraft === "function") {
+    restoreWorkingAltarDraft();
+  }
+}, 500);
+
