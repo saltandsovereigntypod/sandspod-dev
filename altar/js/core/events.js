@@ -374,24 +374,28 @@ altarActionBar.addEventListener("click", (event) => {
 
       return;
 
-    case "extinguish-all":
-      pushAltarUndoSnapshot();
-
-      altarStage
-        .querySelectorAll('.altar-object[data-type="candle"]')
-        .forEach((candle) => {
-
-          if (candle.dataset.lit !== "true") return;
-
-          candle.dataset.lit = "false";
-          candle.classList.remove("is-lit");
-
-          stopFlame(candle);
-          extinguishFlame(candle);
-
-        });
-
-      return;
+        case "extinguish-all":
+          pushAltarUndoSnapshot();
+    
+          altarStage
+            .querySelectorAll('.altar-object[data-type="candle"]')
+            .forEach((candle) => {
+    
+              candle.dataset.lit = "false";
+              candle.classList.remove("is-lit", "has-flame-glow", "is-flame-glowing");
+    
+              stopFlame(candle);
+              extinguishFlame(candle);
+    
+              candle.querySelectorAll(".candle-flame, .candle-glow, .flame-glow").forEach((effect) => {
+                effect.remove();
+              });
+    
+            });
+    
+          renderLighting();
+    
+          return;
   }
 
 });
