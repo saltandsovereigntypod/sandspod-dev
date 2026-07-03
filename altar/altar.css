@@ -1386,83 +1386,78 @@ body.altar-cabinet-overlay-open {
 }
 
 /* =========================================================
-   CABINET V2 SHELVES
+   CABINET V2 CLEAN GRID
    ========================================================= */
 
 .altar-cabinet-content {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
-  gap: 1.35rem 1rem !important;
-  padding: 1.5rem 0.75rem 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+  gap: 1rem !important;
+  padding: 1.25rem 0 0;
+}
+
+.altar-cabinet .cabinet-tile,
+.altar-cabinet .cabinet-multi-tile {
+  border: 1px solid rgba(185, 160, 93, 0.24) !important;
+  border-radius: 1rem !important;
   background:
-    linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 8.2rem,
-      rgba(185, 160, 93, 0.34) 8.2rem,
-      rgba(70, 43, 24, 0.95) 8.45rem,
-      rgba(24, 14, 8, 0.9) 8.75rem,
-      transparent 8.95rem
-    );
-  background-size: 100% 10.25rem;
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 70%),
+    rgba(244, 236, 216, 0.045) !important;
+  box-shadow: none !important;
 }
 
 .altar-cabinet .cabinet-tile {
   display: grid !important;
   justify-items: center !important;
-  align-content: end !important;
-  gap: 0.35rem !important;
-  min-height: 8.75rem !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  padding: 0.35rem 0.25rem 0.85rem !important;
+  align-content: center !important;
+  gap: 0.55rem !important;
+  min-height: 9.25rem !important;
+  padding: 0.85rem !important;
   color: var(--cream) !important;
-  background: transparent !important;
-  box-shadow: none !important;
   font: inherit !important;
   cursor: pointer;
+  overflow: hidden !important;
 }
 
 .altar-cabinet .cabinet-tile:hover,
-.altar-cabinet .cabinet-tile:focus-visible {
-  background: radial-gradient(circle at center, rgba(185, 160, 93, 0.16), transparent 68%) !important;
+.altar-cabinet .cabinet-tile:focus-visible,
+.altar-cabinet .cabinet-multi-tile:hover {
+  border-color: var(--gold) !important;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.2), transparent 70%),
+    rgba(244, 236, 216, 0.07) !important;
 }
 
 .altar-cabinet .cabinet-tile-image-wrap {
   display: grid !important;
-  place-items: end center !important;
-  width: 5.75rem !important;
-  height: 5.75rem !important;
-  overflow: visible !important;
+  place-items: center !important;
+  width: 5.5rem !important;
+  height: 5.5rem !important;
 }
 
 .altar-cabinet .cabinet-tile-image {
   display: block !important;
   width: auto !important;
   height: auto !important;
-  max-width: 5.75rem !important;
-  max-height: 5.75rem !important;
+  max-width: 5.5rem !important;
+  max-height: 5.5rem !important;
   object-fit: contain !important;
   background: transparent !important;
 }
 
 .altar-cabinet .cabinet-tile-name {
+  display: block !important;
   color: var(--cream) !important;
-  font-size: 0.78rem !important;
-  line-height: 1.15;
+  font-size: 0.8rem !important;
+  line-height: 1.2;
   text-align: center;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
-}
-
-.altar-cabinet .cabinet-background-tile {
-  min-height: 8.75rem !important;
 }
 
 .altar-cabinet .cabinet-tile-icon {
-  display: grid;
-  place-items: center;
-  width: 5rem;
-  height: 5rem;
+  display: grid !important;
+  place-items: center !important;
+  width: 5.5rem !important;
+  height: 5.5rem !important;
   border: 1px solid rgba(185, 160, 93, 0.22);
   border-radius: 1rem;
   background: rgba(185, 160, 93, 0.08);
@@ -1470,14 +1465,37 @@ body.altar-cabinet-overlay-open {
 }
 
 .altar-cabinet .cabinet-multi-tile {
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  display: grid !important;
+  gap: 0.85rem !important;
+  padding: 0.9rem !important;
+}
+
+.altar-cabinet .cabinet-multi-heading {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--gold);
+  text-align: center;
 }
 
 .altar-cabinet .cabinet-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
-  gap: 0.75rem;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(5.75rem, 1fr)) !important;
+  gap: 0.65rem !important;
 }
 
+.altar-cabinet .cabinet-form-tile {
+  min-height: 7.75rem !important;
+  padding: 0.65rem !important;
+}
+
+.altar-cabinet .cabinet-form-tile .cabinet-tile-image-wrap {
+  width: 4rem !important;
+  height: 4rem !important;
+}
+
+.altar-cabinet .cabinet-form-tile .cabinet-tile-image {
+  max-width: 4rem !important;
+  max-height: 4rem !important;
+}
