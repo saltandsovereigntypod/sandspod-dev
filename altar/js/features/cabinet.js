@@ -88,6 +88,17 @@ const cabinetItems = [
       { label: "Oil", image: "../assets/altar/objects/herbs/bay-leaf/bay-oil.png", type: "oil", herb: "bay leaf", form: "oil" }
     ]
   },
+  {
+    category: "herbs",
+    name: "Cinnamon",
+    icon: "🌿",
+    keywords: ["wishes", "protection", "manifestation"],
+    forms: [
+      { label: "Sprig", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-sprig.png", type: "herb", herb: "cinnamon", form: "sprig" },
+      { label: "Loose", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-loose.png", type: "herb", herb: "cinnamon", form: "loose" },
+      { label: "Oil", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-oil.png", type: "oil", herb: "cinnamon", form: "oil" }
+    ]
+  },
 
   {
     category: "crystals",
@@ -136,6 +147,14 @@ const cabinetItems = [
     icon: "🗝️",
     keywords: ["crossroads", "torches", "keys"],
     forms: [{ label: "Place", image: "../assets/altar/objects/tools/deities/hekate/hekate-statue.png", type: "deity", deity: "hekate", form: "statue" }]
+  },
+
+   {
+    category: "deities",
+    name: "Lilith Statue",
+    icon: "🗝️",
+    keywords: [ ],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/deities/lilith/lilith-statue.png", type: "deity", deity: "hekate", form: "statue" }]
   },
 
   {
