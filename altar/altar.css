@@ -2449,3 +2449,95 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
   gap: 0.6rem;
   margin: 0.35rem 0;
 }
+
+/* =========================================================
+   LIVING LIBRARY EDITOR
+   Companion panel section editor
+   ========================================================= */
+
+.altar-companion-edit-button {
+  width: 100%;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.altar-companion-edit-button:hover,
+.altar-companion-edit-button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+.library-section-editor-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10080;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.library-section-editor-card {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: min(760px, 90vh);
+  overflow-y: auto;
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.library-section-editor-card h2 {
+  max-width: none;
+  color: var(--cream);
+}
+
+.library-section-editor-card form {
+  display: grid;
+  gap: 1rem;
+}
+
+.library-section-editor-card label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--cream);
+}
+
+.library-section-editor-card textarea {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.07);
+  font: inherit;
+  resize: vertical;
+}
+
+.library-section-editor-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2.35rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.24);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+}

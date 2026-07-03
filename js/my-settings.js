@@ -14,6 +14,8 @@ function getDefaultMySettings() {
     default_mundane_mode: false,
     
     grimoire_page_font: "classic-serif",
+
+    sync_traditional_library_to_grimoire: false,
     
     companion_my_enabled: true,
     companion_my_ingredients: true,

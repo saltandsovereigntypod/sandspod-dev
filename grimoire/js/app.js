@@ -45,6 +45,18 @@ function renderSignedOutState() {
    INITIALIZE GRIMOIRE
    ========================================================= */
 
+async function syncTraditionalLibraryToGrimoireIfEnabled() {
+  if (typeof TraditionalLibrary === "undefined") return;
+  if (typeof Library === "undefined") return;
+  if (typeof getMySettings !== "function") return;
+
+  const settings = await getMySettings();
+
+  if (!settings.sync_traditional_library_to_grimoire) return;
+
+  Library.importTraditionalLibrary();
+}
+
 async function initGrimoire() {
   const user = requireUser();
   if (!user) return;
@@ -56,13 +68,15 @@ async function initGrimoire() {
     await loadSections();
     await loadPages();
 
-    renderShelf();
+    await syncTraditionalLibraryToGrimoireIfEnabled();
 
     if (pages.length > 0) {
       await openPage(pages[0].id, "read");
     } else {
       renderWelcomeState();
     }
+
+    await renderTraditionalLibraryShelf();
 
     setStatus("");
   } catch (error) {
@@ -514,6 +528,183 @@ async function applyTemplateToCurrentPage() {
   renderEditor();
   flashStatus("Template added.");
 }
+
+/* =========================================================
+   LIVING LIBRARY BROWSER
+   Virtual grimoire view for Traditional Library entities
+   ========================================================= */
+
+function formatLibraryEntityName(name = "") {
+  return String(name)
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getTraditionalTypeLabel(type = "") {
+  const labels = {
+    herb: "Herbs",
+    crystal: "Crystals",
+    candle: "Candles",
+    deity: "Deities",
+    tool: "Tools",
+    vessel: "Vessels",
+    apothecary: "Apothecary"
+  };
+
+  return labels[type] || formatLibraryEntityName(type);
+}
+
+async function shouldShowTraditionalLibrary() {
+  if (typeof getMySettings !== "function") return false;
+
+  const settings = await getMySettings();
+
+  return Boolean(settings.sync_traditional_library_to_grimoire);
+}
+
+async function renderTraditionalLibraryShelf() {
+  if (!grimoireShelf) return;
+  if (typeof Library === "undefined") return;
+  if (typeof TraditionalLibrary === "undefined") return;
+  if (typeof getMySettings !== "function") return;
+
+  const settings = await getMySettings();
+  const showTraditional = Boolean(settings.sync_traditional_library_to_grimoire);
+
+  const existing = grimoireShelf.querySelector("[data-traditional-library-shelf]");
+  if (existing) existing.remove();
+
+  if (!showTraditional) return;
+
+  Library.importTraditionalLibrary();
+
+  const types = ["herb", "crystal", "candle", "deity", "tool", "vessel"];
+
+  const wrapper = document.createElement("section");
+  wrapper.className = "book-toc-section traditional-library-shelf";
+  wrapper.setAttribute("data-traditional-library-shelf", "");
+
+  wrapper.innerHTML = `
+    <button class="book-section-title" type="button" data-traditional-library-toggle>
+      <span>Traditional Information</span>
+    </button>
+
+    <div class="book-section-pages" data-traditional-library-list>
+      ${types
+        .map((type) => {
+          const entities = Library.getEntitiesByType(type)
+            .filter((entity) => entity.traditional && Object.keys(entity.traditional).length)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          if (!entities.length) return "";
+
+          return `
+            <div class="traditional-library-group">
+              <p>${getTraditionalTypeLabel(type)}</p>
+
+              ${entities
+                .map((entity) => `
+                  <button
+                    type="button"
+                    class="book-page-link"
+                    data-library-entity-id="${entity.id}">
+                    ${formatLibraryEntityName(entity.name)}
+                  </button>
+                `)
+                .join("")}
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+
+  grimoireShelf.appendChild(wrapper);
+}
+
+function renderLibraryEntity(entityId) {
+  if (!entryList || typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  currentPage = null;
+  currentBlocks = [];
+  pageLinks = [];
+  pageMode = "read";
+
+  if (grimoireHeading) {
+    grimoireHeading.textContent = formatLibraryEntityName(entity.name);
+  }
+
+  hideEmptyState();
+  updateEditButton();
+
+  const traditional = entity.traditional || {};
+  const myPractice = entity.myPractice || {};
+  const community = entity.community || {};
+
+  function renderLayer(title, data, emptyText) {
+    const entries = Object.entries(data || {}).filter(([key]) => key !== "tags");
+
+    return `
+      <section class="book-library-layer">
+        <h2>${title}</h2>
+
+        ${
+          entries.length
+            ? entries
+                .map(([key, value]) => `
+                  <div class="book-library-field">
+                    <h3>${formatLibraryEntityName(key)}</h3>
+                    <p>${Array.isArray(value) ? value.join(", ") : value}</p>
+                  </div>
+                `)
+                .join("")
+            : `<p class="book-placeholder">${emptyText}</p>`
+        }
+      </section>
+    `;
+  }
+
+  entryList.innerHTML = `
+    <section class="book-reader-page book-library-entity-page">
+      <header class="book-reader-header">
+        <p class="book-apothecary-meta">
+          ${getTraditionalTypeLabel(entity.type)}
+        </p>
+
+        <h1>${formatLibraryEntityName(entity.name)}</h1>
+
+        <div class="book-reader-divider">✦ ☽ ✦ ☾ ✦</div>
+      </header>
+
+      <div class="book-reader-body">
+        ${renderLayer("Traditional", traditional, "No traditional information has been added yet.")}
+        ${renderLayer("My Practice", myPractice, "No personal practice notes have been added yet.")}
+        ${renderLayer("Community", community, "No community information has been approved yet.")}
+      </div>
+    </section>
+  `;
+}
+
+document.addEventListener("click", async (event) => {
+  const libraryEntityButton = event.target.closest("[data-library-entity-id]");
+  const traditionalToggle = event.target.closest("[data-traditional-library-toggle]");
+
+  if (libraryEntityButton) {
+    renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
+    return;
+  }
+
+  if (traditionalToggle) {
+    const shelf = traditionalToggle.closest("[data-traditional-library-shelf]");
+    const list = shelf?.querySelector("[data-traditional-library-list]");
+    if (!list) return;
+
+    list.hidden = !list.hidden;
+  }
+});
 
 /* =========================================================
    STARTUP

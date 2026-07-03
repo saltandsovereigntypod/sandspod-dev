@@ -87,9 +87,28 @@ function getCompanionDisplaySettings() {
   return getLocalMySettings();
 }
 
+function getLibraryEntityForObject(object) {
+  if (!object) return null;
+
+  const entityId = object.dataset.entityId;
+
+  if (!entityId) return null;
+
+  if (typeof Library === "undefined") return null;
+
+  return Library.getEntity(entityId);
+}
+
 function buildObjectInfoMarkup(object, mode = "compact") {
   const label = object.dataset.label || "Altar Object";
   const typeLabel = getObjectTypeLabel(object);
+  const entity = getLibraryEntityForObject(object);
+
+  const entityData = entity || {
+    traditional: {},
+    myPractice: {},
+    community: {}
+  };
   const companionSettings = getCompanionDisplaySettings();
   const useSettings = mode === "panel";
   const activeGroup = object.dataset.groupId
@@ -177,6 +196,64 @@ function buildObjectInfoMarkup(object, mode = "compact") {
     <div class="altar-info-card-inner ${mode === "panel" ? "is-panel-view" : ""}">
       <h3>${getObjectIcon(object)} ${label}</h3>
       <p class="altar-info-card-type">${typeLabel}</p>
+
+      ${
+        mode === "panel" && companionSettings.companion_traditional_enabled !== false
+          ? `
+            <div class="altar-info-card-section">
+              <h4>Traditional</h4>
+              ${
+                Object.keys(entityData.traditional || {}).length
+                  ? Object.entries(entityData.traditional)
+                      .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+                      .join("")
+                  : `<p class="altar-info-empty">No traditional information yet.</p>`
+              }
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        mode === "panel" && companionSettings.companion_my_enabled !== false
+          ? `
+            <div class="altar-info-card-section">
+              <h4>My Practice</h4>
+              ${
+                Object.keys(entityData.myPractice || {}).length
+                  ? Object.entries(entityData.myPractice)
+                      .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+                      .join("")
+                  : `<p class="altar-info-empty">Nothing added yet.</p>`
+              }
+
+              ${
+                entity?.id
+                  ? `<button type="button" class="altar-companion-edit-button" data-library-edit-section="myPractice" data-library-entity-id="${entity.id}">Edit My Practice</button>`
+                  : ""
+              }
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        mode === "panel" && companionSettings.companion_community_enabled !== false
+          ? `
+            <div class="altar-info-card-section">
+              <h4>Community</h4>
+              ${
+                Object.keys(entityData.community || {}).length
+                  ? Object.entries(entityData.community)
+                      .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+                      .join("")
+                  : `<p class="altar-info-empty">No community knowledge yet.</p>`
+              }
+            </div>
+          `
+          : ""
+      }
+
       ${groupMarkup}
       ${apothecaryMarkup}
       ${dressingMarkup}
@@ -317,4 +394,133 @@ document.addEventListener("click", (event) => {
   });
 
   showAltarToast(altarCompanionMinimized ? "Companion minimized" : "Companion opened");
+});
+
+function openLibrarySectionEditor(entityId, section) {
+  if (typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  const existing = entity[section] || {};
+  const sectionLabel =
+    section === "traditional"
+      ? "Traditional"
+      : section === "myPractice"
+        ? "My Practice"
+        : "Library";
+
+  const modal = document.createElement("div");
+  modal.className = "library-section-editor-modal";
+  modal.setAttribute("data-library-section-editor", "");
+
+  modal.innerHTML = `
+    <div class="library-section-editor-card" role="dialog" aria-modal="true" aria-label="Edit ${sectionLabel}">
+      <button class="library-section-editor-close" type="button" data-close-library-section-editor aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">${sectionLabel}</p>
+      <h2>${entity.name}</h2>
+
+      <form data-library-section-form data-library-entity-id="${entity.id}" data-library-section="${section}">
+        <label>
+          Meaning
+          <textarea name="Meaning" rows="3">${existing.Meaning || ""}</textarea>
+        </label>
+
+        <label>
+          Uses
+          <textarea name="Uses" rows="3">${existing.Uses || ""}</textarea>
+        </label>
+
+        <label>
+          Pairs With
+          <textarea name="PairsWith" rows="2">${existing.PairsWith || ""}</textarea>
+        </label>
+
+        <label>
+          Substitutions
+          <textarea name="Substitutions" rows="2">${existing.Substitutions || ""}</textarea>
+        </label>
+
+        <label>
+          Notes
+          <textarea name="Notes" rows="4">${existing.Notes || ""}</textarea>
+        </label>
+
+        <button class="button button--primary" type="submit">
+          Save ${sectionLabel}
+        </button>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeLibrarySectionEditor() {
+  const modal = document.querySelector("[data-library-section-editor]");
+  if (!modal) return;
+
+  modal.remove();
+  document.body.classList.remove("altar-modal-open");
+}
+
+document.addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-library-edit-section]");
+  const closeButton = event.target.closest("[data-close-library-section-editor]");
+  const modal = event.target.closest("[data-library-section-editor]");
+
+  if (editButton) {
+    openLibrarySectionEditor(
+      editButton.dataset.libraryEntityId,
+      editButton.dataset.libraryEditSection
+    );
+  }
+
+  if (closeButton) {
+    closeLibrarySectionEditor();
+  }
+
+  if (modal && event.target === modal) {
+    closeLibrarySectionEditor();
+  }
+});
+
+document.addEventListener("submit", (event) => {
+  const form = event.target.closest("[data-library-section-form]");
+  if (!form) return;
+
+  event.preventDefault();
+
+  const entityId = form.dataset.libraryEntityId;
+  const section = form.dataset.librarySection;
+
+  const formData = new FormData(form);
+
+  const changes = {
+    Meaning: String(formData.get("Meaning") || "").trim(),
+    Uses: String(formData.get("Uses") || "").trim(),
+    PairsWith: String(formData.get("PairsWith") || "").trim(),
+    Substitutions: String(formData.get("Substitutions") || "").trim(),
+    Notes: String(formData.get("Notes") || "").trim()
+  };
+
+  Object.keys(changes).forEach((key) => {
+    if (!changes[key]) {
+      delete changes[key];
+    }
+  });
+
+  Library.updateEntitySection(entityId, section, changes);
+
+  closeLibrarySectionEditor();
+
+  if (selectedObject && selectedObject.dataset.entityId === entityId) {
+    showAltarInfoCard(selectedObject);
+  }
+
+  showAltarToast("Library updated");
 });

@@ -243,6 +243,11 @@ function createMySanctuaryPanel() {
             Use mundane mode by default for my Book of Shadows
           </label>
 
+          <label class="my-sanctuary-check">
+            <input type="checkbox" name="sync_traditional_library_to_grimoire" />
+            Add Traditional Reference Library pages to my Book of Shadows
+          </label>
+
           <label>
             Book of Shadows Page Font
             <select name="grimoire_page_font">

@@ -1386,3 +1386,59 @@ body.grimoire-font-handwritten {
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* =========================================================
+   LIVING LIBRARY BROWSER
+   Virtual Traditional Information section
+   ========================================================= */
+
+.traditional-library-shelf {
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.traditional-library-group {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.85rem;
+}
+
+.traditional-library-group p {
+  margin: 0.4rem 0 0.15rem;
+  color: var(--gold);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.book-library-entity-page {
+  max-width: none;
+}
+
+.book-library-layer {
+  margin-top: 2.25rem;
+}
+
+.book-library-layer h2 {
+  margin-bottom: 1rem;
+  color: var(--gold);
+  font-size: clamp(1.4rem, 2.5vw, 2.1rem);
+}
+
+.book-library-field {
+  margin-bottom: 1.25rem;
+}
+
+.book-library-field h3 {
+  margin: 0 0 0.25rem;
+  color: var(--cream);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.book-library-field p {
+  margin: 0;
+}
