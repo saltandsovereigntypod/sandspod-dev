@@ -106,6 +106,10 @@ function createAltarSnapshot(name = "Working Altar") {
       apothecaryItemId: object.dataset.apothecaryItemId || "",
       apothecaryType: object.dataset.apothecaryType || "",
       apothecaryIngredients: object.dataset.apothecaryIngredients || "[]",
+      apothecaryIntention: object.dataset.apothecaryIntention || "",
+      apothecaryNotes: object.dataset.apothecaryNotes || "",
+      apothecaryLogToGrimoire: object.dataset.apothecaryLogToGrimoire || "false",
+      apothecaryGrimoireStatus: object.dataset.apothecaryGrimoireStatus || "",
       scale: object.dataset.scale || "1",
       rotation: object.dataset.rotation || "0",
       flipped: object.dataset.flipped || "false",
@@ -297,6 +301,10 @@ function createSavedObject(savedObject) {
   object.dataset.apothecaryItemId = savedObject.apothecaryItemId || "";
   object.dataset.apothecaryType = savedObject.apothecaryType || "";
   object.dataset.apothecaryIngredients = savedObject.apothecaryIngredients || "[]";
+  object.dataset.apothecaryIntention = savedObject.apothecaryIntention || "";
+  object.dataset.apothecaryNotes = savedObject.apothecaryNotes || "";
+  object.dataset.apothecaryLogToGrimoire = savedObject.apothecaryLogToGrimoire || "false";
+  object.dataset.apothecaryGrimoireStatus = savedObject.apothecaryGrimoireStatus || "";
   object.dataset.scale = savedObject.scale || "1";
   object.dataset.rotation = savedObject.rotation || "0";
   object.dataset.flipped = savedObject.flipped || "false";

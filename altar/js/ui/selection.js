@@ -68,9 +68,30 @@ function getApothecaryDetailsForObject(object) {
   };
 }
 
+function getCompanionDisplaySettings() {
+  if (typeof getLocalMySettings !== "function") {
+    return {
+      companion_my_enabled: true,
+      companion_my_ingredients: true,
+      companion_my_intention: true,
+      companion_my_notes: true,
+      companion_my_grimoire: true,
+      companion_my_dressings: true,
+      companion_my_groups: true,
+
+      companion_traditional_enabled: false,
+      companion_community_enabled: false
+    };
+  }
+
+  return getLocalMySettings();
+}
+
 function buildObjectInfoMarkup(object, mode = "compact") {
   const label = object.dataset.label || "Altar Object";
   const typeLabel = getObjectTypeLabel(object);
+  const companionSettings = getCompanionDisplaySettings();
+  const useSettings = mode === "panel";
   const activeGroup = object.dataset.groupId
     ? altarGroups.find((group) => group.id === object.dataset.groupId)
     : null;
@@ -88,44 +109,47 @@ function buildObjectInfoMarkup(object, mode = "compact") {
 
   const apothecaryDetails = getApothecaryDetailsForObject(object);
 
-  const apothecaryMarkup = apothecaryDetails
-    ? `
-      <div class="altar-info-card-section">
-        <p><strong>Type:</strong> ${apothecaryDetails.typeLabel}</p>
-        ${
-          apothecaryDetails.intention
-            ? `<p><strong>Intention:</strong> ${apothecaryDetails.intention}</p>`
-            : ""
-        }
-        ${
-          apothecaryDetails.notes
-            ? `<p><strong>Notes:</strong> ${apothecaryDetails.notes}</p>`
-            : ""
-        }
-        ${
-          apothecaryDetails.ingredients.length
-            ? `
-              <p><strong>Inside:</strong></p>
-              <p>${apothecaryDetails.ingredients.map((ingredient) => ingredient.label).join(", ")}</p>
-            `
-            : ""
-        }
-        ${
-          apothecaryDetails.logToGrimoire
-            ? `<p><strong>Grimoire:</strong> ${apothecaryDetails.grimoireStatus || "pending"}</p>`
-            : ""
-        }
-      </div>
+  const apothecaryMarkup = apothecaryDetails && (!useSettings || companionSettings.companion_my_enabled)  ? `
+    <div class="altar-info-card-section">
+      <p><strong>Type:</strong> ${apothecaryDetails.typeLabel}</p>
 
-      <div class="altar-info-card-section altar-info-card-actions">
-        <button type="button" data-apothecary-edit="${apothecaryDetails.itemId}">Edit</button>
-        <button type="button" data-apothecary-delete="${apothecaryDetails.itemId}">Delete</button>
-      </div>
-    `
-    : "";
+      ${
+        apothecaryDetails.intention && (!useSettings || companionSettings.show_companion_my_intention)
+          ? `<p><strong>Intention:</strong> ${apothecaryDetails.intention}</p>`
+          : ""
+      }
+
+      ${
+        apothecaryDetails.notes && (!useSettings || companionSettings.show_companion_my_notes)
+          ? `<p><strong>Notes:</strong> ${apothecaryDetails.notes}</p>`
+          : ""
+      }
+
+      ${
+        apothecaryDetails.ingredients.length && (!useSettings || companionSettings.show_companion_my_ingredients)
+          ? `
+            <p><strong>Inside:</strong></p>
+            <p>${apothecaryDetails.ingredients.map((ingredient) => ingredient.label).join(", ")}</p>
+          `
+          : ""
+      }
+
+      ${
+        apothecaryDetails.logToGrimoire && (!useSettings || companionSettings.show_companion_my_grimoire)
+          ? `<p><strong>Grimoire:</strong> ${apothecaryDetails.grimoireStatus || "ready to log"}</p>`
+          : ""
+      }
+    </div>
+
+    <div class="altar-info-card-section altar-info-card-actions">
+      <button type="button" data-apothecary-edit="${apothecaryDetails.itemId}">Edit</button>
+      <button type="button" data-apothecary-delete="${apothecaryDetails.itemId}">Delete</button>
+    </div>
+  `
+  : "";
 
   const dressingMarkup =
-    oils.length || herbs.length
+    (oils.length || herbs.length) && (!useSettings || companionSettings.show_companion_my_dressings)
       ? `
         <div class="altar-info-card-section">
           <p><strong>Dressing</strong></p>
@@ -139,14 +163,15 @@ function buildObjectInfoMarkup(object, mode = "compact") {
     ? getGroupObjects(activeGroup.id).map((item) => item.dataset.label || "Item")
     : [];
 
-  const groupMarkup = activeGroup
-    ? `
-      <div class="altar-info-card-section">
-        <p><strong>Group:</strong> ${activeGroup.name}</p>
-        <p>${groupItems.join(", ")}</p>
-      </div>
-    `
-    : "";
+  const groupMarkup =
+    activeGroup && (!useSettings || companionSettings.show_companion_my_groups)
+      ? `
+        <div class="altar-info-card-section">
+          <p><strong>Group:</strong> ${activeGroup.name}</p>
+          <p>${groupItems.join(", ")}</p>
+        </div>
+      `
+      : "";
 
   return `
     <div class="altar-info-card-inner ${mode === "panel" ? "is-panel-view" : ""}">

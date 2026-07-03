@@ -45,6 +45,10 @@ function captureAltarSnapshot() {
       apothecaryItemId: object.dataset.apothecaryItemId || "",
       apothecaryType: object.dataset.apothecaryType || "",
       apothecaryIngredients: object.dataset.apothecaryIngredients || "[]",
+      apothecaryIntention: object.dataset.apothecaryIntention || "",
+      apothecaryNotes: object.dataset.apothecaryNotes || "",
+      apothecaryLogToGrimoire: object.dataset.apothecaryLogToGrimoire || "false",
+      apothecaryGrimoireStatus: object.dataset.apothecaryGrimoireStatus || "",
       scale: object.dataset.scale || "1",
       rotation: object.dataset.rotation || "0",
       flipped: object.dataset.flipped || "false",
@@ -442,7 +446,11 @@ function placeObject(options) {
      deity,
      apothecaryItemId,
      apothecaryType,
-     apothecaryIngredients
+     apothecaryIngredients,
+     apothecaryIntention,
+     apothecaryNotes,
+     apothecaryLogToGrimoire,
+     apothecaryGrimoireStatus
    } = options;
   const object = document.createElement("button");
 
@@ -463,6 +471,11 @@ function placeObject(options) {
   object.dataset.apothecaryItemId = apothecaryItemId || "";
   object.dataset.apothecaryType = apothecaryType || "";
   object.dataset.apothecaryIngredients = apothecaryIngredients || "[]";
+
+  object.dataset.apothecaryIntention = apothecaryIntention || "";
+  object.dataset.apothecaryNotes = apothecaryNotes || "";
+  object.dataset.apothecaryLogToGrimoire = apothecaryLogToGrimoire || "false";
+  object.dataset.apothecaryGrimoireStatus = apothecaryGrimoireStatus || "";
 
   const startingScale = type === "cloth"
     ? "3"

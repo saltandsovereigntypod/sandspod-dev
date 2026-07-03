@@ -243,6 +243,119 @@ function createMySanctuaryPanel() {
             Use mundane mode by default for my Book of Shadows
           </label>
 
+          <fieldset class="my-sanctuary-settings-group companion-settings">
+            <legend>Companion Panel</legend>
+
+            <p class="my-sanctuary-intro">
+              Choose what information appears beside the altar when an object is selected.
+            </p>
+
+            <details open>
+              <summary>My Information</summary>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_enabled" />
+                Show my information
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_ingredients" />
+                Show ingredients
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_intention" />
+                Show intention
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_notes" />
+                Show notes
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_grimoire" />
+                Show Grimoire links/status
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_dressings" />
+                Show candle dressings
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_my_groups" />
+                Show group information
+              </label>
+            </details>
+
+            <details>
+              <summary>Traditional Information</summary>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_traditional_enabled" />
+                Show traditional information
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_traditional_meanings" />
+                Show traditional meanings / uses
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_traditional_correspondences" />
+                Show correspondences
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_traditional_warnings" />
+                Show warnings
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_traditional_sources" />
+                Show sources
+              </label>
+
+              <p class="my-sanctuary-soft-note">
+                Traditional information will appear once the correspondence library is built.
+              </p>
+            </details>
+
+            <details>
+              <summary>Community Information</summary>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_community_enabled" />
+                Show community information
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_community_notes" />
+                Show community notes
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_community_correspondences" />
+                Show community correspondences
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_community_warnings" />
+                Show community warnings
+              </label>
+
+              <label class="my-sanctuary-check">
+                <input type="checkbox" name="companion_community_substitutions" />
+                Show substitutions
+              </label>
+
+              <p class="my-sanctuary-soft-note">
+                Community information will appear once the Community Grimoire is connected.
+              </p>
+            </details>
+          </fieldset>
+
           <button class="button button--primary" type="submit">
             Save Settings
           </button>

@@ -5,16 +5,54 @@
 
 const MY_SETTINGS_LOCAL_KEY = "saltAndSovereigntyUserSettings";
 
+function getDefaultMySettings() {
+  return {
+    preferred_name: "",
+    pronouns: "",
+    magical_name: "",
+    default_altar_background: "",
+    default_mundane_mode: false,
+
+    companion_my_enabled: true,
+    companion_my_ingredients: true,
+    companion_my_intention: true,
+    companion_my_notes: true,
+    companion_my_grimoire: true,
+    companion_my_dressings: true,
+    companion_my_groups: true,
+
+    companion_traditional_enabled: false,
+    companion_traditional_meanings: false,
+    companion_traditional_correspondences: false,
+    companion_traditional_warnings: false,
+    companion_traditional_sources: false,
+
+    companion_community_enabled: false,
+    companion_community_notes: false,
+    companion_community_correspondences: false,
+    companion_community_warnings: false,
+    companion_community_substitutions: false
+  };
+}
+
+function normalizeMySettings(settings = {}) {
+  return {
+    ...getDefaultMySettings(),
+    ...(settings.settings || {}),
+    ...settings
+  };
+}
+
 function getLocalMySettings() {
   try {
-    return JSON.parse(localStorage.getItem(MY_SETTINGS_LOCAL_KEY)) || {};
+    return normalizeMySettings(JSON.parse(localStorage.getItem(MY_SETTINGS_LOCAL_KEY)) || {});
   } catch {
-    return {};
+    return getDefaultMySettings();
   }
 }
 
 function saveLocalMySettings(settings) {
-  localStorage.setItem(MY_SETTINGS_LOCAL_KEY, JSON.stringify(settings));
+  localStorage.setItem(MY_SETTINGS_LOCAL_KEY, JSON.stringify(normalizeMySettings(settings)));
 }
 
 async function getMySettings() {
@@ -33,23 +71,26 @@ async function getMySettings() {
     return getLocalMySettings();
   }
 
-  return data || {};
+  return normalizeMySettings(data || {});
 }
 
 async function saveMySettings(settings) {
+  const normalizedSettings = normalizeMySettings(settings);
+
+  saveLocalMySettings(normalizedSettings);
+
   if (!currentUser) {
-    saveLocalMySettings(settings);
-    return settings;
+    return normalizedSettings;
   }
 
   const row = {
     user_id: currentUser.id,
-    preferred_name: settings.preferred_name || "",
-    pronouns: settings.pronouns || "",
-    magical_name: settings.magical_name || "",
-    default_mundane_mode: Boolean(settings.default_mundane_mode),
-    default_altar_background: settings.default_altar_background || "",
-    settings,
+    preferred_name: normalizedSettings.preferred_name || "",
+    pronouns: normalizedSettings.pronouns || "",
+    magical_name: normalizedSettings.magical_name || "",
+    default_mundane_mode: Boolean(normalizedSettings.default_mundane_mode),
+    default_altar_background: normalizedSettings.default_altar_background || "",
+    settings: normalizedSettings,
     updated_at: new Date().toISOString()
   };
 
@@ -68,11 +109,16 @@ async function populateMySettingsForm() {
 
   const settings = await getMySettings();
 
-  form.preferred_name.value = settings.preferred_name || "";
-  form.pronouns.value = settings.pronouns || "";
-  form.magical_name.value = settings.magical_name || "";
-  form.default_altar_background.value = settings.default_altar_background || "";
-  form.default_mundane_mode.checked = Boolean(settings.default_mundane_mode);
+  Object.entries(settings).forEach(([key, value]) => {
+    if (!form.elements[key]) return;
+
+    if (form.elements[key].type === "checkbox") {
+      form.elements[key].checked = Boolean(value);
+      return;
+    }
+
+    form.elements[key].value = value || "";
+  });
 }
 
 document.addEventListener("submit", async (event) => {
@@ -81,13 +127,22 @@ document.addEventListener("submit", async (event) => {
 
   event.preventDefault();
 
-  const settings = {
-    preferred_name: form.preferred_name.value.trim(),
-    pronouns: form.pronouns.value.trim(),
-    magical_name: form.magical_name.value.trim(),
-    default_altar_background: form.default_altar_background.value.trim(),
-    default_mundane_mode: form.default_mundane_mode.checked
-  };
+  const defaults = getDefaultMySettings();
+  const settings = {};
+
+  Object.keys(defaults).forEach((key) => {
+    const input = form.elements[key];
+
+    if (!input) {
+      settings[key] = defaults[key];
+      return;
+    }
+
+    settings[key] =
+      input.type === "checkbox"
+        ? input.checked
+        : input.value.trim();
+  });
 
   try {
     await saveMySettings(settings);

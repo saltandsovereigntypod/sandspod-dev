@@ -4,6 +4,7 @@
    ========================================================= */
 
 const APOTHECARY_STORAGE_KEY = "saltAndSovereigntyApothecaryItems";
+const APOTHECARY_GRIMOIRE_HANDOFF_KEY = "saltAndSovereigntyApothecaryToGrimoire";
 
 const apothecaryTypes = [
   {
@@ -35,6 +36,10 @@ function saveApothecaryItems(items) {
   localStorage.setItem(APOTHECARY_STORAGE_KEY, JSON.stringify(items));
 }
 
+function getApothecaryItemById(itemId) {
+  return getApothecaryItems().find((item) => item.id === itemId) || null;
+}
+
 function getSelectedApothecaryIngredients() {
   const ritualSelected = Array.from(
     altarStage.querySelectorAll(".altar-object.is-ritual-selected")
@@ -47,6 +52,7 @@ function getSelectedApothecaryIngredients() {
 
 function createIngredientSnapshot(object) {
   return {
+    id: object.dataset.altarObjectId || "",
     label: object.dataset.label || "Object",
     type: object.dataset.type || "",
     herb: object.dataset.herb || "",
@@ -58,6 +64,10 @@ function createIngredientSnapshot(object) {
     deity: object.dataset.deity || "",
     imagePath: getObjectImagePath(object)
   };
+}
+
+function getApothecaryType(typeId) {
+  return apothecaryTypes.find((type) => type.id === typeId) || apothecaryTypes[0];
 }
 
 function renderApothecaryItems() {
@@ -76,13 +86,9 @@ function renderApothecaryItems() {
         <p class="eyebrow">My Apothecary</p>
         <h2>Your Created Workings</h2>
         <p>
-          Create spell jars, oils, and herb mixes from ingredients you place on the altar.
+          Spell jars, oils, tinctures, and herb mixes you create from your altar ingredients.
         </p>
       </div>
-
-      <button class="altar-workspace-tool" type="button" data-create-apothecary-item>
-        ✦ Create Item
-      </button>
     </div>
 
     ${
@@ -92,7 +98,7 @@ function renderApothecaryItems() {
             <p class="book-divider">✦ ☽ ✦ ☾ ✦</p>
             <h3>Your apothecary is waiting.</h3>
             <p>
-              Select ingredients on the altar, then use Group to create a spell jar, oil, or herb mix.
+              Select ingredients on the altar, press Group, then create a spell jar, oil, or herb mix.
             </p>
           </div>
         `
@@ -100,20 +106,24 @@ function renderApothecaryItems() {
           <div class="altar-cabinet-content apothecary-items-grid">
             ${items
               .map((item) => `
-                <button
-                  type="button"
-                  class="cabinet-tile"
-                  data-apothecary-place
-                  data-apothecary-item-id="${item.id}">
-                  <span class="cabinet-tile-image-wrap">
-                    <img src="${item.imagePath}" alt="" class="cabinet-tile-image" loading="lazy" />
-                  </span>
-                  <span class="cabinet-tile-name">${item.name}</span>
-                  <span class="apothecary-tile-ingredients">
-                    ${(item.ingredients || []).map((ingredient) => ingredient.label).slice(0, 3).join(" · ")}
-                    ${(item.ingredients || []).length > 3 ? " · +" + ((item.ingredients || []).length - 3) : ""}
-                  </span>
-                </button>
+                <article class="apothecary-item-card">
+                  <button
+                    type="button"
+                    class="cabinet-tile"
+                    data-apothecary-place
+                    data-apothecary-item-id="${item.id}">
+                    <span class="cabinet-tile-image-wrap">
+                      <img src="${item.imagePath}" alt="" class="cabinet-tile-image" loading="lazy" />
+                    </span>
+                    <span class="cabinet-tile-name">${item.name}</span>
+                    <span class="apothecary-tile-type">${item.typeLabel || "Apothecary Item"}</span>
+                  </button>
+
+                  <div class="apothecary-item-actions">
+                    <button type="button" data-apothecary-edit="${item.id}">Edit</button>
+                    <button type="button" data-apothecary-delete="${item.id}">Delete</button>
+                  </div>
+                </article>
               `)
               .join("")}
           </div>
@@ -122,10 +132,11 @@ function renderApothecaryItems() {
   `;
 }
 
-function openCreateApothecaryModal(preselectedType = "") {
-  const ingredients = getSelectedApothecaryIngredients();
+function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
+  const existingItem = editItemId ? getApothecaryItemById(editItemId) : null;
+  const ingredients = existingItem ? [] : getSelectedApothecaryIngredients();
 
-  if (ingredients.length === 0) {
+  if (!existingItem && ingredients.length === 0) {
     showAltarToast("Select altar ingredients first");
     return;
   }
@@ -134,7 +145,16 @@ function openCreateApothecaryModal(preselectedType = "") {
   modal.className = "apothecary-create-modal";
   modal.setAttribute("data-apothecary-create-modal", "");
 
-  const ingredientSnapshots = ingredients.map(createIngredientSnapshot);
+  if (existingItem) {
+    modal.dataset.editItemId = existingItem.id;
+  }
+
+  const ingredientSnapshots = existingItem
+    ? existingItem.ingredients || []
+    : ingredients.map(createIngredientSnapshot);
+
+  const selectedType = existingItem?.type || preselectedType || "spell-jar";
+  const selectedImage = existingItem?.imagePath || getApothecaryType(selectedType).presetImage;
 
   modal.innerHTML = `
     <div class="apothecary-create-card" role="dialog" aria-modal="true" aria-label="Create Apothecary Item">
@@ -142,11 +162,11 @@ function openCreateApothecaryModal(preselectedType = "") {
         ×
       </button>
 
-      <p class="eyebrow">Create from altar</p>
-      <h2>Create Apothecary Item</h2>
+      <p class="eyebrow">My Apothecary</p>
+      <h2>${existingItem ? "Edit Apothecary Item" : "Create Apothecary Item"}</h2>
 
       <p class="apothecary-create-intro">
-        These ingredients will become one saved working in My Apothecary.
+        ${existingItem ? "Update this working without changing its place in your apothecary." : "These selected ingredients will become one saved working."}
       </p>
 
       <form data-apothecary-create-form>
@@ -155,7 +175,7 @@ function openCreateApothecaryModal(preselectedType = "") {
           <select name="type" required>
             ${apothecaryTypes
               .map((type) => `
-                <option value="${type.id}" ${type.id === preselectedType ? "selected" : ""}>
+                <option value="${type.id}" ${type.id === selectedType ? "selected" : ""}>
                   ${type.label}
                 </option>
               `)
@@ -165,41 +185,62 @@ function openCreateApothecaryModal(preselectedType = "") {
 
         <label>
           Name
-          <input type="text" name="name" placeholder="Protection Jar, Dream Oil, Road Opening Blend..." required />
+          <input
+            type="text"
+            name="name"
+            value="${existingItem?.name || ""}"
+            placeholder="Protection Jar, Dream Oil, Road Opening Blend..."
+            required
+          />
         </label>
 
         <label>
-          Intention / Notes
-          <textarea name="notes" rows="4" placeholder="What is this working for?"></textarea>
+          Intention
+          <input
+            type="text"
+            name="intention"
+            value="${existingItem?.intention || ""}"
+            placeholder="Protection, sleep, road opening, cleansing..."
+          />
+        </label>
+
+        <label>
+          Notes
+          <textarea name="notes" rows="4" placeholder="What is this working for?">${existingItem?.notes || ""}</textarea>
+        </label>
+
+        <label class="my-sanctuary-check">
+          <input type="checkbox" name="log_to_grimoire" ${existingItem?.logToGrimoire ? "checked" : ""} />
+          Log this to my Book of Shadows
         </label>
 
         <div class="apothecary-image-choice">
           <p class="eyebrow">Image</p>
 
           <label class="my-sanctuary-check">
-            <input type="radio" name="image_choice" value="preset" checked />
+            <input type="radio" name="image_choice" value="preset" ${existingItem ? "" : "checked"} />
             Use preset image
           </label>
 
           <label class="my-sanctuary-check">
             <input type="radio" name="image_choice" value="upload" />
-            Upload my own PNG
+            Upload my own image
           </label>
 
           <input type="file" name="custom_image" accept="image/png,image/webp,image/jpeg" />
+
+          <input type="hidden" name="existing_image" value="${selectedImage}" />
         </div>
 
         <div class="apothecary-ingredient-list">
           <p class="eyebrow">Ingredients</p>
           ${ingredientSnapshots
-            .map((ingredient) => `
-              <span>${ingredient.label}</span>
-            `)
+            .map((ingredient) => `<span>${ingredient.label}</span>`)
             .join("")}
         </div>
 
         <button class="button button--primary" type="submit">
-          Save to My Apothecary
+          ${existingItem ? "Save Changes" : "Save to My Apothecary"}
         </button>
       </form>
     </div>
@@ -234,49 +275,145 @@ function readUploadedImage(file) {
   });
 }
 
+function createGrimoireHandoffForApothecaryItem(item) {
+  if (!item.logToGrimoire) return item;
+
+  const handoff = {
+    source: "apothecary",
+    itemId: item.id,
+    title: item.name,
+    type: item.type,
+    typeLabel: item.typeLabel,
+    intention: item.intention || "",
+    notes: item.notes || "",
+    ingredients: item.ingredients || [],
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt
+  };
+
+  localStorage.setItem(APOTHECARY_GRIMOIRE_HANDOFF_KEY, JSON.stringify(handoff));
+
+  return {
+    ...item,
+    grimoireStatus: item.grimoireEntryId ? "linked" : "ready to log"
+  };
+}
+
+function replaceSelectedIngredientsWithApothecaryObject(item) {
+  const ingredients = getSelectedApothecaryIngredients();
+
+  if (ingredients.length === 0) return;
+
+  const centers = ingredients.map((object) => ({
+    x: parseFloat(object.style.left) || altarStage.clientWidth / 2,
+    y: parseFloat(object.style.top) || altarStage.clientHeight / 2
+  }));
+
+  const centerX = centers.reduce((sum, point) => sum + point.x, 0) / centers.length;
+  const centerY = centers.reduce((sum, point) => sum + point.y, 0) / centers.length;
+
+  ingredients.forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  clearRitualSelection();
+
+  placeObject({
+    imagePath: item.imagePath,
+    fallbackSymbol: "✦",
+    label: item.name,
+    type: "apothecary",
+    form: item.type,
+    apothecaryItemId: item.id,
+    apothecaryType: item.type,
+    apothecaryIngredients: JSON.stringify(item.ingredients || []),
+    apothecaryIntention: item.intention || "",
+    apothecaryNotes: item.notes || "",
+    apothecaryLogToGrimoire: String(Boolean(item.logToGrimoire)),
+    apothecaryGrimoireStatus: item.grimoireStatus || ""
+  });
+
+  if (selectedObject) {
+    selectedObject.style.left = `${centerX}px`;
+    selectedObject.style.top = `${centerY}px`;
+    updateObjectPositionPercent(selectedObject);
+  }
+
+  updateEmptyMessage();
+  renderLighting();
+  saveWorkingAltarDraft();
+}
+
 async function saveCreatedApothecaryItem(form, modal) {
   const formData = new FormData(form);
+  const editItemId = modal.dataset.editItemId || "";
   const typeId = formData.get("type");
-  const type = apothecaryTypes.find((itemType) => itemType.id === typeId);
+  const type = getApothecaryType(typeId);
   const name = String(formData.get("name") || "").trim();
+  const intention = String(formData.get("intention") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
+  const logToGrimoire = formData.get("log_to_grimoire") === "on";
   const imageChoice = formData.get("image_choice");
   const file = formData.get("custom_image");
+  const existingImage = String(formData.get("existing_image") || "");
 
   if (!type || !name) return;
 
-  let imagePath = type.presetImage;
+  let imagePath = existingImage || type.presetImage;
+
+  if (imageChoice === "preset") {
+    imagePath = type.presetImage;
+  }
 
   if (imageChoice === "upload" && file && file.size > 0) {
     imagePath = await readUploadedImage(file);
   }
 
   const ingredients = JSON.parse(modal.dataset.ingredients || "[]");
+  const items = getApothecaryItems();
+  const existingItem = editItemId ? getApothecaryItemById(editItemId) : null;
 
-  const item = {
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+  let item = {
+    id: existingItem?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
     name,
     type: type.id,
     typeLabel: type.label,
     imagePath,
+    intention,
     notes,
+    logToGrimoire,
+    grimoireStatus: existingItem?.grimoireStatus || "",
+    grimoireEntryId: existingItem?.grimoireEntryId || "",
     ingredients,
-    createdAt: new Date().toISOString()
+    createdAt: existingItem?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
-  const items = getApothecaryItems();
-  items.unshift(item);
-  saveApothecaryItems(items);
+  item = createGrimoireHandoffForApothecaryItem(item);
+
+  const updatedItems = existingItem
+    ? items.map((savedItem) => (savedItem.id === item.id ? item : savedItem))
+    : [item, ...items];
+
+  saveApothecaryItems(updatedItems);
+
+  if (existingItem) {
+    syncPlacedApothecaryObjects(item);
+  }
 
   closeCreateApothecaryModal();
   renderApothecaryItems();
-  showAltarToast(`${name} saved to My Apothecary`);
+
+  if (!existingItem) {
+    replaceSelectedIngredientsWithApothecaryObject(item);
+  }
+
+  showAltarToast(existingItem ? `${name} updated` : `${name} saved to My Apothecary`);
 }
 
 function placeApothecaryItem(itemId) {
-  const item = getApothecaryItems().find((apothecaryItem) => {
-    return apothecaryItem.id === itemId;
-  });
+  const item = getApothecaryItemById(itemId);
 
   if (!item) {
     showAltarToast("Apothecary item not found");
@@ -291,17 +428,97 @@ function placeApothecaryItem(itemId) {
     form: item.type,
     apothecaryItemId: item.id,
     apothecaryType: item.type,
-    apothecaryIngredients: JSON.stringify(item.ingredients || [])
+    apothecaryIngredients: JSON.stringify(item.ingredients || []),
+    apothecaryIntention: item.intention || "",
+    apothecaryNotes: item.notes || "",
+    apothecaryLogToGrimoire: String(Boolean(item.logToGrimoire)),
+    apothecaryGrimoireStatus: item.grimoireStatus || ""
   });
 
   closeAltarApothecaryOverlay();
   showAltarToast(`${item.name} placed`);
 }
 
+function syncPlacedApothecaryObjects(item) {
+  if (!altarStage || !item) return;
+
+  altarStage
+    .querySelectorAll(`.altar-object[data-apothecary-item-id="${item.id}"]`)
+    .forEach((object) => {
+      object.dataset.label = item.name;
+      object.dataset.apothecaryType = item.type;
+      object.dataset.apothecaryIngredients = JSON.stringify(item.ingredients || []);
+      object.dataset.apothecaryIntention = item.intention || "";
+      object.dataset.apothecaryNotes = item.notes || "";
+      object.dataset.apothecaryLogToGrimoire = String(Boolean(item.logToGrimoire));
+      object.dataset.apothecaryGrimoireStatus = item.grimoireStatus || "";
+
+      const img = object.querySelector("img:not(.candle-herb-overlay):not(.candle-oil-overlay)");
+
+      if (img && item.imagePath) {
+        img.src = item.imagePath;
+        img.alt = item.name;
+      }
+
+      object.setAttribute(
+        "aria-label",
+        `${item.name || "Object"}. Click to select. Drag to move. Double click to remove.`
+      );
+    });
+
+  if (selectedObject?.dataset.apothecaryItemId === item.id) {
+    showAltarInfoCard(selectedObject);
+  }
+
+  saveWorkingAltarDraft();
+}
+
+function removePlacedApothecaryObjects(itemId) {
+  if (!altarStage || !itemId) return;
+
+  altarStage
+    .querySelectorAll(`.altar-object[data-apothecary-item-id="${itemId}"]`)
+    .forEach((object) => {
+      stopFlame(object);
+      object.remove();
+    });
+
+  if (selectedObject?.dataset.apothecaryItemId === itemId) {
+    deselectObject();
+  }
+
+  updateEmptyMessage();
+  renderLighting();
+  saveWorkingAltarDraft();
+}
+
+function deleteApothecaryItem(itemId) {
+  const item = getApothecaryItemById(itemId);
+  if (!item) return;
+
+  const confirmed = window.confirm(
+    `Delete "${item.name}" from My Apothecary and remove every placed copy from the altar? This cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  pushAltarUndoSnapshot();
+
+  const items = getApothecaryItems().filter((savedItem) => savedItem.id !== itemId);
+  saveApothecaryItems(items);
+
+  removePlacedApothecaryObjects(itemId);
+  renderApothecaryItems();
+
+  showAltarToast("Apothecary item deleted");
+}
+
 document.addEventListener("click", (event) => {
   const createButton = event.target.closest("[data-create-apothecary-item]");
   const closeButton = event.target.closest("[data-close-apothecary-create]");
   const placeButton = event.target.closest("[data-apothecary-place]");
+  const editButton = event.target.closest("[data-apothecary-edit]");
+  const deleteButton = event.target.closest("[data-apothecary-delete]");
 
   if (createButton) {
     openCreateApothecaryModal();
@@ -313,6 +530,14 @@ document.addEventListener("click", (event) => {
 
   if (placeButton) {
     placeApothecaryItem(placeButton.dataset.apothecaryItemId);
+  }
+
+  if (editButton) {
+    openCreateApothecaryModal("", editButton.dataset.apothecaryEdit);
+  }
+
+  if (deleteButton) {
+    deleteApothecaryItem(deleteButton.dataset.apothecaryDelete);
   }
 });
 
