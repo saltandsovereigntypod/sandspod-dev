@@ -1673,3 +1673,59 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
     width: 100%;
   }
 }
+
+/* =========================================================
+   MOBILE ALTAR CONTROL FIXES
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .altar-mobile-cabinet-toggle {
+    display: none !important;
+  }
+
+  .altar-toolbar {
+    position: fixed;
+    left: 0.65rem;
+    right: 0.65rem;
+    top: auto;
+    bottom: 1rem;
+    z-index: 1400;
+    justify-content: center;
+    max-width: none;
+    max-height: 34vh;
+    overflow-y: auto;
+    padding: 0.45rem;
+    border-radius: 1rem;
+  }
+
+  .altar-action-bar {
+    margin-bottom: 5.25rem;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .altar-page .site-header {
+    position: static !important;
+  }
+
+  .altar-main {
+    padding-bottom: 6rem;
+  }
+
+  .altar-toolbar {
+    position: fixed;
+    left: 0.75rem;
+    right: auto;
+    top: auto;
+    bottom: 0.75rem;
+    width: min(420px, calc(100vw - 1.5rem));
+    max-height: 42vh;
+    overflow-y: auto;
+    border-radius: 1rem;
+    z-index: 1500;
+  }
+
+  .altar-action-bar {
+    margin-bottom: 5.75rem;
+  }
+}
