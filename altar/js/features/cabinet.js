@@ -195,6 +195,7 @@ function renderCabinetItems() {
     const searchable = [
       item.name,
       item.category,
+      ...(item.keywords || []),
       ...(item.grimoireKeywords || [])
     ].join(" ").toLowerCase();
 
@@ -212,10 +213,11 @@ function renderCabinetItems() {
         return `
           <button
             type="button"
-            class="cabinet-choice-button"
+            class="cabinet-tile cabinet-background-tile"
             data-background="${item.background}"
             data-background-name="${item.name}">
-            ${item.name}
+            <span class="cabinet-tile-icon">${item.icon || "✦"}</span>
+            <span class="cabinet-tile-name">${item.name}</span>
           </button>
         `;
       }
@@ -228,7 +230,7 @@ function renderCabinetItems() {
         return `
           <button
             type="button"
-            class="cabinet-choice-button"
+            class="cabinet-tile"
             data-image="${form.image || ""}"
             data-label="${item.name}"
             data-type="${form.type || ""}"
@@ -239,26 +241,27 @@ function renderCabinetItems() {
             data-tool="${form.tool || ""}"
             data-vessel="${form.vessel || ""}"
             data-deity="${form.deity || ""}">
-            ${item.name}
+            <span class="cabinet-tile-image-wrap">
+              <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
+            </span>
+            <span class="cabinet-tile-name">${item.name}</span>
           </button>
         `;
       }
 
       return `
-        <div class="cabinet-choice-wrap">
-          <button
-            type="button"
-            class="cabinet-choice-button"
-            data-form-menu-toggle>
-            ${item.name}
-          </button>
+        <article class="cabinet-multi-tile">
+          <div class="cabinet-multi-heading">
+            <span>${item.icon || "✦"}</span>
+            <strong>${item.name}</strong>
+          </div>
 
-          <div class="cabinet-form-menu" hidden>
+          <div class="cabinet-form-grid">
             ${forms
               .map((form) => `
                 <button
                   type="button"
-                  class="cabinet-form-option"
+                  class="cabinet-tile cabinet-form-tile"
                   data-image="${form.image || ""}"
                   data-label="${item.name} ${form.label}"
                   data-type="${form.type || ""}"
@@ -269,12 +272,15 @@ function renderCabinetItems() {
                   data-tool="${form.tool || ""}"
                   data-vessel="${form.vessel || ""}"
                   data-deity="${form.deity || ""}">
-                  ${form.label}
+                  <span class="cabinet-tile-image-wrap">
+                    <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
+                  </span>
+                  <span class="cabinet-tile-name">${form.label}</span>
                 </button>
               `)
               .join("")}
           </div>
-        </div>
+        </article>
       `;
     })
     .join("");
