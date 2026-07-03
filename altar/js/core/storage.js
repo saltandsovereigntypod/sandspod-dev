@@ -290,9 +290,17 @@ function createSavedObject(savedObject) {
     object.classList.add("is-locked");
   }
 
-  if (object.dataset.lit === "true") {
+    if (object.dataset.lit === "true" && object.dataset.type === "candle") {
     object.classList.add("is-lit");
-    startFlame(object);
+
+    window.setTimeout(() => {
+      stopFlame(object);
+      startFlame(object);
+      renderLighting();
+    }, 50);
+  } else {
+    object.dataset.lit = "false";
+    object.classList.remove("is-lit", "has-flame-glow", "is-flame-glowing");
   }
 
   updateCandleDressingVisuals(object);
