@@ -113,6 +113,8 @@ function openAltarApothecaryOverlay() {
   const overlay = document.querySelector("[data-altar-apothecary-overlay]");
   if (!overlay) return;
 
+  renderApothecaryShell();
+
   overlay.hidden = false;
   document.body.classList.add("altar-cabinet-overlay-open");
 
@@ -131,6 +133,73 @@ function closeAltarApothecaryOverlay() {
   window.setTimeout(() => {
     overlay.hidden = true;
   }, 220);
+}
+
+function renderApothecaryShell() {
+  const overlay = document.querySelector("[data-altar-apothecary-overlay]");
+  if (!overlay) return;
+
+  const card = overlay.querySelector(".altar-cabinet");
+  if (!card) return;
+
+  card.innerHTML = `
+    <button class="altar-cabinet-close" type="button" data-close-apothecary-overlay aria-label="Close">
+      ×
+    </button>
+
+    <div class="altar-cabinet-header apothecary-header">
+      <div>
+        <p class="eyebrow">The Apothecary</p>
+        <h2>Magical Inventory</h2>
+        <p>
+          A future home for herbs, oils, crystals, correspondences, warnings, recipes, substitutions, and ritual notes.
+        </p>
+      </div>
+
+      <div class="apothecary-status-card">
+        <strong>Version 2.0 shell</strong>
+        <span>Front-end safe. Supabase wiring comes later.</span>
+      </div>
+    </div>
+
+    <div class="apothecary-tabs" role="tablist" aria-label="Apothecary sections">
+      <button type="button" class="is-active" data-apothecary-tab="browse">Browse</button>
+      <button type="button" data-apothecary-tab="inventory">Inventory</button>
+      <button type="button" data-apothecary-tab="favorites">Favorites</button>
+      <button type="button" data-apothecary-tab="recipes">Recipes</button>
+      <button type="button" data-apothecary-tab="substitutions">Substitutions</button>
+    </div>
+
+    <div class="apothecary-grid">
+      <article class="apothecary-card">
+        <p class="eyebrow">Browse</p>
+        <h3>Correspondence Library</h3>
+        <p>Search magical uses, elements, planets, deities, mundane notes, and safety warnings.</p>
+        <button type="button" disabled>Coming soon</button>
+      </article>
+
+      <article class="apothecary-card">
+        <p class="eyebrow">Create</p>
+        <h3>Add Custom Item</h3>
+        <p>Create your own herb, oil, crystal, powder, salt, water, or ritual ingredient.</p>
+        <button type="button" disabled>Create item</button>
+      </article>
+
+      <article class="apothecary-card">
+        <p class="eyebrow">Inventory</p>
+        <h3>Track What You Have</h3>
+        <p>Mark items as owned, out of stock, growing, harvesting, or wishlisted.</p>
+        <button type="button" disabled>Open inventory</button>
+      </article>
+
+      <article class="apothecary-card">
+        <p class="eyebrow">Ritual Use</p>
+        <h3>Place or Dress</h3>
+        <p>Eventually, items can be placed on the altar or used to dress candles directly.</p>
+        <button type="button" disabled>Use in ritual</button>
+      </article>
+    </div>
+  `;
 }
 
 if (cabinetTabs) {
@@ -254,6 +323,14 @@ altarActionBar.addEventListener("click", (event) => {
     case "ungroup-ritual-items":
       pushAltarUndoSnapshot();
       ungroupCurrentItems();
+      return;
+
+    case "start-ritual":
+      showAltarToast("Ritual Builder is coming soon");
+      return;
+
+    case "save-as-ritual":
+      showAltarToast("Save as Ritual is coming soon");
       return;
 
     case "send-group-to-grimoire":
