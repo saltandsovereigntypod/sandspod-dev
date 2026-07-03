@@ -1508,37 +1508,6 @@ body.altar-cabinet-overlay-open {
   position: relative;
 }
 
-.cabinet-tab-icon {
-  font-size: 1.25rem;
-}
-
-.cabinet-tab-label {
-  display: block;
-}
-
-.cabinet-tab-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.35rem;
-  min-height: 1.35rem;
-  border: 1px solid rgba(185, 160, 93, 0.25);
-  border-radius: 999px;
-  padding: 0 0.35rem;
-  color: var(--gold);
-  background: rgba(10, 8, 6, 0.45);
-  font-size: 0.68rem;
-}
-
-.cabinet-category-intro {
-  grid-column: 1 / -1;
-  border: 1px solid rgba(185, 160, 93, 0.22);
-  border-radius: 1rem;
-  padding: 1rem;
-  background:
-    radial-gradient(circle at top left, rgba(185, 160, 93, 0.13), transparent 16rem),
-    rgba(244, 236, 216, 0.04);
-}
-
 .cabinet-category-intro h3 {
   max-width: none;
   margin: 0.1rem 0 0.35rem;
@@ -1564,37 +1533,8 @@ body.altar-cabinet-overlay-open {
   filter: brightness(1.08);
 }
 
-.cabinet-tile-badge {
-  position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
-  border: 1px solid rgba(185, 160, 93, 0.25);
-  border-radius: 999px;
-  padding: 0.15rem 0.4rem;
-  color: var(--gold);
-  background: rgba(10, 8, 6, 0.68);
-  font-size: 0.62rem;
-}
-
-.cabinet-tile-meta,
-.cabinet-multi-meta {
-  color: var(--muted);
-  font-size: 0.68rem;
-  line-height: 1.25;
-  text-align: center;
-}
-
 .cabinet-multi-heading {
   flex-wrap: wrap;
-}
-
-.cabinet-multi-heading em {
-  border: 1px solid rgba(185, 160, 93, 0.25);
-  border-radius: 999px;
-  padding: 0.15rem 0.45rem;
-  color: var(--muted);
-  font-size: 0.65rem;
-  font-style: normal;
 }
 
 .apothecary-header {
