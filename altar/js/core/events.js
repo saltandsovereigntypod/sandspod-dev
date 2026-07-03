@@ -49,6 +49,8 @@ toolbar.addEventListener("pointerdown", (event) => {
   const button = event.target.closest("button");
   if (!button || !selectedObject) return;
 
+  event.preventDefault();
+
   startToolbarHoldAction(button.dataset.action);
 });
 
