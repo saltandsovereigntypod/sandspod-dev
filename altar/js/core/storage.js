@@ -425,49 +425,6 @@ async function loadAltarById(altarId) {
   showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
 }
 
-  altarStage.querySelectorAll(".altar-object").forEach((object) => {
-    stopFlame(object);
-    object.remove();
-  });
-
-  deselectObject();
-  clearCandleDressingMode();
-
-  if (altarData.background) {
-    altarStage.style.backgroundImage = `url("${altarData.background}")`;
-    altarStage.dataset.background = altarData.background;
-    altarStage.dataset.backgroundName = altarData.backgroundName || "";
-  }
-
-  altarGroups = Array.isArray(altarData.groups) ? altarData.groups : [];
-  activeGroupId = altarData.activeGroupId || null;
-
-  (altarData.objects || []).forEach((savedObject) => {
-    const object = createSavedObject(savedObject);
-    altarStage.appendChild(object);
-
-    const img = object.querySelector("img");
-
-    function positionLoadedObject() {
-      applyStagePositionPercent(object, savedObject);
-      updateObjectTransform(object);
-      keepObjectInsideStage(object);
-      updateObjectPositionPercent(object);
-    }
-
-    if (img && !img.complete) {
-      img.addEventListener("load", positionLoadedObject, { once: true });
-    } else {
-      positionLoadedObject();
-    }
-  });
-
-  updateGroupIndicator();
-  syncGroupObjectClasses();
-  updateEmptyMessage();
-  closeSavedAltarsManager();
-  showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
-
 async function renameSavedAltar(altarId) {
   const savedAltars = await getSavedAltars();
   const altar = savedAltars.find((savedAltar) => savedAltar.id === altarId);
