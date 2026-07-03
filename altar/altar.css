@@ -1744,3 +1744,17 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
 .altar-action-bar button {
   touch-action: manipulation;
 }
+
+/* =========================================================
+   MOBILE TOOLBAR SELECTION FIX
+   Prevent iPhone text selection menu during long press
+   ========================================================= */
+
+.altar-toolbar,
+.altar-toolbar button,
+.altar-action-bar,
+.altar-action-bar button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
