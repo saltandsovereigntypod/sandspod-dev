@@ -522,6 +522,9 @@ async function renderSavedAltarsManager() {
             <button type="button" data-saved-action="load">Load</button>
             <button type="button" data-saved-action="rename">Rename</button>
             <button type="button" data-saved-action="delete">Delete</button>
+            <button type="button" disabled title="Coming soon">Duplicate</button>
+            <button type="button" disabled title="Coming soon">Favorite</button>
+            <button type="button" disabled title="Coming soon">Share</button>
           </div>
         </article>
       `;
