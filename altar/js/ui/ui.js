@@ -29,7 +29,7 @@ altarActionBar.innerHTML = `
     <button type="button" data-global-action="undo">↶ Undo</button>
     <button type="button" data-global-action="redo">↷ Redo</button>
     <button type="button" data-global-action="save-altar">💾 Save</button>
-    <button type="button" data-global-action="load-altar">📂 Load</button>
+    <button type="button" data-global-action="load-altar">📂 Library</button>
   </div>
 
   <div class="altar-action-divider"></div>
@@ -37,7 +37,8 @@ altarActionBar.innerHTML = `
   <div class="altar-action-group">
     <button type="button" data-global-action="select-ritual-items">☑ Select</button>
     <button type="button" data-global-action="group-ritual-items">🗂 Group</button>
-    <button type="button" data-global-action="send-group-to-grimoire">📖 Record</button>
+    <button type="button" data-global-action="start-ritual">🌙 Start Ritual</button>
+    <button type="button" data-global-action="save-as-ritual">📖 Save Ritual</button>
   </div>
 
   <div class="altar-action-divider"></div>
