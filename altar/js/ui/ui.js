@@ -88,9 +88,8 @@ if (altarStage) {
   altarStage.appendChild(altarInfoCard);
 }
 
-if (altarCabinet) {
+ if (altarCabinet) {
   document.body.appendChild(altarMobileBackdrop);
-  document.body.appendChild(mobileCabinetToggle);
   document.body.appendChild(altarToast);
 }
 
@@ -138,13 +137,5 @@ function closeSaveModal() {
   saveModal.hidden = true;
   document.body.classList.remove("altar-modal-open");
 }
-
-mobileCabinetToggle.addEventListener("click", () => {
-  if (!altarCabinet) return;
-
-  const isOpen = altarCabinet.classList.toggle("is-mobile-open");
-  mobileCabinetToggle.setAttribute("aria-expanded", String(isOpen));
-  document.body.classList.toggle("altar-cabinet-open", isOpen);
-});
 
 altarMobileBackdrop.addEventListener("click", closeMobileCabinet);
