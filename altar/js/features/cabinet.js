@@ -169,43 +169,19 @@ function changeAltarBackground(button) {
   showAltarToast(`${backgroundName} selected`);
 }
 
-const cabinetCategoryDescriptions = {
-  backgrounds: "Choose the room your altar lives inside.",
-  candles: "Color, flame, focus, and ritual timing.",
-  herbs: "Sprigs, loose herbs, and oils for spellwork.",
-  crystals: "Stones, chips, points, and clusters.",
-  tools: "Keys, blades, salts, bones, and ritual tools.",
-  deities: "Statues and devotional presences.",
-  vessels: "Containers, cauldrons, bottles, bowls, and jars."
-};
-
-function getCabinetCategoryCount(categoryId) {
-  return cabinetItems.filter((item) => item.category === categoryId).length;
-}
-
-function getCabinetFormCount(item) {
-  if (item.background) return 1;
-  return Array.isArray(item.forms) ? item.forms.length : 0;
-}
-
 function renderCabinetTabs() {
   if (!cabinetTabs) return;
 
   cabinetTabs.innerHTML = cabinetCategories
-    .map((category) => {
-      const count = getCabinetCategoryCount(category.id);
-
-      return `
-        <button
-          type="button"
-          class="cabinet-tab ${category.id === activeCabinetCategory ? "is-active" : ""}"
-          data-cabinet-category="${category.id}">
-          <span class="cabinet-tab-icon">${category.icon}</span>
-          <span class="cabinet-tab-label">${category.label}</span>
-          <span class="cabinet-tab-count">${count}</span>
-        </button>
-      `;
-    })
+    .map((category) => `
+      <button
+        type="button"
+        class="cabinet-tab ${category.id === activeCabinetCategory ? "is-active" : ""}"
+        data-cabinet-category="${category.id}">
+        <span>${category.icon}</span>
+        ${category.label}
+      </button>
+    `)
     .join("");
 }
 
@@ -226,116 +202,88 @@ function renderCabinetItems() {
     return matchesCategory && searchable.includes(search);
   });
 
-  const activeCategory = cabinetCategories.find((category) => {
-    return category.id === activeCabinetCategory;
-  });
-
-  const categoryIntro = `
-    <div class="cabinet-category-intro">
-      <p class="eyebrow">${activeCategory?.icon || "✦"} ${activeCategory?.label || "Cabinet"}</p>
-      <h3>${activeCategory?.label || "Cabinet"}</h3>
-      <p>${cabinetCategoryDescriptions[activeCabinetCategory] || "Choose what belongs on your altar."}</p>
-    </div>
-  `;
-
   if (items.length === 0) {
-    cabinetContent.innerHTML = `
-      ${categoryIntro}
-      <p class="cabinet-empty">No cabinet items found. Try another search term.</p>
-    `;
+    cabinetContent.innerHTML = `<p class="cabinet-empty">No cabinet items found.</p>`;
     return;
   }
 
-  cabinetContent.innerHTML = `
-    ${categoryIntro}
+  cabinetContent.innerHTML = items
+    .map((item) => {
+      if (item.background) {
+        return `
+          <button
+            type="button"
+            class="cabinet-tile cabinet-background-tile"
+            data-background="${item.background}"
+            data-background-name="${item.name}">
+            <span class="cabinet-tile-icon">${item.icon || "✦"}</span>
+            <span class="cabinet-tile-name">${item.name}</span>
+          </button>
+        `;
+      }
 
-    ${items
-      .map((item) => {
-        const formCount = getCabinetFormCount(item);
-        const keywordText = (item.keywords || []).slice(0, 3).join(" · ");
+      const forms = item.forms || [];
 
-        if (item.background) {
-          return `
-            <button
-              type="button"
-              class="cabinet-tile cabinet-background-tile"
-              data-background="${item.background}"
-              data-background-name="${item.name}">
-              <span class="cabinet-tile-icon">${item.icon || "✦"}</span>
-              <span class="cabinet-tile-name">${item.name}</span>
-              <span class="cabinet-tile-meta">${keywordText || "Altar room"}</span>
-            </button>
-          `;
-        }
-
-        const forms = item.forms || [];
-
-        if (forms.length === 1) {
-          const form = forms[0];
-
-          return `
-            <button
-              type="button"
-              class="cabinet-tile"
-              data-image="${form.image || ""}"
-              data-label="${item.name}"
-              data-type="${form.type || ""}"
-              data-herb="${form.herb || ""}"
-              data-form="${form.form || ""}"
-              data-color="${form.color || ""}"
-              data-crystal="${form.crystal || ""}"
-              data-tool="${form.tool || ""}"
-              data-vessel="${form.vessel || ""}"
-              data-deity="${form.deity || ""}">
-              <span class="cabinet-tile-badge">${formCount} form</span>
-              <span class="cabinet-tile-image-wrap">
-                <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
-              </span>
-              <span class="cabinet-tile-name">${item.name}</span>
-              <span class="cabinet-tile-meta">${keywordText}</span>
-            </button>
-          `;
-        }
+      if (forms.length === 1) {
+        const form = forms[0];
 
         return `
-          <article class="cabinet-multi-tile">
-            <div class="cabinet-multi-heading">
-              <span>${item.icon || "✦"}</span>
-              <strong>${item.name}</strong>
-              <em>${forms.length} forms</em>
-            </div>
-
-            <p class="cabinet-multi-meta">${keywordText}</p>
-
-            <div class="cabinet-form-grid">
-              ${forms
-                .map((form) => `
-                  <button
-                    type="button"
-                    class="cabinet-tile cabinet-form-tile"
-                    data-image="${form.image || ""}"
-                    data-label="${item.name} ${form.label}"
-                    data-type="${form.type || ""}"
-                    data-herb="${form.herb || ""}"
-                    data-form="${form.form || ""}"
-                    data-color="${form.color || ""}"
-                    data-crystal="${form.crystal || ""}"
-                    data-tool="${form.tool || ""}"
-                    data-vessel="${form.vessel || ""}"
-                    data-deity="${form.deity || ""}">
-                    <span class="cabinet-tile-image-wrap">
-                      <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
-                    </span>
-                    <span class="cabinet-tile-name">${form.label}</span>
-                  </button>
-                `)
-                .join("")}
-            </div>
-          </article>
+          <button
+            type="button"
+            class="cabinet-tile"
+            data-image="${form.image || ""}"
+            data-label="${item.name}"
+            data-type="${form.type || ""}"
+            data-herb="${form.herb || ""}"
+            data-form="${form.form || ""}"
+            data-color="${form.color || ""}"
+            data-crystal="${form.crystal || ""}"
+            data-tool="${form.tool || ""}"
+            data-vessel="${form.vessel || ""}"
+            data-deity="${form.deity || ""}">
+            <span class="cabinet-tile-image-wrap">
+              <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
+            </span>
+            <span class="cabinet-tile-name">${item.name}</span>
+          </button>
         `;
-      })
-      .join("")}
-  `;
+      }
+
+      return `
+        <article class="cabinet-multi-tile">
+          <div class="cabinet-multi-heading">
+            <span>${item.icon || "✦"}</span>
+            <strong>${item.name}</strong>
+          </div>
+
+          <div class="cabinet-form-grid">
+            ${forms
+              .map((form) => `
+                <button
+                  type="button"
+                  class="cabinet-tile cabinet-form-tile"
+                  data-image="${form.image || ""}"
+                  data-label="${item.name} ${form.label}"
+                  data-type="${form.type || ""}"
+                  data-herb="${form.herb || ""}"
+                  data-form="${form.form || ""}"
+                  data-color="${form.color || ""}"
+                  data-crystal="${form.crystal || ""}"
+                  data-tool="${form.tool || ""}"
+                  data-vessel="${form.vessel || ""}"
+                  data-deity="${form.deity || ""}">
+                  <span class="cabinet-tile-image-wrap">
+                    <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
+                  </span>
+                  <span class="cabinet-tile-name">${form.label}</span>
+                </button>
+              `)
+              .join("")}
+          </div>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function renderCabinet() {
