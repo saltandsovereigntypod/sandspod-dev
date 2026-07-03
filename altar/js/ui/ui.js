@@ -90,6 +90,7 @@ if (altarStage) {
 
  if (altarCabinet) {
   document.body.appendChild(altarMobileBackdrop);
+  document.body.appendChild(mobileCabinetToggle);
   document.body.appendChild(altarToast);
 }
 
