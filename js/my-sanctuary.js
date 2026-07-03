@@ -117,11 +117,13 @@ function createMySanctuaryPanel() {
         </p>
 
         <nav class="my-sanctuary-links" aria-label="Sanctuary navigation">
-           <a href="/altar/">🕯 My Digital Altar</a>
-           <a href="/grimoire/index.html">📖 My Book of Shadows</a>
-           <button type="button" data-my-sanctuary-view-button="rituals">🌙 My Saved Rituals</button>
+           <a href="/altar/" data-mundane-label="altar">🕯 Altar Chamber</a>
+           <button type="button" data-my-sanctuary-view-button="apothecary">🌿 Apothecary <em>Coming soon</em></button>
+           <a href="/grimoire/index.html" data-mundane-label="grimoire">📖 Book of Shadows</a>
+           <button type="button" data-my-sanctuary-view-button="rituals" data-mundane-label="ritual">🌙 Ritual Library</button>
+           <button type="button" data-my-sanctuary-view-button="dreams">☽ Dream Journal <em>Coming soon</em></button>
+           <button type="button" data-my-sanctuary-view-button="community">🏛 Community Hall <em>Coming soon</em></button>
            <a href="/submit/">✦ Offer to the Sanctuary</a>
-           <span>✨ Community Grimoire <em>Coming soon</em></span>
            <button type="button" data-my-sanctuary-view-button="submissions">📬 My Submissions</button>
            <button type="button" data-my-sanctuary-view-button="settings">⚙ My Settings</button>
          </nav>
@@ -419,8 +421,15 @@ document.addEventListener("click", async (event) => {
   if (dashboardButton) setMySanctuaryView("dashboard");
 
   if (viewButton) {
-    setMySanctuaryView(viewButton.dataset.mySanctuaryViewButton);
-  }
+     const requestedView = viewButton.dataset.mySanctuaryViewButton;
+   
+     if (["apothecary", "dreams", "community"].includes(requestedView)) {
+       showMySanctuaryNotice("This Sanctuary room is coming soon.");
+       return;
+     }
+   
+     setMySanctuaryView(requestedView);
+   }
 
    if (googleButton) {
      try {
