@@ -91,6 +91,7 @@ document.addEventListener("submit", async (event) => {
 
   try {
     await saveMySettings(settings);
+    await applyMundaneModePreference();
     showMySanctuaryNotice("Settings saved.");
   } catch (error) {
     console.error(error);
@@ -124,6 +125,17 @@ async function applyDefaultAltarBackgroundSetting() {
   altarStage.dataset.backgroundName = matchingBackground.name;
 }
 
+async function applyMundaneModePreference() {
+  const settings = await getMySettings();
+  const useMundaneMode = Boolean(settings.default_mundane_mode);
+
+  document.body.classList.toggle("mundane-mode", useMundaneMode);
+  document.documentElement.dataset.mundaneMode = String(useMundaneMode);
+}
+
 window.addEventListener("load", () => {
-  window.setTimeout(applyDefaultAltarBackgroundSetting, 500);
+  window.setTimeout(() => {
+    applyDefaultAltarBackgroundSetting();
+    applyMundaneModePreference();
+  }, 500);
 });
