@@ -236,3 +236,102 @@ function sendCurrentGroupToGrimoire() {
 
   window.location.href = "../grimoire/index.html?import=altar";
 }
+
+/* =========================================================
+   GROUP CREATION CHOICES
+   Group or create Apothecary item from selected ingredients
+   ========================================================= */
+
+function openGroupCreationChoiceModal() {
+  if (selectedRitualItems.length === 0) {
+    showAltarToast("Select items first");
+    return;
+  }
+
+  const modal = document.createElement("div");
+  modal.className = "group-choice-modal";
+  modal.setAttribute("data-group-choice-modal", "");
+
+  modal.innerHTML = `
+    <div class="group-choice-card" role="dialog" aria-modal="true" aria-label="Create from selected items">
+      <button class="altar-cabinet-close" type="button" data-close-group-choice aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">Selected ingredients</p>
+      <h2>What are you creating?</h2>
+
+      <p>
+        Bind these selected items together as a simple group, or preserve them as something made for My Apothecary.
+      </p>
+
+      <div class="group-choice-grid">
+        <button type="button" data-group-choice="group">
+          <strong>Create Group</strong>
+          <span>Keep these altar objects linked together.</span>
+        </button>
+
+        <button type="button" data-group-choice="spell-jar">
+          <strong>Create Spell Jar</strong>
+          <span>Save these ingredients as a reusable spell jar.</span>
+        </button>
+
+        <button type="button" data-group-choice="oil-tincture">
+          <strong>Create Oil / Tincture</strong>
+          <span>Save these ingredients as an oil or tincture.</span>
+        </button>
+
+        <button type="button" data-group-choice="herb-mix">
+          <strong>Create Herb Mix</strong>
+          <span>Save these ingredients as a loose blend.</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeGroupCreationChoiceModal() {
+  const modal = document.querySelector("[data-group-choice-modal]");
+  if (!modal) return;
+
+  modal.remove();
+  document.body.classList.remove("altar-modal-open");
+}
+
+function handleGroupCreationChoice(choice) {
+  closeGroupCreationChoiceModal();
+
+  if (choice === "group") {
+    groupSelectedRitualItems();
+    return;
+  }
+
+  if (["spell-jar", "oil-tincture", "herb-mix"].includes(choice)) {
+    if (typeof openCreateApothecaryModal === "function") {
+      openCreateApothecaryModal(choice);
+    } else {
+      showAltarToast("My Apothecary is not ready yet");
+    }
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const choiceButton = event.target.closest("[data-group-choice]");
+  const closeButton = event.target.closest("[data-close-group-choice]");
+  const modal = event.target.closest("[data-group-choice-modal]");
+
+  if (choiceButton) {
+    handleGroupCreationChoice(choiceButton.dataset.groupChoice);
+  }
+
+  if (closeButton) {
+    closeGroupCreationChoiceModal();
+  }
+
+  if (modal && event.target === modal) {
+    closeGroupCreationChoiceModal();
+  }
+});

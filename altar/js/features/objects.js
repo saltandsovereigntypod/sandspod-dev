@@ -42,6 +42,9 @@ function captureAltarSnapshot() {
       tool: object.dataset.tool || "",
       vessel: object.dataset.vessel || "",
       deity: object.dataset.deity || "",
+      apothecaryItemId: object.dataset.apothecaryItemId || "",
+      apothecaryType: object.dataset.apothecaryType || "",
+      apothecaryIngredients: object.dataset.apothecaryIngredients || "[]",
       scale: object.dataset.scale || "1",
       rotation: object.dataset.rotation || "0",
       flipped: object.dataset.flipped || "false",
@@ -436,7 +439,10 @@ function placeObject(options) {
      crystal,
      tool,
      vessel,
-     deity
+     deity,
+     apothecaryItemId,
+     apothecaryType,
+     apothecaryIngredients
    } = options;
   const object = document.createElement("button");
 
@@ -453,6 +459,10 @@ function placeObject(options) {
   object.dataset.tool = tool || "";
   object.dataset.vessel = vessel || "";
   object.dataset.deity = deity || "";
+
+  object.dataset.apothecaryItemId = apothecaryItemId || "";
+  object.dataset.apothecaryType = apothecaryType || "";
+  object.dataset.apothecaryIngredients = apothecaryIngredients || "[]";
 
   const startingScale = type === "cloth"
     ? "3"

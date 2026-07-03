@@ -68,6 +68,28 @@ altarInfoCard.className = "altar-info-card";
 altarInfoCard.hidden = true;
 altarInfoCard.setAttribute("aria-live", "polite");
 
+const altarCompanionPanel = document.createElement("aside");
+altarCompanionPanel.className = "altar-companion-panel is-visible";
+altarCompanionPanel.setAttribute("aria-live", "polite");
+altarCompanionPanel.innerHTML = `
+  <div class="altar-companion-inner">
+    <div class="altar-companion-header">
+      <div>
+        <p class="eyebrow">Companion</p>
+        <h2>Selected Object</h2>
+      </div>
+
+      <div class="altar-companion-actions">
+        <button type="button" data-companion-minimize aria-label="Minimize companion panel">−</button>
+      </div>
+    </div>
+
+    <div class="altar-companion-content" data-companion-content>
+      <p>Select an object to see its details.</p>
+    </div>
+  </div>
+`;
+
 const mobileCabinetToggle = document.createElement("button");
 mobileCabinetToggle.type = "button";
 mobileCabinetToggle.className = "altar-mobile-cabinet-toggle";
@@ -75,6 +97,26 @@ mobileCabinetToggle.textContent = "✦ Add Items";
 mobileCabinetToggle.setAttribute("aria-expanded", "false");
 
 if (altarStage) {
+
+  const altarWorkspace = altarStage.closest(".altar-workspace");
+  const altarStageWrap = altarStage.closest(".altar-stage-wrap");
+
+  const companionToggle = document.createElement("button");
+  companionToggle.type = "button";
+  companionToggle.className = "altar-companion-toggle";
+  companionToggle.setAttribute("data-companion-toggle", "");
+  companionToggle.setAttribute("aria-label", "Minimize companion panel");
+  companionToggle.textContent = "☰";
+
+  const altarWorkspaceTools = document.querySelector(".altar-workspace-tools");
+
+  if (altarWorkspaceTools) {
+    altarWorkspaceTools.prepend(companionToggle);
+  }
+
+  if (altarWorkspace && altarStageWrap) {
+    altarWorkspace.insertBefore(altarCompanionPanel, altarStageWrap);
+  }
 
   const lightingCanvas = document.createElement("canvas");
   lightingCanvas.className = "altar-lighting-layer";

@@ -167,6 +167,10 @@ function openAltarApothecaryOverlay() {
   const overlay = document.querySelector("[data-altar-apothecary-overlay]");
   if (!overlay) return;
 
+  if (typeof renderApothecaryItems === "function") {
+    renderApothecaryItems();
+  }
+
   overlay.hidden = false;
   document.body.classList.add("altar-cabinet-overlay-open");
 
@@ -281,7 +285,7 @@ altarActionBar.addEventListener("click", (event) => {
 
     case "group-ritual-items":
       pushAltarUndoSnapshot();
-      groupSelectedRitualItems();
+      openGroupCreationChoiceModal();
       return;
 
     case "ungroup-ritual-items":
@@ -370,9 +374,10 @@ document.addEventListener("pointerdown", (event) => {
   const clickedToolbar = event.target.closest(".altar-toolbar");
   const clickedActionBar = event.target.closest(".altar-action-bar");
   const clickedInfoCard = event.target.closest(".altar-info-card");
+  const clickedCompanionPanel = event.target.closest(".altar-companion-panel");
   const clickedModal = event.target.closest(".altar-cabinet-overlay, .saved-altars-modal, .altar-save-modal");
 
-  if (!clickedObject && !clickedToolbar && !clickedActionBar && !clickedInfoCard && !clickedModal) {
+  if (!clickedObject && !clickedToolbar && !clickedActionBar && !clickedInfoCard && !clickedCompanionPanel && !clickedModal) {
     deselectObject();
     clearCandleDressingMode();
   }

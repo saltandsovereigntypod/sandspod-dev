@@ -683,7 +683,8 @@
   border: 1px solid rgba(185, 160, 93, 0.2);
   border-radius: 16px;
   background: rgba(18, 18, 18, 0.85);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .altar-action-group {
@@ -1757,4 +1758,555 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
+}
+
+/* =========================================================
+   MY APOTHECARY FOUNDATION
+   ========================================================= */
+
+.apothecary-create-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.apothecary-create-card {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: min(760px, 90vh);
+  overflow-y: auto;
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.apothecary-create-card h2 {
+  max-width: none;
+  color: var(--cream);
+}
+
+.apothecary-create-intro {
+  margin-bottom: 1rem;
+}
+
+.apothecary-create-card form {
+  display: grid;
+  gap: 1rem;
+}
+
+.apothecary-create-card label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--cream);
+}
+
+.apothecary-create-card input,
+.apothecary-create-card select,
+.apothecary-create-card textarea {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.07);
+  font: inherit;
+}
+
+.apothecary-image-choice {
+  display: grid;
+  gap: 0.55rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.04);
+}
+
+.apothecary-ingredient-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.04);
+}
+
+.apothecary-ingredient-list .eyebrow {
+  flex-basis: 100%;
+}
+
+.apothecary-ingredient-list span {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.08);
+  font-size: 0.82rem;
+}
+
+.apothecary-items-grid {
+  margin-top: 1rem;
+}
+
+/* =========================================================
+   GROUP CHOICE MODAL + APOTHECARY INGREDIENT PREVIEW
+   ========================================================= */
+
+.group-choice-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10055;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.group-choice-card {
+  position: relative;
+  width: min(680px, 100%);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.group-choice-card h2 {
+  max-width: none;
+  color: var(--cream);
+}
+
+.group-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.group-choice-grid button {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 8rem;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 1rem;
+  padding: 1rem;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 70%),
+    rgba(244, 236, 216, 0.045);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.group-choice-grid button:hover,
+.group-choice-grid button:focus-visible {
+  border-color: var(--gold);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.2), transparent 70%),
+    rgba(244, 236, 216, 0.07);
+}
+
+.group-choice-grid strong {
+  color: var(--gold);
+  font-size: 1rem;
+}
+
+.group-choice-grid span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.apothecary-tile-ingredients {
+  display: block;
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* =========================================================
+   COMPANION PANEL + APOTHECARY POLISH
+   ========================================================= */
+
+.altar-companion-panel {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .altar-workspace {
+    grid-template-columns: minmax(230px, 320px) minmax(0, 1fr);
+  }
+
+  .altar-workspace-tools {
+    grid-column: 1 / -1;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .altar-companion-panel {
+    grid-column: 1;
+    display: block;
+    align-self: stretch;
+    width: 100%;
+    min-height: 100%;
+    opacity: 0;
+    transform: translateX(-0.35rem);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .altar-companion-panel[hidden] {
+    display: none;
+  }
+
+  .altar-companion-panel.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .altar-companion-inner {
+    position: sticky;
+    top: 5.5rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    border: 1px solid rgba(185, 160, 93, 0.3);
+    border-radius: 1.15rem;
+    padding: 1rem;
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 16rem),
+      rgba(10, 8, 6, 0.82);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(8px);
+  }
+
+  .altar-companion-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: start;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+  }
+
+  .altar-companion-header h2 {
+    max-width: none;
+    margin: 0;
+    color: var(--cream);
+    font-size: 1.25rem;
+  }
+
+  .altar-companion-actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .altar-companion-actions button {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    aspect-ratio: 1;
+    border: 1px solid rgba(244, 236, 216, 0.22);
+    border-radius: 50%;
+    color: var(--cream);
+    background: rgba(244, 236, 216, 0.08);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .altar-companion-actions button:hover,
+  .altar-companion-actions button:focus-visible,
+  .altar-companion-actions button.is-active {
+    border-color: var(--gold);
+    background: rgba(185, 160, 93, 0.16);
+  }
+
+  .altar-companion-content .altar-info-card-inner {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    text-align: left;
+  }
+
+  .altar-companion-content .altar-info-card-inner h3 {
+    font-size: 1.15rem;
+  }
+
+  .altar-companion-content .altar-info-card-type {
+    font-size: 0.72rem;
+  }
+
+  .altar-companion-content .altar-info-card-section {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .altar-companion-content .altar-info-card-section p {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .altar-companion-content .altar-info-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .altar-companion-content .altar-info-card-actions button {
+    border: 1px solid rgba(185, 160, 93, 0.26);
+    border-radius: 999px;
+    padding: 0.45rem 0.7rem;
+    color: var(--cream);
+    background: rgba(244, 236, 216, 0.06);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  .altar-companion-content .altar-info-card-actions button:hover,
+  .altar-companion-content .altar-info-card-actions button:focus-visible {
+    border-color: var(--gold);
+    background: rgba(185, 160, 93, 0.14);
+  }
+}
+
+@media (min-width: 901px) {
+  .altar-info-card {
+    display: none !important;
+  }
+}
+
+.apothecary-item-card {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.apothecary-item-card .cabinet-tile {
+  width: 100%;
+}
+
+.apothecary-item-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.apothecary-item-actions button {
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.055);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.apothecary-item-actions button:hover,
+.apothecary-item-actions button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.14);
+}
+
+.apothecary-tile-ingredients {
+  display: none !important;
+}
+
+/* =========================================================
+   COMPANION PANEL STABILITY FIX
+   Panel stays fixed in layout unless manually minimized
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .altar-workspace {
+    grid-template-columns: minmax(230px, 320px) minmax(0, 1fr) !important;
+    align-items: start;
+  }
+
+  .altar-workspace-tools {
+    grid-column: 1 / -1 !important;
+  }
+
+  .altar-companion-panel {
+    grid-column: 1 !important;
+    display: block !important;
+    align-self: stretch;
+    width: 100%;
+    min-height: 100%;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 2 !important;
+  }
+
+  body.altar-companion-open .altar-stage-wrap {
+    grid-column: 2 !important;
+  }
+
+  .altar-companion-panel.is-minimized {
+    display: none !important;
+  }
+
+  .altar-companion-inner {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+/* =========================================================
+   COMPANION PANEL FINAL LAYOUT
+   Toggle stays beside Cabinet above the altar image
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .altar-workspace {
+    grid-template-columns: minmax(230px, 320px) minmax(0, 1fr) !important;
+    column-gap: clamp(1rem, 2vw, 2rem);
+    align-items: start;
+  }
+
+  .altar-workspace-tools {
+    grid-column: 2 !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100% !important;
+  }
+
+  .altar-workspace-tools [data-open-apothecary-overlay] {
+    margin-left: auto;
+  }
+
+  .altar-companion-toggle {
+    display: inline-grid !important;
+    place-items: center;
+    width: 2.4rem;
+    aspect-ratio: 1;
+    border: 1px solid rgba(185, 160, 93, 0.35);
+    border-radius: 999px;
+    color: var(--cream);
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.14), transparent 70%),
+      rgba(10, 8, 6, 0.72);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .altar-companion-panel {
+    grid-column: 1 !important;
+    display: block !important;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 2 !important;
+  }
+
+  body.altar-companion-minimized .altar-workspace {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.altar-companion-minimized .altar-workspace-tools {
+    grid-column: 1 !important;
+  }
+
+  body.altar-companion-minimized .altar-companion-panel {
+    display: none !important;
+  }
+
+  body.altar-companion-minimized .altar-stage-wrap {
+    grid-column: 1 !important;
+  }
+}
+
+/* =========================================================
+   ACTION BAR WIDTH FIX
+   Keep altar buttons aligned with altar image
+   ========================================================= */
+
+.altar-stage-wrap + .altar-action-bar,
+.altar-action-bar {
+  width: min(1500px, 100%);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+  .altar-action-bar {
+    grid-column: 2 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-self: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  body.altar-companion-minimized .altar-action-bar {
+    grid-column: 1 !important;
+  }
+
+  .altar-action-bar::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .altar-action-bar::-webkit-scrollbar-thumb {
+    background: rgba(185, 160, 93, 0.35);
+    border-radius: 999px;
+  }
+
+  .altar-action-bar button {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+   ACTION BAR WRAP FIX
+   Let altar controls fit inside the altar image width
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .altar-action-bar {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .altar-action-group {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .altar-action-bar button {
+    flex-shrink: 0 !important;
+  }
+
+  .altar-action-divider {
+    display: none !important;
+  }
 }

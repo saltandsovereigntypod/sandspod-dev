@@ -1,6 +1,8 @@
 /* =========================================================
-   8. SELECTION AND TOOLBAR NOTES
+   8. SELECTION, INFO CARD, AND COMPANION PANEL
    ========================================================= */
+
+let altarCompanionMinimized = false;
 
 function getObjectIcon(object) {
   const type = object.dataset.type;
@@ -12,6 +14,7 @@ function getObjectIcon(object) {
   if (type === "deity") return "🗝️";
   if (type === "vessel") return "🏺";
   if (type === "tool") return "✦";
+  if (type === "apothecary") return "🧪";
 
   return "✦";
 }
@@ -20,6 +23,10 @@ function getObjectTypeLabel(object) {
   const type = object.dataset.type || "altar object";
   const form = object.dataset.form || "";
 
+  if (object.dataset.type === "apothecary") {
+    return object.dataset.apothecaryType || "apothecary item";
+  }
+
   if (form && form !== "standard") {
     return `${type} · ${form}`;
   }
@@ -27,10 +34,43 @@ function getObjectTypeLabel(object) {
   return type;
 }
 
-function showAltarInfoCard(object) {
-  if (!altarInfoCard || !object) return;
+function getApothecaryDetailsForObject(object) {
+  if (!object || object.dataset.type !== "apothecary") return null;
 
+  const itemId = object.dataset.apothecaryItemId || "";
+  const savedItem =
+    typeof getApothecaryItemById === "function" && itemId
+      ? getApothecaryItemById(itemId)
+      : null;
+
+  let ingredients = [];
+
+  try {
+    ingredients = JSON.parse(object.dataset.apothecaryIngredients || "[]");
+  } catch {
+    ingredients = [];
+  }
+
+  return {
+    itemId,
+    name: savedItem?.name || object.dataset.label || "Apothecary Item",
+    typeLabel: savedItem?.typeLabel || object.dataset.apothecaryType || "Apothecary Item",
+    intention: savedItem?.intention || object.dataset.apothecaryIntention || "",
+    notes: savedItem?.notes || object.dataset.apothecaryNotes || "",
+    ingredients: savedItem?.ingredients || ingredients,
+    logToGrimoire:
+      savedItem?.logToGrimoire ||
+      object.dataset.apothecaryLogToGrimoire === "true",
+    grimoireStatus:
+      savedItem?.grimoireStatus ||
+      object.dataset.apothecaryGrimoireStatus ||
+      ""
+  };
+}
+
+function buildObjectInfoMarkup(object, mode = "compact") {
   const label = object.dataset.label || "Altar Object";
+  const typeLabel = getObjectTypeLabel(object);
   const activeGroup = object.dataset.groupId
     ? altarGroups.find((group) => group.id === object.dataset.groupId)
     : null;
@@ -46,42 +86,113 @@ function showAltarInfoCard(object) {
     .map((dressing) => dressing.herb)
     .filter(Boolean);
 
+  const apothecaryDetails = getApothecaryDetailsForObject(object);
+
+  const apothecaryMarkup = apothecaryDetails
+    ? `
+      <div class="altar-info-card-section">
+        <p><strong>Type:</strong> ${apothecaryDetails.typeLabel}</p>
+        ${
+          apothecaryDetails.intention
+            ? `<p><strong>Intention:</strong> ${apothecaryDetails.intention}</p>`
+            : ""
+        }
+        ${
+          apothecaryDetails.notes
+            ? `<p><strong>Notes:</strong> ${apothecaryDetails.notes}</p>`
+            : ""
+        }
+        ${
+          apothecaryDetails.ingredients.length
+            ? `
+              <p><strong>Inside:</strong></p>
+              <p>${apothecaryDetails.ingredients.map((ingredient) => ingredient.label).join(", ")}</p>
+            `
+            : ""
+        }
+        ${
+          apothecaryDetails.logToGrimoire
+            ? `<p><strong>Grimoire:</strong> ${apothecaryDetails.grimoireStatus || "pending"}</p>`
+            : ""
+        }
+      </div>
+
+      <div class="altar-info-card-section altar-info-card-actions">
+        <button type="button" data-apothecary-edit="${apothecaryDetails.itemId}">Edit</button>
+        <button type="button" data-apothecary-delete="${apothecaryDetails.itemId}">Delete</button>
+      </div>
+    `
+    : "";
+
   const dressingMarkup =
     oils.length || herbs.length
       ? `
         <div class="altar-info-card-section">
-          <p>Dressing</p>
+          <p><strong>Dressing</strong></p>
           ${oils.length ? `<p><strong>Oil:</strong> ${oils.join(", ")}</p>` : ""}
           ${herbs.length ? `<p><strong>Herb:</strong> ${herbs.join(", ")}</p>` : ""}
         </div>
       `
       : "";
 
-   const groupItems = activeGroup
-     ? getGroupObjects(activeGroup.id).map((item) => item.dataset.label || "Item")
-     : [];
-   
-   const groupMarkup = activeGroup
-     ? `
-       <div class="altar-info-card-section">
-         <p><strong>Group:</strong> ${activeGroup.name}</p>
-         <p>${groupItems.join(", ")}</p>
-       </div>
-     `
-     : "";
+  const groupItems = activeGroup
+    ? getGroupObjects(activeGroup.id).map((item) => item.dataset.label || "Item")
+    : [];
 
-  altarInfoCard.innerHTML = `
-    <div class="altar-info-card-inner">
-      <h3>${label}</h3>
-      ${object.dataset.grimoireKeywords ? `<p class="altar-info-card-type">${object.dataset.grimoireKeywords}</p>` : ""}
+  const groupMarkup = activeGroup
+    ? `
+      <div class="altar-info-card-section">
+        <p><strong>Group:</strong> ${activeGroup.name}</p>
+        <p>${groupItems.join(", ")}</p>
+      </div>
+    `
+    : "";
+
+  return `
+    <div class="altar-info-card-inner ${mode === "panel" ? "is-panel-view" : ""}">
+      <h3>${getObjectIcon(object)} ${label}</h3>
+      <p class="altar-info-card-type">${typeLabel}</p>
       ${groupMarkup}
+      ${apothecaryMarkup}
       ${dressingMarkup}
     </div>
   `;
+}
+
+function showAltarCompanionPanel(object) {
+  if (!altarCompanionPanel || !object) return;
+
+  const companionContent = altarCompanionPanel.querySelector("[data-companion-content]");
+  if (!companionContent) return;
+
+  companionContent.innerHTML = buildObjectInfoMarkup(object, "panel");
+
+  if (!altarCompanionMinimized) {
+    altarCompanionPanel.classList.add("is-visible");
+    altarCompanionPanel.classList.remove("is-minimized");
+  }
+}
+
+function hideAltarCompanionPanel() {
+  if (!altarCompanionPanel) return;
+
+  const companionContent = altarCompanionPanel.querySelector("[data-companion-content]");
+  if (!companionContent) return;
+
+  companionContent.innerHTML = `<p>Select an object to see its details.</p>`;
+}
+
+function showAltarInfoCard(object) {
+  if (!altarInfoCard || !object) return;
+
+  altarInfoCard.innerHTML = buildObjectInfoMarkup(object, "compact");
 
   altarInfoCard.hidden = false;
   altarInfoCard.classList.add("is-visible");
+
+  showAltarCompanionPanel(object);
 }
+
 function hideAltarInfoCard() {
   if (!altarInfoCard) return;
 
@@ -92,6 +203,8 @@ function hideAltarInfoCard() {
       altarInfoCard.hidden = true;
     }
   }, 180);
+
+  hideAltarCompanionPanel();
 }
 
 function updateToolbarNotes(object) {
@@ -152,3 +265,31 @@ function deselectObject() {
   hideAltarInfoCard();
   updateSelectedGroupVisuals(null);
 }
+
+document.addEventListener("click", (event) => {
+  const toggleButton = event.target.closest("[data-companion-toggle], [data-companion-minimize]");
+
+  if (!toggleButton || !altarCompanionPanel) return;
+
+  altarCompanionMinimized = !altarCompanionMinimized;
+
+  altarCompanionPanel.classList.toggle("is-minimized", altarCompanionMinimized);
+
+  document.body.classList.toggle("altar-companion-minimized", altarCompanionMinimized);
+
+  document.querySelectorAll("[data-companion-toggle], [data-companion-minimize]").forEach((button) => {
+    button.textContent = altarCompanionMinimized ? "☰" : "−";
+    button.setAttribute(
+      "aria-label",
+      altarCompanionMinimized ? "Open companion panel" : "Minimize companion panel"
+    );
+  });
+
+  requestAnimationFrame(() => {
+    repositionAllObjectsFromPercent();
+    resizeLightingCanvas();
+    renderLighting();
+  });
+
+  showAltarToast(altarCompanionMinimized ? "Companion minimized" : "Companion opened");
+});
