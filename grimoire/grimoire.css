@@ -101,9 +101,17 @@
   scrollbar-color: rgba(185, 160, 93, 0.45) transparent;
 }
 
-.book-toc::-webkit-scrollbar,
-.book-page::-webkit-scrollbar {
+.book-toc::-webkit-scrollbar {
   width: 6px;
+}
+
+.book-toc::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.book-toc::-webkit-scrollbar-thumb {
+  background: rgba(185, 160, 93, 0.45);
+  border-radius: 999px;
 }
 
 .book-toc::-webkit-scrollbar-track,
@@ -241,27 +249,17 @@
 .book-page {
   position: relative;
   min-height: 680px;
-  max-height: calc(100vh - 8rem);
-  overflow-y: auto;
-  padding: clamp(1.5rem, 4vw, 3rem);
-  border: 1px solid rgba(185, 160, 93, 0.38);
-  border-radius: 1.2rem;
-  background:
-    radial-gradient(circle at 82% 10%, rgba(185, 160, 93, 0.13), transparent 14rem),
-    radial-gradient(circle at 14% 95%, rgba(111, 132, 101, 0.14), transparent 18rem),
-    linear-gradient(145deg, rgba(28, 24, 18, 0.95), rgba(10, 13, 10, 0.98));
-  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.55);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(185, 160, 93, 0.45) transparent;
+  max-height: none;
+  overflow: visible;
+  padding: clamp(1rem, 4vw, 3rem) 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .book-page::before {
-  content: "";
-  position: absolute;
-  inset: 1.1rem;
-  border: 1px solid rgba(185, 160, 93, 0.2);
-  border-radius: 0.9rem;
-  pointer-events: none;
+  display: none;
 }
 
 .book-page-toolbar {
@@ -1127,4 +1125,264 @@ body.is-mundane-mode .book-reader-date {
 
 body.is-mundane-mode .book-reader-body {
   margin-top: 2rem;
+}
+
+/* Altar/apothecary imported pages should feel less gigantic */
+.book-reader-page[data-page-source="altar-import"] h2,
+.book-reader-page[data-page-source="apothecary-import"] h2 {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  margin-top: 1.75rem;
+}
+
+/* =========================================================
+   GRIMOIRE JOURNAL TYPOGRAPHY + FONT CHOICES
+   ========================================================= */
+
+.book-reader-header h1 {
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.book-reader-body h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.55rem;
+  font-size: clamp(1.65rem, 3.2vw, 2.7rem);
+  line-height: 1;
+}
+
+.book-ingredient-list h3 {
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  letter-spacing: 0.04em;
+}
+
+.book-callout {
+  margin: 1.25rem auto 2rem;
+  padding: 0.8rem 1rem;
+  border-color: rgba(185, 160, 93, 0.28);
+  background: rgba(244, 236, 216, 0.035);
+}
+
+.book-callout p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.grimoire-section-title,
+.grimoire-toc h3,
+.book-shelf-section-title {
+  font-size: clamp(1.25rem, 2vw, 1.75rem) !important;
+  line-height: 1.05;
+}
+
+.book-reader-page,
+.book-editor-page {
+  font-family: var(--grimoire-page-font, Georgia, serif);
+}
+
+body.grimoire-font-classic-serif {
+  --grimoire-page-font: Georgia, "Times New Roman", serif;
+}
+
+body.grimoire-font-dark-academia {
+  --grimoire-page-font: Garamond, Georgia, serif;
+}
+
+body.grimoire-font-soft-journal {
+  --grimoire-page-font: Palatino, "Book Antiqua", Georgia, serif;
+}
+
+body.grimoire-font-handwritten {
+  --grimoire-page-font: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+}
+
+/* =========================================================
+   APOTHECARY GRIMOIRE PAGE LAYOUT
+   ========================================================= */
+
+.book-apothecary-page {
+  display: grid;
+  gap: 1.6rem;
+  margin-top: 1.5rem;
+}
+
+.book-apothecary-meta {
+  width: fit-content;
+  margin: 0 auto 1.25rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  color: var(--gold);
+  background: rgba(244, 236, 216, 0.035);
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.book-apothecary-meta span {
+  margin: 0 0.45rem;
+  opacity: 0.75;
+}
+
+
+.book-apothecary-section h2 {
+  margin: 0 0 0.6rem;
+  color: var(--gold);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1.05;
+}
+
+.book-apothecary-section p {
+  margin: 0;
+  max-width: 68ch;
+}
+
+.book-apothecary-ingredients {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
+.book-apothecary-ingredients li {
+  padding-left: 0.2rem;
+}
+
+/* Smaller Table of Contents section headers */
+.grimoire-shelf h3,
+.grimoire-toc h3,
+.book-shelf h3,
+.book-shelf-section h3,
+.book-shelf-section-title,
+.grimoire-section-title {
+  font-size: clamp(1.15rem, 1.8vw, 1.55rem) !important;
+  line-height: 1.1 !important;
+}
+
+/* So imported apothecary pages no longer shout */
+.book-reader-page[data-page-source="apothecary-import"] .book-reader-body > h2 {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+/* =========================================================
+   GRIMOIRE PAGE CLEANUP
+   Remove boxed page feeling + fix import layout
+   ========================================================= */
+
+.book-reader-page,
+.book-editor-page {
+  max-height: none !important;
+  overflow: visible !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.book-reader-body {
+  overflow: visible !important;
+}
+
+.book-apothecary-page {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.book-apothecary-section h2 {
+  color: var(--gold);
+  font-size: clamp(1.35rem, 2.4vw, 2rem) !important;
+}
+
+.book-reader-page[data-page-source="apothecary-import"] .book-reader-header {
+  margin-bottom: 1.25rem;
+}
+
+.book-reader-page[data-page-source="apothecary-import"] .book-reader-header h1 {
+  font-size: clamp(2.7rem, 5vw, 4.6rem) !important;
+}
+
+.book-reader-page[data-page-source="apothecary-import"] .book-reader-date {
+  display: none !important;
+}
+
+/* =========================================================
+   GRIMOIRE PAGE FLATTENING
+   Removes nested reader boxes and stray crossing lines
+   ========================================================= */
+
+.book-reader-page,
+.book-editor-page {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding-inline: clamp(1rem, 5vw, 4rem) !important;
+}
+
+.book-reader-body,
+.book-editor-elements {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.book-apothecary-page {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.book-apothecary-section {
+  border-top: none !important;
+  padding-top: 0 !important;
+  margin-top: 2.25rem;
+}
+
+.book-apothecary-section h2 {
+  margin-bottom: 0.65rem;
+}
+
+.book-apothecary-section + .book-apothecary-section {
+  padding-top: 1.75rem !important;
+  border-top: 1px solid rgba(185, 160, 93, 0.14) !important;
+}
+
+.book-apothecary-section p,
+.book-apothecary-ingredients {
+  max-width: 72ch;
+}
+
+.book-reader-page[data-page-source="apothecary-import"] {
+  max-width: none !important;
+}
+
+/* =========================================================
+   GRIMOIRE PAGE OUTLINE
+   Border wraps toolbar + page content without trapping scroll
+   ========================================================= */
+
+.book-page {
+  border: 1px solid rgba(185, 160, 93, 0.28) !important;
+  border-radius: 1.15rem !important;
+  padding: clamp(1.25rem, 4vw, 3rem) !important;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(185, 160, 93, 0.08), transparent 18rem),
+    radial-gradient(circle at 14% 92%, rgba(111, 132, 101, 0.1), transparent 20rem),
+    rgba(8, 10, 8, 0.18) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28) !important;
+}
+
+.book-page::before {
+  display: none !important;
+}
+
+.book-page-content {
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }

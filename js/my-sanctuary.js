@@ -243,6 +243,16 @@ function createMySanctuaryPanel() {
             Use mundane mode by default for my Book of Shadows
           </label>
 
+          <label>
+            Book of Shadows Page Font
+            <select name="grimoire_page_font">
+              <option value="classic-serif">Classic Serif</option>
+              <option value="dark-academia">Dark Academia</option>
+              <option value="soft-journal">Soft Journal</option>
+              <option value="handwritten">Handwritten</option>
+            </select>
+          </label>
+
           <fieldset class="my-sanctuary-settings-group companion-settings">
             <legend>Companion Panel</legend>
 

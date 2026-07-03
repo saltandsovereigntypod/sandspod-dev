@@ -527,21 +527,157 @@ document.addEventListener("saltAuthSuccess", updateAuthState);
 document.addEventListener("saltAuthSignedOut", updateAuthState);
 
 /* =========================================================
-   ALTAR IMPORT
+   ALTAR + APOTHECARY IMPORTS
    ========================================================= */
 
-window.addEventListener("load", () => {
-  const handoff = localStorage.getItem(ALTAR_GRIMOIRE_HANDOFF_KEY);
+const APOTHECARY_GRIMOIRE_HANDOFF_KEY = "saltAndSovereigntyApothecaryToGrimoire";
 
-  if (!handoff) return;
+async function getOrCreateAltarBornSection() {
+  const user = requireUser();
+  if (!user || !currentBook) return null;
 
-  try {
-    const ritual = JSON.parse(handoff);
+  let section = sections.find((item) => item.title === "Altar-Born Pages");
 
-    openAltarImportModal(ritual);
+  if (section) return section;
 
-  } catch (error) {
-    console.error(error);
-    localStorage.removeItem(ALTAR_GRIMOIRE_HANDOFF_KEY);
+  const { data, error } = await db
+    .from("grimoire_sections")
+    .insert({
+      user_id: user.id,
+      book_id: currentBook.id,
+      title: "Altar-Born Pages",
+      sort_order: sections.length,
+      is_collapsed: false
+    })
+    .select()
+    .single();
+
+  if (error) {
+    setStatus(error.message);
+    return null;
   }
+
+  sections.push(data);
+  return data;
+}
+
+async function createApothecaryPageFromImport(item) {
+  const user = requireUser();
+
+  if (!user || !currentBook || !item) {
+    setStatus("Sign in to create an apothecary page.");
+    return;
+  }
+
+  const title = item.title || item.name || "Apothecary Working";
+  const ingredients = Array.isArray(item.ingredients) ? item.ingredients : [];
+
+  const altarBornSection = await getOrCreateAltarBornSection();
+
+  const { data: page, error } = await db
+    .from("grimoire_pages")
+    .insert({
+      user_id: user.id,
+      book_id: currentBook.id,
+      section_id: altarBornSection?.id || null,
+      title,
+      icon: "",
+      page_type: "apothecary",
+      metadata: {
+        source: "apothecary",
+        apothecary_item_id: item.itemId || "",
+        apothecary_type: item.type || "",
+        apothecary_type_label: item.typeLabel || item.type || "Apothecary Item",
+        intention: item.intention || "",
+        notes: item.notes || "",
+        ingredients,
+        created_at: item.createdAt || new Date().toISOString()
+      },
+      sort_order: pages.length
+    })
+    .select()
+    .single();
+
+  if (error) {
+    setStatus(error.message);
+    return;
+  }
+
+  pages.push(page);
+  currentPage = page;
+
+  const ingredientText = ingredients
+    .map((ingredient) => ingredient.label || "Unnamed ingredient")
+    .join("\n");
+
+  const blocks = [
+    {
+      type: "text",
+      content: ""
+    }
+  ];
+
+  const rows = blocks.map((block, index) => ({
+    user_id: user.id,
+    book_id: currentBook.id,
+    page_id: page.id,
+    block_type: block.type,
+    content: block.content || "",
+    metadata: {
+      source: "apothecary",
+      apothecary_item_id: item.itemId || ""
+    },
+    rich_content: null,
+    sort_order: index
+  }));
+
+  const { data: createdBlocks, error: blockError } = await db
+    .from("grimoire_blocks")
+    .insert(rows)
+    .select();
+
+  if (blockError) {
+    setStatus(blockError.message);
+    return;
+  }
+
+  currentBlocks = createdBlocks || [];
+  pageLinks = [];
+
+  renderShelf();
+  await openPage(page.id, "edit");
+
+  localStorage.removeItem(APOTHECARY_GRIMOIRE_HANDOFF_KEY);
+
+  flashStatus("Apothecary page created.");
+}
+
+window.addEventListener("load", () => {
+  const altarHandoff = localStorage.getItem(ALTAR_GRIMOIRE_HANDOFF_KEY);
+
+  if (altarHandoff) {
+    try {
+      const ritual = JSON.parse(altarHandoff);
+      openAltarImportModal(ritual);
+      return;
+    } catch (error) {
+      console.error(error);
+      localStorage.removeItem(ALTAR_GRIMOIRE_HANDOFF_KEY);
+    }
+  }
+
+  const apothecaryHandoff = localStorage.getItem(APOTHECARY_GRIMOIRE_HANDOFF_KEY);
+
+  if (!apothecaryHandoff) return;
+
+  window.setTimeout(async () => {
+    try {
+      const item = JSON.parse(apothecaryHandoff);
+      await createApothecaryPageFromImport(item);
+    } catch (error) {
+      console.error(error);
+      localStorage.removeItem(APOTHECARY_GRIMOIRE_HANDOFF_KEY);
+      setStatus("The apothecary page could not be created.");
+    }
+  }, 800);
 });

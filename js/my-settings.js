@@ -12,7 +12,9 @@ function getDefaultMySettings() {
     magical_name: "",
     default_altar_background: "",
     default_mundane_mode: false,
-
+    
+    grimoire_page_font: "classic-serif",
+    
     companion_my_enabled: true,
     companion_my_ingredients: true,
     companion_my_intention: true,
@@ -156,6 +158,8 @@ document.addEventListener("submit", async (event) => {
 
 async function applyDefaultAltarBackgroundSetting() {
   if (!document.body.classList.contains("altar-page")) return;
+
+  const altarStage = document.querySelector("[data-altar-stage]");
   if (!altarStage) return;
 
   const settings = await getMySettings();
@@ -183,9 +187,19 @@ async function applyDefaultAltarBackgroundSetting() {
 async function applyMundaneModePreference() {
   const settings = await getMySettings();
   const useMundaneMode = Boolean(settings.default_mundane_mode);
+  const grimoireFont = settings.grimoire_page_font || "classic-serif";
 
   document.body.classList.toggle("mundane-mode", useMundaneMode);
   document.documentElement.dataset.mundaneMode = String(useMundaneMode);
+
+  document.body.classList.remove(
+    "grimoire-font-classic-serif",
+    "grimoire-font-dark-academia",
+    "grimoire-font-soft-journal",
+    "grimoire-font-handwritten"
+  );
+
+  document.body.classList.add(`grimoire-font-${grimoireFont}`);
 }
 
 window.addEventListener("load", () => {

@@ -18,15 +18,25 @@ function renderPage() {
 
 function renderReader() {
   const hasContent = currentBlocks.some((block) => {
+    const content = String(blockContent(block) || "").trim();
+
+    if (currentPage.page_type === "apothecary" && !content) return false;
+    if (currentPage.page_type === "apothecary" && content === "Additional Notes") return false;
+
     if (block.block_type === "divider") return true;
-    return String(blockContent(block) || "").trim();
+
+    return content;
   });
 
   entryList.innerHTML = `
-    <section class="book-reader-page">
+    <section class="book-reader-page" data-page-source="${currentPage.page_type === "apothecary" ? "apothecary-import" : currentPage.page_type === "ritual" ? "altar-import" : "standard"}">
       <header class="book-reader-header">
         <h1>${escapeHtml(getDisplayPageTitle())}</h1>
-        <p class="book-reader-date">${formatDate(currentPage.created_at)}</p>
+        ${
+          currentPage.page_type === "apothecary"
+            ? ""
+            : `<p class="book-reader-date">${formatDate(currentPage.created_at)}</p>`
+        }
         <div class="book-reader-divider">✦ ☽ ✦ ☾ ✦</div>
       </header>
 
@@ -34,11 +44,80 @@ function renderReader() {
         ${
           hasContent
             ? currentBlocks.map(renderReadableElement).join("")
-            : `<p class="book-placeholder">This page is waiting for your words.</p>`
+            : currentPage.page_type === "apothecary"
+              ? ""
+              : `<p class="book-placeholder">This page is waiting for your words.</p>`
         }
 
+        ${currentPage.page_type === "apothecary" ? renderApothecaryReaderPage() : ""}
         ${renderReadablePageLinks()}
       </div>
+    </section>
+  `;
+}
+
+function getCurrentPageMetadata() {
+  try {
+    return currentPage?.metadata || {};
+  } catch {
+    return {};
+  }
+}
+
+function renderApothecaryReaderPage() {
+  const metadata = getCurrentPageMetadata();
+  const ingredients = Array.isArray(metadata.ingredients) ? metadata.ingredients : [];
+
+  return `
+    <section class="book-apothecary-page">
+      <p class="book-apothecary-meta">
+        ${escapeHtml(metadata.apothecary_type_label || "Apothecary Item")}
+        <span>✦</span>
+        Created ${escapeHtml(formatDate(metadata.created_at || currentPage.created_at))}
+      </p>
+
+      ${
+        metadata.intention
+          ? `
+            <section class="book-apothecary-section">
+              <h2>Intention</h2>
+              <p>${richText(metadata.intention)}</p>
+            </section>
+          `
+          : ""
+      }
+
+      ${
+        ingredients.length
+          ? `
+            <section class="book-apothecary-section">
+              <h2>Ingredients</h2>
+
+              <ul class="book-apothecary-ingredients">
+                ${ingredients
+                  .map((ingredient) => `<li>${escapeHtml(ingredient.label || "Unnamed ingredient")}</li>`)
+                  .join("")}
+              </ul>
+            </section>
+          `
+          : ""
+      }
+
+      ${
+        metadata.notes
+          ? `
+            <section class="book-apothecary-section">
+              <h2>Notes</h2>
+              <p>${richText(metadata.notes)}</p>
+            </section>
+          `
+          : ""
+      }
+
+      <section class="book-apothecary-section">
+        <h2>Results & Reflections</h2>
+        <p class="book-placeholder">This space is waiting for what happens next.</p>
+      </section>
     </section>
   `;
 }
@@ -46,6 +125,13 @@ function renderReader() {
 function renderReadableElement(block) {
   const type = block.block_type;
   const content = blockContent(block);
+  if (
+    currentPage.page_type === "apothecary" &&
+    block.block_type === "heading" &&
+    String(content || "").trim() === "Additional Notes"
+  ) {
+    return "";
+  }
   const metadata = getBlockMetadata(block);
 
   if (type === "heading") {
