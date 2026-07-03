@@ -1499,3 +1499,237 @@ body.altar-cabinet-overlay-open {
   max-width: 4rem !important;
   max-height: 4rem !important;
 }
+/* =========================================================
+   VERSION 2.0 FOUNDATION POLISH
+   Cabinet, Apothecary, Ritual hooks, Saved Library
+   ========================================================= */
+
+.cabinet-tab {
+  position: relative;
+}
+
+.cabinet-tab-icon {
+  font-size: 1.25rem;
+}
+
+.cabinet-tab-label {
+  display: block;
+}
+
+.cabinet-tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  min-height: 1.35rem;
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0 0.35rem;
+  color: var(--gold);
+  background: rgba(10, 8, 6, 0.45);
+  font-size: 0.68rem;
+}
+
+.cabinet-category-intro {
+  grid-column: 1 / -1;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 1rem;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.13), transparent 16rem),
+    rgba(244, 236, 216, 0.04);
+}
+
+.cabinet-category-intro h3 {
+  max-width: none;
+  margin: 0.1rem 0 0.35rem;
+  color: var(--cream);
+}
+
+.cabinet-category-intro p {
+  color: var(--muted);
+}
+
+.cabinet-tile {
+  position: relative;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    filter 0.18s ease;
+}
+
+.cabinet-tile:hover,
+.cabinet-tile:focus-visible {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.cabinet-tile-badge {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0.15rem 0.4rem;
+  color: var(--gold);
+  background: rgba(10, 8, 6, 0.68);
+  font-size: 0.62rem;
+}
+
+.cabinet-tile-meta,
+.cabinet-multi-meta {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.cabinet-multi-heading {
+  flex-wrap: wrap;
+}
+
+.cabinet-multi-heading em {
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-style: normal;
+}
+
+.apothecary-header {
+  margin-bottom: 1rem;
+}
+
+.apothecary-status-card {
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 1rem;
+  padding: 0.85rem;
+  background: rgba(244, 236, 216, 0.05);
+}
+
+.apothecary-status-card strong,
+.apothecary-status-card span {
+  display: block;
+}
+
+.apothecary-status-card strong {
+  color: var(--gold);
+}
+
+.apothecary-status-card span {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.apothecary-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1rem 0;
+}
+
+.apothecary-tabs button {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
+  background: rgba(244, 236, 216, 0.05);
+  font: inherit;
+  cursor: pointer;
+}
+
+.apothecary-tabs button.is-active,
+.apothecary-tabs button:hover,
+.apothecary-tabs button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.14);
+}
+
+.apothecary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+}
+
+.apothecary-card {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.1), transparent 70%),
+    rgba(244, 236, 216, 0.045);
+}
+
+.apothecary-card h3 {
+  max-width: none;
+  margin-bottom: 0.45rem;
+  color: var(--cream);
+}
+
+.apothecary-card p {
+  font-size: 0.9rem;
+}
+
+.apothecary-card button,
+.saved-altar-actions button:disabled,
+.altar-action-bar button[data-global-action="start-ritual"],
+.altar-action-bar button[data-global-action="save-as-ritual"] {
+  opacity: 0.78;
+}
+
+.apothecary-card button {
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
+  background: rgba(244, 236, 216, 0.04);
+  font: inherit;
+}
+
+.saved-altar-card {
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.saved-altar-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(185, 160, 93, 0.42);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.16), transparent 16rem),
+    rgba(244, 236, 216, 0.06);
+}
+
+.saved-altar-actions button:disabled {
+  cursor: not-allowed;
+}
+
+body.mundane-mode [data-mundane-label="altar"]::after,
+body.mundane-mode [data-mundane-label="grimoire"]::after,
+body.mundane-mode [data-mundane-label="apothecary"]::after,
+body.mundane-mode [data-mundane-label="ritual"]::after {
+  content: "";
+}
+
+@media (max-width: 700px) {
+  .cabinet-category-intro {
+    padding: 0.85rem;
+  }
+
+  .apothecary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .apothecary-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .apothecary-tabs button {
+    width: 100%;
+  }
+}
