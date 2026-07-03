@@ -10,7 +10,6 @@ function stopToolbarHoldAction() {
   window.clearInterval(toolbarHoldInterval);
 
   toolbarHoldTimeout = null;
-  toolbarHoldInterval = null;
 }
 
 function startToolbarHoldAction(action) {
@@ -60,6 +59,8 @@ toolbar.addEventListener("pointerleave", stopToolbarHoldAction);
 toolbar.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button || !selectedObject) return;
+
+  stopToolbarHoldAction();
 
   switch (button.dataset.action) {
     case "smaller":
