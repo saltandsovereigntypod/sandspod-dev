@@ -220,6 +220,8 @@ function resizeObject(object, amount) {
     updateObjectPositionPercent(item);
     renderLighting();
   });
+
+  saveWorkingAltarDraft();
 }
 
 function rotateObject(object, amount = 15) {
@@ -230,6 +232,7 @@ function rotateObject(object, amount = 15) {
   object.dataset.rotation = String(rotation);
   updateObjectTransform(object);
   updateObjectPositionPercent(object);
+  saveWorkingAltarDraft();
 }
 
 function bringForward(object) {
@@ -237,6 +240,7 @@ function bringForward(object) {
 
   highestLayer += 1;
   object.style.zIndex = highestLayer;
+  saveWorkingAltarDraft();
 }
 
 function sendBackward(object) {
@@ -244,6 +248,7 @@ function sendBackward(object) {
 
   const currentLayer = Number(object.style.zIndex || 10);
   object.style.zIndex = Math.max(5, currentLayer - 1);
+  saveWorkingAltarDraft();
 }
 
 function flipObject(object) {
@@ -251,6 +256,7 @@ function flipObject(object) {
 
   object.dataset.flipped = object.dataset.flipped === "true" ? "false" : "true";
   updateObjectTransform(object);
+  saveWorkingAltarDraft();
 }
 
 function toggleLock(object) {
@@ -260,6 +266,7 @@ function toggleLock(object) {
 
   object.dataset.locked = isLocked ? "false" : "true";
   object.classList.toggle("is-locked", !isLocked);
+  saveWorkingAltarDraft();
 }
 
 function toggleGlow(object) {
@@ -267,6 +274,7 @@ function toggleGlow(object) {
 
   object.dataset.glowing = object.dataset.glowing === "true" ? "false" : "true";
   object.classList.toggle("has-glow", object.dataset.glowing === "true");
+  saveWorkingAltarDraft();
 }
 
 function makeDraggable(object) {
@@ -374,19 +382,25 @@ function makeDraggable(object) {
 
   object.addEventListener("pointerup", () => {
     object.classList.remove("is-dragging");
-     if (dragStartSnapshot) {
-        pushAltarUndoSnapshot(dragStartSnapshot);
-        dragStartSnapshot = null;
-      }
+
+    if (dragStartSnapshot) {
+      pushAltarUndoSnapshot(dragStartSnapshot);
+      dragStartSnapshot = null;
+    }
+
+    saveWorkingAltarDraft();
     activeObject = null;
   });
 
   object.addEventListener("pointercancel", () => {
     object.classList.remove("is-dragging");
-     if (dragStartSnapshot) {
-        pushAltarUndoSnapshot(dragStartSnapshot);
-        dragStartSnapshot = null;
-      }
+
+    if (dragStartSnapshot) {
+      pushAltarUndoSnapshot(dragStartSnapshot);
+      dragStartSnapshot = null;
+    }
+
+    saveWorkingAltarDraft();
     activeObject = null;
   });
 
@@ -486,6 +500,7 @@ function placeObject(options) {
   selectObject(object);
   updateEmptyMessage();
   renderLighting();
+  saveWorkingAltarDraft();
 }
 
 function deleteObject(object) {
@@ -502,6 +517,7 @@ function deleteObject(object) {
   deselectObject();
   renderLighting();
   updateEmptyMessage();
+  saveWorkingAltarDraft();
 }
 
 function duplicateObject(object) {
@@ -533,4 +549,5 @@ function duplicateObject(object) {
   selectObject(clone);
   updateEmptyMessage();
   renderLighting();
+  saveWorkingAltarDraft();
 }
