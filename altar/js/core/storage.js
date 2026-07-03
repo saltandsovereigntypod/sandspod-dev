@@ -3,6 +3,10 @@
    Local saves, cloud saves, saved altar manager, load/clear
    ========================================================= */
 
+const ALTAR_DRAFT_KEY = "saltAndSovereigntyWorkingAltarDraft";
+let isRestoringAltarDraft = false;
+let altarDraftSaveTimeout = null;
+
 function getStagePositionPercent(object) {
   const scale = Number(object.dataset.scale || 1);
   const leftPx = parseFloat(object.style.left) || 0;
@@ -79,6 +83,79 @@ function repositionAllObjectsFromPercent() {
 
     keepObjectInsideStage(object);
   });
+}
+
+function createAltarSnapshot(name = "Working Altar") {
+  if (!altarStage) return null;
+
+  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
+    const position = getStagePositionPercent(object);
+
+    return {
+      imagePath: getObjectImagePath(object),
+      fallbackSymbol: object.textContent || "",
+      label: object.dataset.label || "object",
+      type: object.dataset.type || "",
+      herb: object.dataset.herb || "",
+      form: object.dataset.form || "",
+      color: object.dataset.color || "",
+      crystal: object.dataset.crystal || "",
+      tool: object.dataset.tool || "",
+      vessel: object.dataset.vessel || "",
+      deity: object.dataset.deity || "",
+      scale: object.dataset.scale || "1",
+      rotation: object.dataset.rotation || "0",
+      flipped: object.dataset.flipped || "false",
+      locked: object.dataset.locked || "false",
+      glowing: object.dataset.glowing || "false",
+      lit: object.dataset.lit || "false",
+      dressings: object.dataset.dressings || "[]",
+      plaqueText: object.dataset.plaqueText || "",
+      altarObjectId: object.dataset.altarObjectId || "",
+      groupId: object.dataset.groupId || "",
+      leftPercent: position.leftPercent,
+      topPercent: position.topPercent,
+      sizePercent: position.sizePercent,
+      zIndex: object.style.zIndex || "10"
+    };
+  });
+
+  return {
+    id: "working-draft",
+    name,
+    savedAt: new Date().toISOString(),
+    background: altarStage.dataset.background || "",
+    backgroundName: altarStage.dataset.backgroundName || "",
+    groups: altarGroups,
+    activeGroupId,
+    objects
+  };
+}
+
+function saveWorkingAltarDraft() {
+  if (!altarStage || isRestoringAltarDraft) return;
+
+  window.clearTimeout(altarDraftSaveTimeout);
+
+  altarDraftSaveTimeout = window.setTimeout(() => {
+    const draft = createAltarSnapshot();
+
+    if (!draft) return;
+
+    localStorage.setItem(ALTAR_DRAFT_KEY, JSON.stringify(draft));
+  }, 250);
+}
+
+function clearWorkingAltarDraft() {
+  localStorage.removeItem(ALTAR_DRAFT_KEY);
+}
+
+function getWorkingAltarDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(ALTAR_DRAFT_KEY));
+  } catch {
+    return null;
+  }
 }
 
 function getLocalSavedAltars() {
@@ -165,47 +242,9 @@ async function saveAltar() {
   const altarName =
     window.prompt("Name this altar save:", "My Altar") || "My Altar";
 
-  const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
-    const position = getStagePositionPercent(object);
+  const altarData = createAltarSnapshot(altarName.trim() || "My Altar");
 
-    return {
-      imagePath: getObjectImagePath(object),
-      fallbackSymbol: object.textContent || "",
-      label: object.dataset.label || "object",
-      type: object.dataset.type || "",
-      herb: object.dataset.herb || "",
-      form: object.dataset.form || "",
-      color: object.dataset.color || "",
-      crystal: object.dataset.crystal || "",
-      tool: object.dataset.tool || "",
-      vessel: object.dataset.vessel || "",
-      deity: object.dataset.deity || "",
-      scale: object.dataset.scale || "1",
-      rotation: object.dataset.rotation || "0",
-      flipped: object.dataset.flipped || "false",
-      locked: object.dataset.locked || "false",
-      glowing: object.dataset.glowing || "false",
-      lit: object.dataset.lit || "false",
-      dressings: object.dataset.dressings || "[]",
-      plaqueText: object.dataset.plaqueText || "",
-      altarObjectId: object.dataset.altarObjectId || "",
-      groupId: object.dataset.groupId || "",
-      leftPercent: position.leftPercent,
-      topPercent: position.topPercent,
-      sizePercent: position.sizePercent,
-      zIndex: object.style.zIndex || "10"
-    };
-  });
-
-  const altarData = {
-    name: altarName.trim() || "My Altar",
-    savedAt: new Date().toISOString(),
-    background: altarStage.dataset.background || "",
-    backgroundName: altarStage.dataset.backgroundName || "",
-    groups: altarGroups,
-    activeGroupId,
-    objects
-  };
+  if (!altarData) return;
 
   const user = await ensureAltarUser();
 
@@ -309,6 +348,67 @@ function createSavedObject(savedObject) {
   return object;
 }
 
+function restoreAltarData(altarData) {
+  if (!altarStage || !altarData) return;
+
+  isRestoringAltarDraft = true;
+
+  altarStage.querySelectorAll(".altar-object").forEach((object) => {
+    stopFlame(object);
+    object.remove();
+  });
+
+  deselectObject();
+  clearCandleDressingMode();
+
+  if (altarData.background) {
+    altarStage.style.backgroundImage = `url("${altarData.background}")`;
+    altarStage.dataset.background = altarData.background;
+    altarStage.dataset.backgroundName = altarData.backgroundName || "";
+  }
+
+  altarGroups = Array.isArray(altarData.groups) ? altarData.groups : [];
+  activeGroupId = altarData.activeGroupId || null;
+
+  (altarData.objects || []).forEach((savedObject) => {
+    const object = createSavedObject(savedObject);
+    altarStage.appendChild(object);
+
+    const img = object.querySelector("img");
+
+    function positionLoadedObject() {
+      applyStagePositionPercent(object, savedObject);
+      updateObjectTransform(object);
+      keepObjectInsideStage(object);
+      updateObjectPositionPercent(object);
+    }
+
+    if (img && !img.complete) {
+      img.addEventListener("load", positionLoadedObject, { once: true });
+    } else {
+      positionLoadedObject();
+    }
+  });
+
+  updateGroupIndicator();
+  syncGroupObjectClasses();
+  updateEmptyMessage();
+
+  window.setTimeout(() => {
+    isRestoringAltarDraft = false;
+    saveWorkingAltarDraft();
+  }, 200);
+}
+
+function restoreWorkingAltarDraft() {
+  const draft = getWorkingAltarDraft();
+
+  if (!draft || !Array.isArray(draft.objects) || draft.objects.length === 0) return;
+
+  restoreAltarData(draft);
+  showAltarToast("Working altar restored");
+}
+
 async function loadAltarById(altarId) {
   if (!altarStage) return;
 
@@ -319,6 +419,11 @@ async function loadAltarById(altarId) {
     showAltarToast("Altar not found");
     return;
   }
+
+  restoreAltarData(altarData);
+  closeSavedAltarsManager();
+  showAltarToast(`Loaded: ${altarData.name || "Altar"}`);
+}
 
   altarStage.querySelectorAll(".altar-object").forEach((object) => {
     stopFlame(object);
@@ -572,4 +677,5 @@ function clearAltar() {
   clearCandleDressingMode();
   updateGroupIndicator();
   updateEmptyMessage();
+  clearWorkingAltarDraft();
 }
