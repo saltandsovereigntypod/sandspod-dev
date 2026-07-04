@@ -68,15 +68,19 @@ async function initGrimoire() {
     await loadSections();
     await loadPages();
 
-    await syncTraditionalLibraryToGrimoireIfEnabled();
+    await renderTraditionalLibraryShelf();
 
-    if (pages.length > 0) {
+    const lastView = getLastGrimoireView();
+
+    if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
+      renderLibraryEntity(lastView.id);
+    } else if (lastView?.type === "page" && pages.some((page) => page.id === lastView.id)) {
+      await openPage(lastView.id, lastView.mode || "read");
+    } else if (pages.length > 0) {
       await openPage(pages[0].id, "read");
     } else {
       renderWelcomeState();
     }
-
-    await renderTraditionalLibraryShelf();
 
     setStatus("");
   } catch (error) {
@@ -105,6 +109,14 @@ function renderWelcomeState() {
 async function openPage(pageId, mode = "read") {
   const page = pages.find((item) => item.id === pageId);
   if (!page) return;
+
+  activeLibraryEntityId = null;
+
+  saveLastGrimoireView({
+    type: "page",
+    id: pageId,
+    mode
+  });
 
   currentPage = page;
   activeSectionId = page.section_id || null;
@@ -534,10 +546,45 @@ async function applyTemplateToCurrentPage() {
    Virtual grimoire view for Traditional Library entities
    ========================================================= */
 
+let activeLibraryEntityId = null;
+
+const GRIMOIRE_LAST_VIEW_KEY = "saltAndSovereigntyLastGrimoireView";
+
+function saveLastGrimoireView(view) {
+  localStorage.setItem(GRIMOIRE_LAST_VIEW_KEY, JSON.stringify(view));
+}
+
+function getLastGrimoireView() {
+  try {
+    return JSON.parse(localStorage.getItem(GRIMOIRE_LAST_VIEW_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
 function formatLibraryEntityName(name = "") {
   return String(name)
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatLibraryFieldName(name = "") {
+  const labels = {
+    PairsWith: "Pairs Well With",
+    TraditionalWarnings: "Traditional Notes & Warnings",
+    SacredSymbols: "Sacred Symbols",
+    SacredAnimals: "Sacred Animals",
+    SacredPlants: "Sacred Plants",
+    CandleColors: "Candle Colors",
+    TraditionallyMadeFrom: "Traditionally Made From",
+    TraditionallyUsedFor: "Traditionally Used For",
+    CommonMaterials: "Common Materials",
+    BestFor: "Best For",
+    BestWith: "Best With",
+    UsedFor: "Used For"
+  };
+
+  return labels[name] || formatLibraryEntityName(name);
 }
 
 function getTraditionalTypeLabel(type = "") {
@@ -554,6 +601,160 @@ function getTraditionalTypeLabel(type = "") {
   return labels[type] || formatLibraryEntityName(type);
 }
 
+function getLibraryEntityIntro(entity) {
+  const traditional = entity.traditional || {};
+  const uses = traditional.Uses || traditional.Domains || traditional.Purpose || "";
+
+  if (!uses) {
+    return `${formatLibraryEntityName(entity.name)} is part of the Traditional Library.`;
+  }
+
+  return `${formatLibraryEntityName(entity.name)} is traditionally associated with ${String(uses).toLowerCase()}.`;
+}
+
+function splitLibraryList(value) {
+  if (Array.isArray(value)) return value;
+
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function renderLibraryChips(value) {
+  const items = splitLibraryList(value);
+
+  if (!items.length) return "";
+
+  return `
+    <div class="book-library-chips">
+      ${items.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+    </div>
+  `;
+}
+
+function renderLibraryPlainValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => escapeHtml(item)).join(", ");
+  }
+
+  return escapeHtml(value);
+}
+
+function renderLibraryField(key, value) {
+  if (!value || key === "tags") return "";
+
+  const chipFields = [
+    "Uses",
+    "Domains",
+    "PairsWith",
+    "Substitutions",
+    "BestFor",
+    "BestWith",
+    "Cleansing",
+    "Offerings",
+    "Herbs",
+    "Crystals",
+    "CandleColors",
+    "SacredSymbols",
+    "SacredAnimals",
+    "SacredPlants",
+    "tags"
+  ];
+
+  const useChips = chipFields.includes(key);
+
+  return `
+    <div class="book-library-field">
+      ${
+        ["Uses", "TraditionalWarnings"].includes(key)
+          ? ""
+          : `<h3>${formatLibraryFieldName(key)}</h3>`
+      }
+      ${
+        useChips
+          ? renderLibraryChips(value)
+          : `<p>${renderLibraryPlainValue(value)}</p>`
+      }
+    </div>
+  `;
+}
+
+function groupTraditionalFields(traditional = {}) {
+  const groups = [
+    {
+      title: "Correspondences",
+      keys: ["Element", "Planet", "Chakra", "Pantheon"]
+    },
+    {
+      title: "Magical Uses",
+      keys: ["Uses", "Domains", "Purpose", "UsedFor", "BestFor"]
+    },
+    {
+      title: "Pairings & Substitutions",
+      keys: ["PairsWith", "Substitutions", "BestWith", "Herbs", "Crystals", "CandleColors"]
+    },
+    {
+      title: "Sacred Associations",
+      keys: ["SacredSymbols", "SacredAnimals", "SacredPlants", "Offerings"]
+    },
+    {
+      title: "Materials & Care",
+      keys: ["TraditionallyMadeFrom", "TraditionallyUsedFor", "CommonMaterials", "Cleansing"]
+    },
+    {
+      title: "Traditional Notes",
+      keys: ["TraditionalWarnings"]
+    }
+  ];
+
+  const usedKeys = new Set();
+
+  const renderedGroups = groups
+    .map((group) => {
+      const fields = group.keys
+        .filter((key) => traditional[key])
+        .map((key) => {
+          usedKeys.add(key);
+          return renderLibraryField(key, traditional[key]);
+        })
+        .join("");
+
+      if (!fields) return "";
+
+      return `
+        <section class="book-library-layer">
+          <h2>${group.title}</h2>
+          <div class="book-library-fields">
+            ${fields}
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+
+  const extraFields = Object.entries(traditional)
+    .filter(([key]) => key !== "tags" && !usedKeys.has(key))
+    .map(([key, value]) => renderLibraryField(key, value))
+    .join("");
+
+  return `
+    ${renderedGroups}
+    ${
+      extraFields
+        ? `
+          <section class="book-library-layer">
+            <h2>Additional Traditional Notes</h2>
+            <div class="book-library-fields">
+              ${extraFields}
+            </div>
+          </section>
+        `
+        : ""
+    }
+  `;
+}
+
 async function shouldShowTraditionalLibrary() {
   if (typeof getMySettings !== "function") return false;
 
@@ -568,8 +769,7 @@ async function renderTraditionalLibraryShelf() {
   if (typeof TraditionalLibrary === "undefined") return;
   if (typeof getMySettings !== "function") return;
 
-  const settings = await getMySettings();
-  const showTraditional = Boolean(settings.sync_traditional_library_to_grimoire);
+  const showTraditional = await shouldShowTraditionalLibrary();
 
   const existing = grimoireShelf.querySelector("[data-traditional-library-shelf]");
   if (existing) existing.remove();
@@ -585,11 +785,11 @@ async function renderTraditionalLibraryShelf() {
   wrapper.setAttribute("data-traditional-library-shelf", "");
 
   wrapper.innerHTML = `
-    <button class="book-section-title" type="button" data-traditional-library-toggle>
+    <button class="book-section-title traditional-library-title" type="button" data-traditional-library-toggle>
       <span>Traditional Information</span>
     </button>
 
-    <div class="book-section-pages" data-traditional-library-list>
+    <div class="book-section-pages traditional-library-root" data-traditional-library-list>
       ${types
         .map((type) => {
           const entities = Library.getEntitiesByType(type)
@@ -599,19 +799,24 @@ async function renderTraditionalLibraryShelf() {
           if (!entities.length) return "";
 
           return `
-            <div class="traditional-library-group">
-              <p>${getTraditionalTypeLabel(type)}</p>
+            <div class="traditional-library-group" data-traditional-library-group="${type}">
+              <button class="traditional-library-group-title" type="button" data-library-type-toggle="${type}">
+                <span>▸</span>
+                ${getTraditionalTypeLabel(type)}
+              </button>
 
-              ${entities
-                .map((entity) => `
-                  <button
-                    type="button"
-                    class="book-page-link"
-                    data-library-entity-id="${entity.id}">
-                    ${formatLibraryEntityName(entity.name)}
-                  </button>
-                `)
-                .join("")}
+              <div class="traditional-library-entity-list" data-library-type-list="${type}" hidden>
+                ${entities
+                  .map((entity) => `
+                    <button
+                      type="button"
+                      class="book-page-link traditional-library-entity-link ${activeLibraryEntityId === entity.id ? "is-active" : ""}"
+                      data-library-entity-id="${entity.id}">
+                      ${formatLibraryEntityName(entity.name)}
+                    </button>
+                  `)
+                  .join("")}
+              </div>
             </div>
           `;
         })
@@ -620,6 +825,68 @@ async function renderTraditionalLibraryShelf() {
   `;
 
   grimoireShelf.appendChild(wrapper);
+
+  if (activeLibraryEntityId) {
+    const activeEntity = Library.getEntity(activeLibraryEntityId);
+
+    if (activeEntity) {
+      const activeList = wrapper.querySelector(`[data-library-type-list="${activeEntity.type}"]`);
+      const activeToggle = wrapper.querySelector(`[data-library-type-toggle="${activeEntity.type}"] span`);
+
+      if (activeList) activeList.hidden = false;
+      if (activeToggle) activeToggle.textContent = "▾";
+    }
+  }
+}
+
+function renderMyPracticeLayer(entity) {
+  const myPractice = entity.myPractice || {};
+  const entries = Object.entries(myPractice).filter(([, value]) => value);
+
+  return `
+    <section class="book-library-layer book-library-layer--my-practice">
+      <h2>My Practice</h2>
+
+      ${
+        entries.length
+          ? `
+            <div class="book-library-fields">
+              ${entries.map(([key, value]) => renderLibraryField(key, value)).join("")}
+            </div>
+          `
+          : `
+            <p class="book-placeholder">
+              No personal practice notes have been added yet.
+            </p>
+          `
+      }
+    </section>
+  `;
+}
+
+function renderCommunityLayer(entity) {
+  const community = entity.community || {};
+  const entries = Object.entries(community).filter(([, value]) => value);
+
+  return `
+    <section class="book-library-layer book-library-layer--community">
+      <h2>Community</h2>
+
+      ${
+        entries.length
+          ? `
+            <div class="book-library-fields">
+              ${entries.map(([key, value]) => renderLibraryField(key, value)).join("")}
+            </div>
+          `
+          : `
+            <p class="book-placeholder">
+              No community information has been approved yet.
+            </p>
+          `
+      }
+    </section>
+  `;
 }
 
 function renderLibraryEntity(entityId) {
@@ -628,6 +895,11 @@ function renderLibraryEntity(entityId) {
   const entity = Library.getEntity(entityId);
   if (!entity) return;
 
+  activeLibraryEntityId = entityId;
+  saveLastGrimoireView({
+    type: "library",
+    id: entityId
+  });
   currentPage = null;
   currentBlocks = [];
   pageLinks = [];
@@ -641,56 +913,49 @@ function renderLibraryEntity(entityId) {
   updateEditButton();
 
   const traditional = entity.traditional || {};
-  const myPractice = entity.myPractice || {};
-  const community = entity.community || {};
-
-  function renderLayer(title, data, emptyText) {
-    const entries = Object.entries(data || {}).filter(([key]) => key !== "tags");
-
-    return `
-      <section class="book-library-layer">
-        <h2>${title}</h2>
-
-        ${
-          entries.length
-            ? entries
-                .map(([key, value]) => `
-                  <div class="book-library-field">
-                    <h3>${formatLibraryEntityName(key)}</h3>
-                    <p>${Array.isArray(value) ? value.join(", ") : value}</p>
-                  </div>
-                `)
-                .join("")
-            : `<p class="book-placeholder">${emptyText}</p>`
-        }
-      </section>
-    `;
-  }
+  const tags = Array.isArray(traditional.tags) ? traditional.tags : [];
 
   entryList.innerHTML = `
     <section class="book-reader-page book-library-entity-page">
-      <header class="book-reader-header">
+      <header class="book-reader-header book-library-header">
         <p class="book-apothecary-meta">
           ${getTraditionalTypeLabel(entity.type)}
         </p>
 
         <h1>${formatLibraryEntityName(entity.name)}</h1>
 
+        <p class="book-library-intro">
+          ${escapeHtml(getLibraryEntityIntro(entity))}
+        </p>
+
         <div class="book-reader-divider">✦ ☽ ✦ ☾ ✦</div>
+
+        ${
+          tags.length
+            ? `
+              <div class="book-library-tags">
+                ${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+              </div>
+            `
+            : ""
+        }
       </header>
 
-      <div class="book-reader-body">
-        ${renderLayer("Traditional", traditional, "No traditional information has been added yet.")}
-        ${renderLayer("My Practice", myPractice, "No personal practice notes have been added yet.")}
-        ${renderLayer("Community", community, "No community information has been approved yet.")}
+      <div class="book-reader-body book-library-body">
+        ${groupTraditionalFields(traditional)}
+        ${renderMyPracticeLayer(entity)}
+        ${renderCommunityLayer(entity)}
       </div>
     </section>
   `;
+
+  renderTraditionalLibraryShelf();
 }
 
 document.addEventListener("click", async (event) => {
   const libraryEntityButton = event.target.closest("[data-library-entity-id]");
   const traditionalToggle = event.target.closest("[data-traditional-library-toggle]");
+  const typeToggle = event.target.closest("[data-library-type-toggle]");
 
   if (libraryEntityButton) {
     renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
@@ -703,6 +968,22 @@ document.addEventListener("click", async (event) => {
     if (!list) return;
 
     list.hidden = !list.hidden;
+    return;
+  }
+
+  if (typeToggle) {
+    const type = typeToggle.dataset.libraryTypeToggle;
+    const shelf = typeToggle.closest("[data-traditional-library-shelf]");
+    const list = shelf?.querySelector(`[data-library-type-list="${type}"]`);
+    const icon = typeToggle.querySelector("span");
+
+    if (!list) return;
+
+    list.hidden = !list.hidden;
+
+    if (icon) {
+      icon.textContent = list.hidden ? "▸" : "▾";
+    }
   }
 });
 

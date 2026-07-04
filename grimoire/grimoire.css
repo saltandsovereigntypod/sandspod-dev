@@ -1442,3 +1442,191 @@ body.grimoire-font-handwritten {
 .book-library-field p {
   margin: 0;
 }
+
+/* =========================================================
+   LIVING LIBRARY BROWSER POLISH
+   Collapsible Traditional Information + entity pages
+   ========================================================= */
+
+.traditional-library-shelf {
+  margin-top: 1.4rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.traditional-library-title {
+  color: var(--cream);
+  font-size: clamp(1.3rem, 2vw, 1.75rem) !important;
+  line-height: 1.05 !important;
+}
+
+.traditional-library-root {
+  padding-left: 0;
+}
+
+.traditional-library-group {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.traditional-library-group-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  border: 0;
+  padding: 0.25rem 0;
+  color: var(--gold);
+  background: transparent;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.traditional-library-group-title:hover,
+.traditional-library-group-title:focus-visible {
+  color: var(--cream);
+}
+
+.traditional-library-entity-list {
+  display: grid;
+  gap: 0.18rem;
+  padding-left: 1.15rem;
+}
+
+.traditional-library-entity-list[hidden] {
+  display: none;
+}
+
+.traditional-library-entity-link {
+  font-size: 0.95rem;
+}
+
+.traditional-library-entity-link.is-active {
+  color: var(--cream);
+}
+
+.book-library-entity-page {
+  max-width: none;
+}
+
+.book-library-header {
+  max-width: 780px;
+  margin-inline: auto;
+}
+
+.book-library-intro {
+  max-width: 58ch;
+  margin: 1rem auto 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.book-library-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1.2rem;
+}
+
+.book-library-tags span,
+.book-library-chips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.06);
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.book-library-body {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.book-library-layer {
+  margin-top: 2.4rem;
+}
+
+.book-library-layer h2 {
+  margin-bottom: 1rem;
+  color: var(--gold);
+  font-size: clamp(1.45rem, 2.4vw, 2.15rem);
+  line-height: 1.1;
+}
+
+.book-library-layer--traditional > h2 {
+  margin-bottom: 1.35rem;
+}
+
+.book-library-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+.book-library-field {
+  display: grid;
+  gap: 0.3rem;
+  padding-bottom: 0.95rem;
+  border-bottom: 1px solid rgba(185, 160, 93, 0.13);
+}
+
+.book-library-field:last-child {
+  border-bottom: 0;
+}
+
+.book-library-field h3 {
+  margin: 0;
+  color: var(--cream);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.book-library-field p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.book-library-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.book-library-layer--my-practice,
+.book-library-layer--community {
+  border-top: 1px solid rgba(185, 160, 93, 0.18);
+  padding-top: 1.6rem;
+}
+
+.book-library-body > .book-library-layer:first-child {
+  margin-top: 1.5rem;
+}
+
+.book-library-layer h2 {
+  font-size: clamp(1.55rem, 2.2vw, 2.35rem) !important;
+}
+
+.book-library-field h3 {
+  font-size: 0.78rem;
+}
+
+.book-library-field {
+  padding-bottom: 0.75rem;
+}
