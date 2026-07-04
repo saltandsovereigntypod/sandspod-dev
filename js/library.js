@@ -170,6 +170,20 @@ function getOrCreateEntity({
 
   }
 
+  function getMyPracticeEntitiesByType(type) {
+  return Object.values(library.entities)
+    .filter((entity) => {
+      const hasMyPractice =
+        entity.myPractice &&
+        Object.keys(entity.myPractice).some((key) => {
+          const value = entity.myPractice[key];
+          return Array.isArray(value) ? value.length : String(value || "").trim();
+        });
+
+      return entity.type === type && hasMyPractice;
+    });
+}
+
   function connect(from, relation, to) {
 
     library.relations.push({
@@ -190,6 +204,28 @@ function getOrCreateEntity({
       link.to === id
     );
 
+  }
+
+  function updateEntityType(id, newType) {
+    if (!library.entities[id]) return null;
+
+    library.entities[id].type = newType;
+    library.entities[id].updatedAt = new Date().toISOString();
+
+    save();
+
+    return library.entities[id];
+  }
+
+  function updateEntityImage(id, image) {
+    if (!library.entities[id]) return null;
+
+    library.entities[id].image = image || "";
+    library.entities[id].updatedAt = new Date().toISOString();
+
+    save();
+
+    return library.entities[id];
   }
 
   function removeEntity(id) {
@@ -238,9 +274,12 @@ function getOrCreateEntity({
 
     updateEntity,
     updateEntitySection,
+    updateEntityType,
+    updateEntityImage,
 
     getEntity,
     getEntitiesByType,
+    getMyPracticeEntitiesByType,
     getIndex,
 
     connect,

@@ -1630,3 +1630,41 @@ body.grimoire-font-handwritten {
 .book-library-field {
   padding-bottom: 0.75rem;
 }
+
+/* =========================================================
+   MY PRACTICE LIVING LIBRARY
+   ========================================================= */
+
+.my-practice-shelf {
+  margin-top: 1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.my-practice-new-entry-button {
+  width: 100%;
+  margin: 0.65rem 0 1rem;
+  min-height: 2.45rem;
+}
+
+.library-sidebar-search {
+  display: block;
+  margin: 0.6rem 0 0.85rem;
+}
+
+.library-sidebar-search input {
+  width: 100%;
+  min-height: 2.3rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  background: rgba(244, 236, 216, 0.06);
+  font-size: 0.88rem;
+}
+
+.book-library-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.2rem;
+}

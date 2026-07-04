@@ -68,18 +68,21 @@ async function initGrimoire() {
     await loadSections();
     await loadPages();
 
-    await renderTraditionalLibraryShelf();
-
     const lastView = getLastGrimoireView();
 
     if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
+      renderWelcomeState();
+      await renderLivingLibraryShelves();
       renderLibraryEntity(lastView.id);
     } else if (lastView?.type === "page" && pages.some((page) => page.id === lastView.id)) {
       await openPage(lastView.id, lastView.mode || "read");
+      await renderLivingLibraryShelves();
     } else if (pages.length > 0) {
       await openPage(pages[0].id, "read");
+      await renderLivingLibraryShelves();
     } else {
       renderWelcomeState();
+      await renderLivingLibraryShelves();
     }
 
     setStatus("");
@@ -562,6 +565,148 @@ function getLastGrimoireView() {
   }
 }
 
+const LIBRARY_SHELF_STATE_KEY = "saltAndSovereigntyLibraryShelfState";
+let librarySearchTerm = "";
+
+const MY_PRACTICE_TYPES = [
+  "herb",
+  "crystal",
+  "candle",
+  "deity",
+  "tool",
+  "vessel",
+  "apothecary",
+  "ritual",
+  "spell",
+  "note",
+  "section"
+];
+
+function getLibraryShelfState() {
+  try {
+    return JSON.parse(localStorage.getItem(LIBRARY_SHELF_STATE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLibraryShelfState(key, isOpen) {
+  const state = getLibraryShelfState();
+  state[key] = Boolean(isOpen);
+  localStorage.setItem(LIBRARY_SHELF_STATE_KEY, JSON.stringify(state));
+}
+
+function isLibraryShelfOpen(key) {
+  const state = getLibraryShelfState();
+
+  if (!(key in state)) {
+    return key === "my-practice-root" || key === "traditional-root";
+  }
+
+  return Boolean(state[key]);
+}
+
+function getMyPracticeTypeLabel(type = "") {
+  const labels = {
+    herb: "Herbs",
+    crystal: "Crystals",
+    candle: "Candles",
+    deity: "Deities",
+    tool: "Tools",
+    vessel: "Vessels",
+    apothecary: "Apothecary",
+    ritual: "Rituals",
+    spell: "Spells",
+    note: "Notes",
+    section: "Sections"
+  };
+
+  return labels[type] || formatLibraryEntityName(type);
+}
+
+async function renderMyPracticeShelf() {
+  if (!grimoireShelf) return;
+  if (typeof Library === "undefined") return;
+
+  const existing = grimoireShelf.querySelector("[data-my-practice-shelf]");
+  if (existing) existing.remove();
+
+  const search = librarySearchTerm.trim().toLowerCase();
+
+  const wrapper = document.createElement("section");
+  wrapper.className = "book-toc-section my-practice-shelf";
+  wrapper.setAttribute("data-my-practice-shelf", "");
+
+  wrapper.innerHTML = `
+    <button class="book-section-title traditional-library-title" type="button" data-my-practice-toggle>
+      <span>My Practice</span>
+    </button>
+
+    <div class="book-section-pages traditional-library-root" data-my-practice-list ${isLibraryShelfOpen("my-practice-root") ? "" : "hidden"}>
+      <button class="button button--primary my-practice-new-entry-button" type="button" data-create-library-entry>
+        New Entry
+      </button>
+
+      <label class="library-sidebar-search">
+        <span class="sr-only">Search My Practice</span>
+        <input
+          type="search"
+          placeholder="Search my practice..."
+          value="${escapeHtml(librarySearchTerm)}"
+          data-library-search
+        />
+      </label>
+
+      ${MY_PRACTICE_TYPES
+        .map((type) => {
+          const entities = Library.getMyPracticeEntitiesByType(type)
+            .filter((entity) => {
+              if (!search) return true;
+              return `${entity.name} ${entity.type}`.toLowerCase().includes(search);
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          const groupKey = `my-practice-${type}`;
+          const isOpen = isLibraryShelfOpen(groupKey);
+
+          return `
+            <div class="traditional-library-group" data-my-practice-group="${type}">
+              <button class="traditional-library-group-title" type="button" data-my-practice-type-toggle="${type}">
+                <span>${isOpen ? "▾" : "▸"}</span>
+                ${getMyPracticeTypeLabel(type)}
+              </button>
+
+              <div class="traditional-library-entity-list" data-my-practice-type-list="${type}" ${isOpen ? "" : "hidden"}>
+                ${
+                  entities.length
+                    ? entities
+                        .map((entity) => `
+                          <button
+                            type="button"
+                            class="book-page-link traditional-library-entity-link ${activeLibraryEntityId === entity.id ? "is-active" : ""}"
+                            data-library-entity-id="${entity.id}">
+                            ${formatLibraryEntityName(entity.name)}
+                          </button>
+                        `)
+                        .join("")
+                    : `<p class="book-section-empty">Nothing added yet.</p>`
+                }
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+
+  grimoireShelf.prepend(wrapper);
+}
+
+async function renderLivingLibraryShelves() {
+  await renderMyPracticeShelf();
+  await renderTraditionalLibraryShelf();
+}
+
 function formatLibraryEntityName(name = "") {
   return String(name)
     .replaceAll("_", " ")
@@ -778,6 +923,7 @@ async function renderTraditionalLibraryShelf() {
 
   Library.importTraditionalLibrary();
 
+  const search = librarySearchTerm.trim().toLowerCase();
   const types = ["herb", "crystal", "candle", "deity", "tool", "vessel"];
 
   const wrapper = document.createElement("section");
@@ -789,33 +935,54 @@ async function renderTraditionalLibraryShelf() {
       <span>Traditional Information</span>
     </button>
 
-    <div class="book-section-pages traditional-library-root" data-traditional-library-list>
+    <div class="book-section-pages traditional-library-root" data-traditional-library-list ${isLibraryShelfOpen("traditional-root") ? "" : "hidden"}>
+      <label class="library-sidebar-search">
+        <span class="sr-only">Search Traditional Information</span>
+        <input
+          type="search"
+          placeholder="Search traditional..."
+          value="${escapeHtml(librarySearchTerm)}"
+          data-library-search
+        />
+      </label>
+
       ${types
         .map((type) => {
           const entities = Library.getEntitiesByType(type)
             .filter((entity) => entity.traditional && Object.keys(entity.traditional).length)
+            .filter((entity) => {
+              if (!search) return true;
+              return `${entity.name} ${entity.type} ${JSON.stringify(entity.traditional)}`.toLowerCase().includes(search);
+            })
             .sort((a, b) => a.name.localeCompare(b.name));
 
-          if (!entities.length) return "";
+          const groupKey = `traditional-${type}`;
+          const isOpen = isLibraryShelfOpen(groupKey);
+
+          if (!entities.length && search) return "";
 
           return `
             <div class="traditional-library-group" data-traditional-library-group="${type}">
               <button class="traditional-library-group-title" type="button" data-library-type-toggle="${type}">
-                <span>▸</span>
+                <span>${isOpen ? "▾" : "▸"}</span>
                 ${getTraditionalTypeLabel(type)}
               </button>
 
-              <div class="traditional-library-entity-list" data-library-type-list="${type}" hidden>
-                ${entities
-                  .map((entity) => `
-                    <button
-                      type="button"
-                      class="book-page-link traditional-library-entity-link ${activeLibraryEntityId === entity.id ? "is-active" : ""}"
-                      data-library-entity-id="${entity.id}">
-                      ${formatLibraryEntityName(entity.name)}
-                    </button>
-                  `)
-                  .join("")}
+              <div class="traditional-library-entity-list" data-library-type-list="${type}" ${isOpen ? "" : "hidden"}>
+                ${
+                  entities.length
+                    ? entities
+                        .map((entity) => `
+                          <button
+                            type="button"
+                            class="book-page-link traditional-library-entity-link ${activeLibraryEntityId === entity.id ? "is-active" : ""}"
+                            data-library-entity-id="${entity.id}">
+                            ${formatLibraryEntityName(entity.name)}
+                          </button>
+                        `)
+                        .join("")
+                    : `<p class="book-section-empty">No entries found.</p>`
+                }
               </div>
             </div>
           `;
@@ -825,18 +992,6 @@ async function renderTraditionalLibraryShelf() {
   `;
 
   grimoireShelf.appendChild(wrapper);
-
-  if (activeLibraryEntityId) {
-    const activeEntity = Library.getEntity(activeLibraryEntityId);
-
-    if (activeEntity) {
-      const activeList = wrapper.querySelector(`[data-library-type-list="${activeEntity.type}"]`);
-      const activeToggle = wrapper.querySelector(`[data-library-type-toggle="${activeEntity.type}"] span`);
-
-      if (activeList) activeList.hidden = false;
-      if (activeToggle) activeToggle.textContent = "▾";
-    }
-  }
 }
 
 function renderMyPracticeLayer(entity) {
@@ -939,6 +1094,22 @@ function renderLibraryEntity(entityId) {
             `
             : ""
         }
+
+        ${
+          Object.keys(entity.myPractice || {}).length
+            ? `
+              <div class="book-library-actions">
+                <button class="button button--small" type="button" data-edit-library-entry="${entity.id}">
+                  Edit My Practice
+                </button>
+
+                <button class="button button--small button--ghost" type="button" data-delete-library-entry="${entity.id}">
+                  Delete From My Practice
+                </button>
+              </div>
+            `
+            : ""
+        }
       </header>
 
       <div class="book-reader-body book-library-body">
@@ -949,13 +1120,355 @@ function renderLibraryEntity(entityId) {
     </section>
   `;
 
-  renderTraditionalLibraryShelf();
+  renderLivingLibraryShelves();
+}
+
+function openCreateLibraryEntryModal() {
+  const modal = document.createElement("div");
+  modal.className = "book-modal-backdrop";
+  modal.setAttribute("data-library-entry-modal", "");
+
+  modal.innerHTML = `
+    <div class="book-modal" role="dialog" aria-modal="true" aria-label="Create new practice entry">
+      <header>
+        <h2>New Practice Entry</h2>
+        <button type="button" data-close-library-entry-modal aria-label="Close">×</button>
+      </header>
+
+      <div class="book-modal-body">
+        <form class="my-sanctuary-form" data-create-library-entry-form>
+          <label>
+            Entry Type
+            <select name="type" required>
+              <option value="herb">Herb</option>
+              <option value="crystal">Crystal</option>
+              <option value="candle">Candle</option>
+              <option value="deity">Deity</option>
+              <option value="tool">Tool</option>
+              <option value="vessel">Vessel</option>
+              <option value="apothecary">Apothecary</option>
+              <option value="ritual">Ritual</option>
+              <option value="spell">Spell</option>
+              <option value="note">Note</option>
+              <option value="section">Section</option>
+            </select>
+          </label>
+
+          <label>
+            Name
+            <input type="text" name="name" placeholder="Rosemary, Dream Oil, Full Moon Ritual..." required />
+          </label>
+
+          <label>
+            Meaning
+            <textarea name="Meaning" rows="3"></textarea>
+          </label>
+
+          <label>
+            Uses
+            <textarea name="Uses" rows="3"></textarea>
+          </label>
+
+          <label>
+            Pairs With
+            <textarea name="PairsWith" rows="2"></textarea>
+          </label>
+
+          <label>
+            Substitutions
+            <textarea name="Substitutions" rows="2"></textarea>
+          </label>
+
+          <label>
+            Notes
+            <textarea name="Notes" rows="5"></textarea>
+          </label>
+
+          <button class="button button--primary" type="submit">
+            Create Entry
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function closeCreateLibraryEntryModal() {
+  const modal = document.querySelector("[data-library-entry-modal]");
+  if (!modal) return;
+
+  modal.remove();
+}
+
+function createLibraryEntryFromForm(form) {
+  if (typeof Library === "undefined") return null;
+
+  const formData = new FormData(form);
+  const type = String(formData.get("type") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+
+  if (!type || !name) return null;
+
+  const entity = Library.getOrCreateEntity({
+    name,
+    type
+  });
+
+  const myPractice = {
+    ...(entity.myPractice || {}),
+    Meaning: String(formData.get("Meaning") || "").trim(),
+    Uses: String(formData.get("Uses") || "").trim(),
+    PairsWith: String(formData.get("PairsWith") || "").trim(),
+    Substitutions: String(formData.get("Substitutions") || "").trim(),
+    Notes: String(formData.get("Notes") || "").trim()
+  };
+
+  Object.keys(myPractice).forEach((key) => {
+    if (!myPractice[key]) delete myPractice[key];
+  });
+
+  Library.updateEntitySection(entity.id, "myPractice", myPractice);
+
+  return Library.getEntity(entity.id);
+}
+
+function openEditLibraryEntryModal(entityId) {
+  if (typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  const myPractice = entity.myPractice || {};
+
+  const modal = document.createElement("div");
+  modal.className = "book-modal-backdrop";
+  modal.setAttribute("data-library-edit-modal", "");
+
+  modal.innerHTML = `
+    <div class="book-modal" role="dialog" aria-modal="true" aria-label="Edit practice entry">
+      <header>
+        <h2>Edit Entry</h2>
+        <button type="button" data-close-library-edit-modal aria-label="Close">×</button>
+      </header>
+
+      <div class="book-modal-body">
+        <form class="my-sanctuary-form" data-edit-library-entry-form data-library-entity-id="${entity.id}">
+          <label>
+            Entry Type
+            <select name="type" required>
+              ${MY_PRACTICE_TYPES
+                .map((type) => `
+                  <option value="${type}" ${entity.type === type ? "selected" : ""}>
+                    ${getMyPracticeTypeLabel(type).replace(/s$/, "")}
+                  </option>
+                `)
+                .join("")}
+            </select>
+          </label>
+
+          <label>
+            Name
+            <input type="text" name="name" value="${escapeHtml(entity.name)}" required />
+          </label>
+
+          <label>
+            Image
+            <input type="file" name="image" accept="image/png,image/webp,image/jpeg" />
+          </label>
+
+          ${
+            entity.image
+              ? `<p class="book-section-empty">Current image is saved. Upload a new one to replace it.</p>`
+              : ""
+          }
+
+          <label>
+            Meaning
+            <textarea name="Meaning" rows="3">${escapeHtml(myPractice.Meaning || "")}</textarea>
+          </label>
+
+          <label>
+            Uses
+            <textarea name="Uses" rows="3">${escapeHtml(myPractice.Uses || "")}</textarea>
+          </label>
+
+          <label>
+            Pairs With
+            <textarea name="PairsWith" rows="2">${escapeHtml(myPractice.PairsWith || "")}</textarea>
+          </label>
+
+          <label>
+            Substitutions
+            <textarea name="Substitutions" rows="2">${escapeHtml(myPractice.Substitutions || "")}</textarea>
+          </label>
+
+          <label>
+            Notes
+            <textarea name="Notes" rows="5">${escapeHtml(myPractice.Notes || "")}</textarea>
+          </label>
+
+          <button class="button button--primary" type="submit">
+            Save Entry
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function closeEditLibraryEntryModal() {
+  const modal = document.querySelector("[data-library-edit-modal]");
+  if (!modal) return;
+
+  modal.remove();
+}
+
+function readLibraryImageFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.size) {
+      resolve("");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function updateLibraryEntryFromForm(form) {
+  if (typeof Library === "undefined") return null;
+
+  const entityId = form.dataset.libraryEntityId;
+  const entity = Library.getEntity(entityId);
+
+  if (!entity) return null;
+
+  const formData = new FormData(form);
+  const type = String(formData.get("type") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+  const imageFile = formData.get("image");
+
+  if (!type || !name) return null;
+
+  Library.updateEntity(entityId, { name });
+  Library.updateEntityType(entityId, type);
+
+  if (imageFile && imageFile.size) {
+    const image = await readLibraryImageFile(imageFile);
+    Library.updateEntityImage(entityId, image);
+  }
+
+  const myPractice = {
+    Meaning: String(formData.get("Meaning") || "").trim(),
+    Uses: String(formData.get("Uses") || "").trim(),
+    PairsWith: String(formData.get("PairsWith") || "").trim(),
+    Substitutions: String(formData.get("Substitutions") || "").trim(),
+    Notes: String(formData.get("Notes") || "").trim()
+  };
+
+  Object.keys(myPractice).forEach((key) => {
+    if (!myPractice[key]) delete myPractice[key];
+  });
+
+  Library.updateEntity(entityId, {
+    myPractice
+  });
+
+  return Library.getEntity(entityId);
+}
+
+async function deleteLibraryEntryFromMyPractice(entityId) {
+  if (typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  const confirmed = window.confirm(
+    `Delete your My Practice notes for "${formatLibraryEntityName(entity.name)}"? The traditional entry will remain if it exists.`
+  );
+
+  if (!confirmed) return;
+
+  Library.updateEntity(entityId, {
+    myPractice: {}
+  });
+
+  await renderLivingLibraryShelves();
+  renderLibraryEntity(entityId);
+
+  flashStatus("Removed from My Practice.");
 }
 
 document.addEventListener("click", async (event) => {
   const libraryEntityButton = event.target.closest("[data-library-entity-id]");
+  const createEntryButton = event.target.closest("[data-create-library-entry]");
+  const closeEntryModalButton = event.target.closest("[data-close-library-entry-modal]");
+  const myPracticeToggle = event.target.closest("[data-my-practice-toggle]");
+  const myPracticeTypeToggle = event.target.closest("[data-my-practice-type-toggle]");
   const traditionalToggle = event.target.closest("[data-traditional-library-toggle]");
   const typeToggle = event.target.closest("[data-library-type-toggle]");
+  const editEntryButton = event.target.closest("[data-edit-library-entry]");
+  const deleteEntryButton = event.target.closest("[data-delete-library-entry]");
+  const closeEditModalButton = event.target.closest("[data-close-library-edit-modal]");
+
+  if (createEntryButton) {
+    openCreateLibraryEntryModal();
+    return;
+  }
+
+  if (closeEntryModalButton) {
+    closeCreateLibraryEntryModal();
+    return;
+  }
+
+  if (myPracticeToggle) {
+    const shelf = myPracticeToggle.closest("[data-my-practice-shelf]");
+    const list = shelf?.querySelector("[data-my-practice-list]");
+    if (!list) return;
+
+    list.hidden = !list.hidden;
+    return;
+  }
+
+  if (myPracticeTypeToggle) {
+    const type = myPracticeTypeToggle.dataset.myPracticeTypeToggle;
+    const shelf = myPracticeTypeToggle.closest("[data-my-practice-shelf]");
+    const list = shelf?.querySelector(`[data-my-practice-type-list="${type}"]`);
+    const icon = myPracticeTypeToggle.querySelector("span");
+
+    if (!list) return;
+
+    list.hidden = !list.hidden;
+
+    if (icon) {
+      icon.textContent = list.hidden ? "▸" : "▾";
+    }
+
+    return;
+  }
+
+  if (editEntryButton) {
+    openEditLibraryEntryModal(editEntryButton.dataset.editLibraryEntry);
+    return;
+  }
+
+  if (deleteEntryButton) {
+    await deleteLibraryEntryFromMyPractice(deleteEntryButton.dataset.deleteLibraryEntry);
+    return;
+  }
+
+  if (closeEditModalButton) {
+    closeEditLibraryEntryModal();
+    return;
+  }
 
   if (libraryEntityButton) {
     renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
@@ -985,6 +1498,48 @@ document.addEventListener("click", async (event) => {
       icon.textContent = list.hidden ? "▸" : "▾";
     }
   }
+});
+
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest("[data-create-library-entry-form]");
+  if (!form) return;
+
+  event.preventDefault();
+
+  const entity = createLibraryEntryFromForm(form);
+
+  if (!entity) {
+    flashStatus("Entry could not be created.");
+    return;
+  }
+
+  closeCreateLibraryEntryModal();
+
+  await renderLivingLibraryShelves();
+  renderLibraryEntity(entity.id);
+
+  flashStatus("Entry created.");
+});
+
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest("[data-edit-library-entry-form]");
+  if (!form) return;
+
+  event.preventDefault();
+
+  const entity = await updateLibraryEntryFromForm(form);
+
+  if (!entity) {
+    flashStatus("Entry could not be saved.");
+    return;
+  }
+
+  closeEditLibraryEntryModal();
+
+  await renderLivingLibraryShelves();
+  renderLibraryEntity(entity.id);
+
+  flashStatus("Entry saved.");
 });
 
 /* =========================================================
