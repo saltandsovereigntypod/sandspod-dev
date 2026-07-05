@@ -124,6 +124,18 @@ const cabinetItems = [
       ]
     },
 
+   {
+      category: "herbs",
+      name: "Chamomile",
+      icon: "🌿",
+      keywords: ["purification", "blessing", "grounding"],
+      forms: [
+        { label: "Sprig", image: "../assets/altar/objects/herbs/chamomile/chamomile-sprig.png", type: "herb", herb: "chamomile", form: "sprig" },
+        { label: "Loose", image: "../assets/altar/objects/herbs/chamomile/chamomile-loose.png", type: "herb", herb: "chamomile", form: "loose" },
+        { label: "Oil", image: "../assets/altar/objects/herbs/chamomile/chamomile-oil.png", type: "oil", herb: "chamomile", form: "oil" }
+      ]
+    },
+
   {
     category: "crystals",
     name: "Amethyst",
@@ -133,6 +145,18 @@ const cabinetItems = [
       { label: "Point", image: "../assets/altar/objects/crystals/amethyst/amethyst-point.png", type: "crystal", crystal: "amethyst", form: "point" },
       { label: "Chips", image: "../assets/altar/objects/crystals/amethyst/amethyst-chips.png", type: "crystal", crystal: "amethyst", form: "chips" },
       { label: "Cluster", image: "../assets/altar/objects/crystals/amethyst/amethyst-cluster.png", type: "crystal", crystal: "amethyst", form: "cluster" }
+    ]
+  },
+
+  {
+    category: "crystals",
+    name: "Clear Quartz",
+    icon: "💎",
+    keywords: ["intuition", "dreams", "calm"],
+    forms: [
+      { label: "Point", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-point.png", type: "crystal", crystal: "clear-quartz", form: "point" },
+      { label: "Chips", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-chips.png", type: "crystal", crystal: "clear-quartz", form: "chips" },
+      { label: "Cluster", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-cluster.png", type: "crystal", crystal: "clear-quartz", form: "cluster" }
     ]
   },
 
