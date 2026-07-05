@@ -2056,10 +2056,94 @@ document.addEventListener("click", async (event) => {
   const restoreDefaultImageButton = event.target.closest("[data-restore-default-library-image]");
 
   if (richCommandButton) {
-    const command = richCommandButton.dataset.richCommand;
-    const value = richCommandButton.dataset.richValue || null;
+    document.execCommand(
+      richCommandButton.dataset.richCommand,
+      false,
+      richCommandButton.dataset.richValue || null
+    );
+    return;
+  }
 
-    document.execCommand(command, false, value);
+  if (openImageManagerButton) {
+    openLibraryImageManager(openImageManagerButton.dataset.openLibraryImageManager);
+    return;
+  }
+
+  if (closeImageManagerButton) {
+    closeLibraryImageManager();
+    return;
+  }
+
+  if (restoreDefaultImageButton) {
+    const entityId = restoreDefaultImageButton.dataset.restoreDefaultLibraryImage;
+
+    Library.updateEntityImage(entityId, "");
+
+    if (typeof saveLivingLibraryEntityToSupabase === "function") {
+      await saveLivingLibraryEntityToSupabase(entityId);
+    }
+
+    closeLibraryImageManager();
+    await renderLibraryEntity(entityId);
+    flashStatus("Default image restored.");
+    return;
+  }
+
+  if (toggleLibraryEditButton) {
+    libraryEditMode = !libraryEditMode;
+    await renderLibraryEntity(toggleLibraryEditButton.dataset.toggleLibraryEdit);
+    return;
+  }
+
+  if (saveLibraryPracticeButton) {
+    await saveLibraryPracticeFromPage(saveLibraryPracticeButton.dataset.saveLibraryPractice);
+    return;
+  }
+
+  if (cancelLibraryEditButton) {
+    libraryEditMode = false;
+    await renderLibraryEntity(activeLibraryEntityId);
+    return;
+  }
+
+  if (createEntryButton) {
+    openCreateLibraryEntryModal();
+    return;
+  }
+
+  if (closeEntryModalButton) {
+    closeCreateLibraryEntryModal();
+    return;
+  }
+
+  if (editEntryButton) {
+    openEditLibraryEntryModal(editEntryButton.dataset.editLibraryEntry);
+    return;
+  }
+
+  if (deleteEntryButton) {
+    await deleteLibraryEntryFromMyPractice(deleteEntryButton.dataset.deleteLibraryEntry);
+    return;
+  }
+
+  if (closeEditModalButton) {
+    closeEditLibraryEntryModal();
+    return;
+  }
+
+  if (addCustomFieldButton) {
+    const entityId = addCustomFieldButton.dataset.addLibraryCustomField;
+    const label = window.prompt("Name this custom field:", "Dream Notes");
+    if (!label || !label.trim()) return;
+
+    const layout = getLibraryPageLayout(entityId);
+    const key = label.trim().replace(/\s+/g, "_");
+
+    layout.customFields ||= [];
+    layout.customFields.push({ key, label: label.trim() });
+
+    saveLibraryPageLayout(entityId, layout);
+    await renderLibraryEntity(entityId);
     return;
   }
 
@@ -2084,22 +2168,6 @@ document.addEventListener("click", async (event) => {
     await renderLibraryEntity(entityId);
     return;
   }
-  
-  if (addCustomFieldButton) {
-    const entityId = addCustomFieldButton.dataset.addLibraryCustomField;
-    const label = window.prompt("Name this custom field:", "Dream Notes");
-    if (!label || !label.trim()) return;
-
-    const layout = getLibraryPageLayout(entityId);
-    const key = label.trim().replace(/\s+/g, "_");
-
-    layout.customFields ||= [];
-    layout.customFields.push({ key, label: label.trim() });
-
-    saveLibraryPageLayout(entityId, layout);
-    await renderLibraryEntity(entityId);
-    return;
-  }
 
   if (moveFieldUpButton || moveFieldDownButton) {
     const button = moveFieldUpButton || moveFieldDownButton;
@@ -2114,7 +2182,7 @@ document.addEventListener("click", async (event) => {
 
     const entity = Library.getEntity(entityId);
     const defaultMyPracticeFields = ["Meaning", "Uses", "PairsWith", "Substitutions", "Notes"];
-    const customFields = (layout.customFields || []).map((field) => field.key);
+    const customFields = (layout.customFields || []).map((item) => item.key);
 
     const fieldKeys =
       layer === "myPractice"
@@ -2156,16 +2224,6 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
-  if (createEntryButton) {
-    openCreateLibraryEntryModal();
-    return;
-  }
-
-  if (closeEntryModalButton) {
-    closeCreateLibraryEntryModal();
-    return;
-  }
-
   if (myPracticeToggle) {
     const shelf = myPracticeToggle.closest("[data-my-practice-shelf]");
     const list = shelf?.querySelector("[data-my-practice-list]");
@@ -2184,59 +2242,36 @@ document.addEventListener("click", async (event) => {
     if (!list) return;
 
     list.hidden = !list.hidden;
-
-    if (icon) {
-      icon.textContent = list.hidden ? "▸" : "▾";
-    }
-
+    if (icon) icon.textContent = list.hidden ? "▸" : "▾";
     return;
   }
 
-  if (editEntryButton) {
-    openEditLibraryEntryModal(editEntryButton.dataset.editLibraryEntry);
+  if (libraryEntityButton) {
+    await renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
     return;
   }
 
-  if (deleteEntryButton) {
-    await deleteLibraryEntryFromMyPractice(deleteEntryButton.dataset.deleteLibraryEntry);
+  if (traditionalToggle) {
+    const shelf = traditionalToggle.closest("[data-traditional-library-shelf]");
+    const list = shelf?.querySelector("[data-traditional-library-list]");
+    if (!list) return;
+
+    list.hidden = !list.hidden;
     return;
   }
 
-  if (closeEditModalButton) {
-    closeEditLibraryEntryModal();
-    return;
+  if (typeToggle) {
+    const type = typeToggle.dataset.libraryTypeToggle;
+    const shelf = typeToggle.closest("[data-traditional-library-shelf]");
+    const list = shelf?.querySelector(`[data-library-type-list="${type}"]`);
+    const icon = typeToggle.querySelector("span");
+
+    if (!list) return;
+
+    list.hidden = !list.hidden;
+    if (icon) icon.textContent = list.hidden ? "▸" : "▾";
   }
-
-  if (openImageManagerButton) {
-  openLibraryImageManager(openImageManagerButton.dataset.openLibraryImageManager);
-  return;
-}
-
-if (closeImageManagerButton) {
-  closeLibraryImageManager();
-  return;
-}
-
-if (restoreDefaultImageButton) {
-  const entityId = restoreDefaultImageButton.dataset.restoreDefaultLibraryImage;
-
-  Library.updateEntityImage(entityId, "");
-
-  if (typeof saveLivingLibraryEntityToSupabase === "function") {
-    await saveLivingLibraryEntityToSupabase(entityId);
-  }
-
-  closeLibraryImageManager();
-  await renderLibraryEntity(entityId);
-  flashStatus("Default image restored.");
-  return;
-}
-
-  if (toggleLibraryEditButton) {
-  libraryEditMode = !libraryEditMode;
-  await renderLibraryEntity(toggleLibraryEditButton.dataset.toggleLibraryEdit);
-  return;
-}
+});
 
 document.addEventListener("change", async (event) => {
   const imageInput = event.target.closest("[data-library-image-upload]");
@@ -2261,31 +2296,14 @@ document.addEventListener("change", async (event) => {
   flashStatus("Image updated.");
 });
 
-document.addEventListener("change", async (event) => {
-  const imageInput = event.target.closest("[data-upload-library-image]");
-  if (!imageInput) return;
-
-  const entityId = imageInput.dataset.uploadLibraryImage;
-  const file = imageInput.files?.[0];
-
-  if (!file || typeof Library === "undefined") return;
-
-  const image = await readLibraryImageFile(file);
-
-  Library.updateEntityImage(entityId, image);
-
-  await renderLivingLibraryShelves();
-  await renderLibraryEntity(entityId);
-
-  flashStatus("Image updated.");
-});
-
 document.addEventListener("input", (event) => {
   const searchInput = event.target.closest("[data-library-page-search]");
   if (!searchInput) return;
 
   const term = searchInput.value.trim().toLowerCase();
+
   renderGlobalLibrarySearchResults(term);
+
   const page = document.querySelector(".book-library-entity-page");
   if (!page) return;
 
@@ -2312,129 +2330,6 @@ document.addEventListener("input", (event) => {
       item.classList.add("library-search-hidden");
     }
   });
-});
-
-if (saveLibraryPracticeButton) {
-  await saveLibraryPracticeFromPage(saveLibraryPracticeButton.dataset.saveLibraryPractice);
-  return;
-}
-
-if (cancelLibraryEditButton) {
-  libraryEditMode = false;
-  await renderLibraryEntity(activeLibraryEntityId);
-  return;
-}
-
-  if (libraryEntityButton) {
-    await renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
-    return;
-  }
-
-  if (traditionalToggle) {
-    const shelf = traditionalToggle.closest("[data-traditional-library-shelf]");
-    const list = shelf?.querySelector("[data-traditional-library-list]");
-    if (!list) return;
-
-    list.hidden = !list.hidden;
-    return;
-  }
-
-  if (typeToggle) {
-    const type = typeToggle.dataset.libraryTypeToggle;
-    const shelf = typeToggle.closest("[data-traditional-library-shelf]");
-    const list = shelf?.querySelector(`[data-library-type-list="${type}"]`);
-    const icon = typeToggle.querySelector("span");
-
-    if (!list) return;
-
-    list.hidden = !list.hidden;
-
-    if (icon) {
-      icon.textContent = list.hidden ? "▸" : "▾";
-    }
-  }
-});
-
-document.addEventListener("submit", async (event) => {
-  const form = event.target.closest("[data-create-library-entry-form]");
-  if (!form) return;
-
-  event.preventDefault();
-
-  const entity = createLibraryEntryFromForm(form);
-
-  if (!entity) {
-    flashStatus("Entry could not be created.");
-    return;
-  }
-
-  closeCreateLibraryEntryModal();
-
-  await renderLivingLibraryShelves();
-  await renderLibraryEntity(entity.id);
-
-  flashStatus("Entry created.");
-});
-
-document.addEventListener("submit", async (event) => {
-  const form = event.target.closest("[data-edit-library-entry-form]");
-  if (!form) return;
-
-  event.preventDefault();
-
-  const entity = await updateLibraryEntryFromForm(form);
-
-  if (!entity) {
-    flashStatus("Entry could not be saved.");
-    return;
-  }
-
-  closeEditLibraryEntryModal();
-
-  await renderLivingLibraryShelves();
-  await renderLibraryEntity(entity.id);
-
-  flashStatus("Entry saved.");
-});
-
-window.addEventListener("saltSettingsChanged", async () => {
-  cachedLibraryPageSettings = null;
-
-  if (activeLibraryEntityId) {
-    await renderLibraryEntity(activeLibraryEntityId);
-  }
-});
-
-const MUNDANE_MODE_KEY = "saltAndSovereigntyMundaneMode";
-
-function setMundaneMode(isMundane) {
-  document.body.classList.toggle("mundane-mode", isMundane);
-
-  localStorage.setItem(MUNDANE_MODE_KEY, isMundane ? "true" : "false");
-
-  document.querySelectorAll("[data-mundane-toggle]").forEach((toggle) => {
-    toggle.checked = isMundane;
-  });
-
-  if (typeof updateMundaneModeUI === "function") {
-    updateMundaneModeUI();
-  }
-}
-
-function initMundaneMode() {
-  setMundaneMode(localStorage.getItem(MUNDANE_MODE_KEY) === "true");
-}
-
-document.addEventListener("click", (event) => {
-  const mundaneLabel = event.target.closest(".book-library-mundane-toggle");
-  if (!mundaneLabel) return;
-
-  const checkbox = mundaneLabel.querySelector("[data-mundane-toggle]");
-  if (!checkbox) return;
-
-  event.preventDefault();
-
-  setMundaneMode(!checkbox.checked);
 });
 
 const MUNDANE_MODE_KEY = "saltAndSovereigntyMundaneMode";
@@ -2487,9 +2382,6 @@ document.addEventListener("saltAuthChanged", updateAuthState);
 document.addEventListener("saltAuthSuccess", updateAuthState);
 document.addEventListener("saltAuthSignedOut", updateAuthState);
 
-if (localStorage.getItem("saltAndSovereigntyMundaneMode") === "true") {
-  document.body.classList.add("mundane-mode");
-}
 /* =========================================================
    ALTAR + APOTHECARY IMPORTS
    ========================================================= */
