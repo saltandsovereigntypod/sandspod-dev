@@ -140,6 +140,14 @@ const cabinetItems = [
     keywords: ["protection", "banishing", "warding"],
     forms: [{ label: "Place", image: "../assets/altar/objects/tools/black-salt/black-salt.png", type: "tool", tool: "black-salt", form: "pile" }]
   },
+  
+  {
+    category: "tools",
+    name: "Salt Circle",
+    icon: "⭕️",
+    keywords: ["protection", "banishing", "warding"],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/salt-circle/2E77AAEA-4775-4EB3-9EEF-659AB1218A61.png", type: "tool", tool: "salt-circle", form: "pile" }]
+  },
 
   {
     category: "deities",
