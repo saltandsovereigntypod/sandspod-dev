@@ -858,11 +858,7 @@ function getDefaultLibraryImage(entity) {
     return looseHerbImages[entityName];
   }
 
-  if (entityType === "herb") {
-    return "../assets/altar/objects/herbs/rosemary/rosemary-loose.png";
-  }
-
-  return defaultImages[entityName] || "";
+  return looseHerbImages[entityName] || defaultImages[entityName] || "";
 }
 
 function getLibraryDisplayImage(entity) {
