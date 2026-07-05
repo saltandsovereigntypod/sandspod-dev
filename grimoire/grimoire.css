@@ -3063,3 +3063,18 @@ body.library-page-open .book-toc .book-section:not(.my-practice-shelf):not(.trad
 body.library-page-open .book-toc .book-toc-section:not(.my-practice-shelf):not(.traditional-library-shelf):not([data-my-practice-shelf]):not([data-traditional-library-shelf]) {
   display: none !important;
 }
+
+.library-image-manager {
+  display: grid;
+  gap: 1rem;
+}
+
+.library-image-manager .book-library-hero-image {
+  max-width: 14rem;
+  margin: 0 auto;
+}
+
+.library-image-manager label {
+  display: grid;
+  gap: 0.45rem;
+}

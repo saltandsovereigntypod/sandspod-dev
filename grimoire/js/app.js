@@ -849,7 +849,100 @@ function getDefaultLibraryImage(entity) {
   return defaultImages[entityName] || "";
 }
 
+function getLibraryDisplayImage(entity) {
+  return entity?.image || getDefaultLibraryImage(entity);
+}
 
+function openLibraryImageManager(entityId) {
+  if (typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  const displayImage = getLibraryDisplayImage(entity);
+  const isCustom = Boolean(entity.image);
+
+  const modal = document.createElement("div");
+  modal.className = "book-modal-backdrop";
+  modal.setAttribute("data-library-image-manager", "");
+
+  modal.innerHTML = `
+    <div class="book-modal" role="dialog" aria-modal="true" aria-label="Manage library image">
+      <header>
+        <h2>Image</h2>
+        <button type="button" data-close-library-image-manager aria-label="Close">×</button>
+      </header>
+
+      <div class="book-modal-body">
+        <div class="library-image-manager">
+          ${
+            displayImage
+              ? `
+                <figure class="book-library-hero-image">
+                  <img src="${displayImage}" alt="${escapeHtml(entity.name)}" />
+                </figure>
+              `
+              : `<p class="book-placeholder">No image is available yet.</p>`
+          }
+
+          <p class="book-section-empty">
+            ${isCustom ? "Using custom image." : "Using default image."}
+          </p>
+
+          <label>
+            Upload Custom Image
+            <input type="file" accept="image/png,image/jpeg,image/webp" data-library-image-upload="${entity.id}" />
+          </label>
+
+          <div class="button-row">
+            <button class="button button--small" type="button" data-restore-default-library-image="${entity.id}">
+              Restore Default
+            </button>
+
+            <button class="button button--small button--ghost" type="button" data-close-library-image-manager>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function closeLibraryImageManager() {
+  document.querySelector("[data-library-image-manager]")?.remove();
+}
+
+async function uploadLibraryImageToSupabase(entityId, file) {
+  const user = requireUser();
+
+  if (!user || !file || typeof db === "undefined" || typeof Library === "undefined") return null;
+
+  const extension = file.name.split(".").pop()?.toLowerCase() || "png";
+  const safeEntityId = String(entityId).replace(/[^a-zA-Z0-9_-]/g, "");
+  const filePath = `${user.id}/${safeEntityId}-${Date.now()}.${extension}`;
+
+  const { error: uploadError } = await db.storage
+    .from("living-library-images")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: true
+    });
+
+  if (uploadError) {
+    console.error(uploadError);
+    flashStatus(uploadError.message || "Image could not be uploaded.");
+    return null;
+  }
+
+  const { data } = db.storage
+    .from("living-library-images")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
 
 function splitLibraryList(value) {
   if (Array.isArray(value)) return value;
@@ -1598,10 +1691,9 @@ async function renderLibraryEntity(entityId) {
                     ${libraryEditMode ? "Preview" : "Edit"}
                   </button>
 
-                  <label class="button button--small button--ghost book-library-image-upload">
-                    Upload Image
-                    <input type="file" accept="image/png,image/jpeg,image/webp" data-upload-library-image="${entity.id}" hidden />
-                  </label>
+                  <button class="button button--small button--ghost" type="button" data-open-library-image-manager="${entity.id}">
+                    Image
+                  </button>
 
                   <button class="button button--small button--ghost" type="button" data-delete-library-entry="${entity.id}">
                     Del
@@ -1951,6 +2043,9 @@ document.addEventListener("click", async (event) => {
   const toggleFieldButton = event.target.closest("[data-toggle-library-field]");
   const moveSectionUpButton = event.target.closest("[data-move-library-section-up]");
   const moveSectionDownButton = event.target.closest("[data-move-library-section-down]");
+  const openImageManagerButton = event.target.closest("[data-open-library-image-manager]");
+  const closeImageManagerButton = event.target.closest("[data-close-library-image-manager]");
+  const restoreDefaultImageButton = event.target.closest("[data-restore-default-library-image]");
 
   if (richCommandButton) {
     const command = richCommandButton.dataset.richCommand;
@@ -2104,11 +2199,59 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  if (openImageManagerButton) {
+  openLibraryImageManager(openImageManagerButton.dataset.openLibraryImageManager);
+  return;
+}
+
+if (closeImageManagerButton) {
+  closeLibraryImageManager();
+  return;
+}
+
+if (restoreDefaultImageButton) {
+  const entityId = restoreDefaultImageButton.dataset.restoreDefaultLibraryImage;
+
+  Library.updateEntityImage(entityId, "");
+
+  if (typeof saveLivingLibraryEntityToSupabase === "function") {
+    await saveLivingLibraryEntityToSupabase(entityId);
+  }
+
+  closeLibraryImageManager();
+  await renderLibraryEntity(entityId);
+  flashStatus("Default image restored.");
+  return;
+}
+
   if (toggleLibraryEditButton) {
   libraryEditMode = !libraryEditMode;
   await renderLibraryEntity(toggleLibraryEditButton.dataset.toggleLibraryEdit);
   return;
 }
+
+document.addEventListener("change", async (event) => {
+  const imageInput = event.target.closest("[data-library-image-upload]");
+  if (!imageInput) return;
+
+  const entityId = imageInput.dataset.libraryImageUpload;
+  const file = imageInput.files?.[0];
+
+  if (!file) return;
+
+  const imageUrl = await uploadLibraryImageToSupabase(entityId, file);
+  if (!imageUrl) return;
+
+  Library.updateEntityImage(entityId, imageUrl);
+
+  if (typeof saveLivingLibraryEntityToSupabase === "function") {
+    await saveLivingLibraryEntityToSupabase(entityId);
+  }
+
+  closeLibraryImageManager();
+  await renderLibraryEntity(entityId);
+  flashStatus("Image updated.");
+});
 
 document.addEventListener("change", async (event) => {
   const imageInput = event.target.closest("[data-upload-library-image]");
