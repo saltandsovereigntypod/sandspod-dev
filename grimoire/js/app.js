@@ -825,31 +825,28 @@ function getDefaultLibraryImage(entity) {
 
   const entityName = normalizeLibraryImageName(entity.name);
 
-  if (typeof cabinetItems !== "undefined") {
-    const matchingItem = cabinetItems.find((item) => {
-      const itemName = normalizeLibraryImageName(item.name);
+  const defaultImages = {
+    rosemary: "../assets/altar/objects/herbs/rosemary/rosemary-sprig.png",
+    lavender: "../assets/altar/objects/herbs/lavender/lavender-sprig.png",
+    mugwort: "../assets/altar/objects/herbs/mugwort/mugwort-sprig.png",
+    "bay leaf": "../assets/altar/objects/herbs/bay-leaf/bay-sprig.png",
+    cinnamon: "../assets/altar/objects/herbs/cinnamon/cinnamon-sprig.png",
 
-      const formMatch = (item.forms || []).some((form) => {
-        return (
-          normalizeLibraryImageName(form.herb) === entityName ||
-          normalizeLibraryImageName(form.crystal) === entityName ||
-          normalizeLibraryImageName(form.tool) === entityName ||
-          normalizeLibraryImageName(form.vessel) === entityName ||
-          normalizeLibraryImageName(form.deity) === entityName ||
-          normalizeLibraryImageName(form.color + " candle") === entityName ||
-          normalizeLibraryImageName(item.name + " " + form.label) === entityName
-        );
-      });
+    amethyst: "../assets/altar/objects/crystals/amethyst/amethyst-point.png",
 
-      return itemName === entityName || formMatch;
-    });
+    key: "../assets/altar/objects/tools/key/key.png",
+    athame: "../assets/altar/objects/tools/athame/athame.png",
+    "raven skull": "../assets/altar/objects/tools/raven-skull/raven-skull.png",
+    "black salt": "../assets/altar/objects/tools/black-salt/black-salt.png",
+    "salt circle": "../assets/altar/objects/tools/salt-circle/2E77AAEA-4775-4EB3-9EEF-659AB1218A61.png",
 
-    const firstImage = matchingItem?.forms?.find((form) => form.image)?.image;
+    hekate: "../assets/altar/objects/tools/deities/hekate/hekate-statue.png",
+    lilith: "../assets/altar/objects/tools/deities/lilith/lilith-statue.png",
+    cauldron: "../assets/altar/objects/vessels/cauldron/cauldron.png",
+    "spell jar": "../assets/altar/objects/vessels/spell-jar/spell-jar.png"
+  };
 
-    if (firstImage) return firstImage;
-  }
-
-  return "";
+  return defaultImages[entityName] || "";
 }
 
 
