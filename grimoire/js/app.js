@@ -70,6 +70,10 @@ async function initGrimoire() {
     
     await syncTraditionalLibraryToGrimoireIfEnabled();
     
+    if (typeof initLivingLibrarySupabaseSync === "function") {
+      await initLivingLibrarySupabaseSync();
+    }
+    
     const lastView = getLastGrimoireView();
 
     if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
