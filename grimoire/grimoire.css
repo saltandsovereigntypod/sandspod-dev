@@ -3055,3 +3055,11 @@ body.grimoire-font-handwritten {
     pointer-events: auto !important;
   }
 }
+}
+/* Hide regular Book sections while viewing Living Library pages */
+
+body.library-page-open .book-toc [data-grimoire-section],
+body.library-page-open .book-toc .book-section:not(.my-practice-shelf):not(.traditional-library-shelf),
+body.library-page-open .book-toc .book-toc-section:not(.my-practice-shelf):not(.traditional-library-shelf):not([data-my-practice-shelf]):not([data-traditional-library-shelf]) {
+  display: none !important;
+}

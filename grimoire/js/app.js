@@ -120,6 +120,8 @@ function renderWelcomeState() {
   pageLinks = [];
   pageMode = "read";
 
+  document.body.classList.remove("library-page-open");
+
   if (entryList) entryList.innerHTML = "";
   if (grimoireHeading) grimoireHeading.textContent = "Welcome";
 
@@ -132,6 +134,7 @@ async function openPage(pageId, mode = "read") {
   if (!page) return;
 
   activeLibraryEntityId = null;
+  document.body.classList.remove("library-page-open");
 
   saveLastGrimoireView({
     type: "page",
@@ -807,6 +810,8 @@ function getLibraryEntityIntro(entity) {
 
   return `${formatLibraryEntityName(entity.name)} is traditionally associated with ${String(uses).toLowerCase()}.`;
 }
+
+
 
 function splitLibraryList(value) {
   if (Array.isArray(value)) return value;
@@ -1507,6 +1512,7 @@ async function renderLibraryEntity(entityId) {
   if (!entity) return;
 
   activeLibraryEntityId = entityId;
+  document.body.classList.add("library-page-open");
   saveLastGrimoireView({
     type: "library",
     id: entityId

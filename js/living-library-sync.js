@@ -161,16 +161,30 @@ async function loadLivingLibraryFromSupabase() {
       });
     }
 
+    const existingImage = entity.image || "";
+    const incomingImage = row.image || "";
+
     Library.updateEntity(entity.id, {
-      name: row.name,
-      type: row.type,
-      image: row.image || "",
-      myPractice: row.my_practice || {},
-      community: row.community || {}
+      name: row.name || entity.name,
+      type: row.type || entity.type,
+      image: incomingImage || existingImage,
+
+      myPractice: {
+        ...(row.my_practice || {}),
+        ...(entity.myPractice || {})
+      },
+
+      community: {
+        ...(row.community || {}),
+        ...(entity.community || {})
+      }
     });
 
     if (row.layout && Object.keys(row.layout).length) {
-      layouts[entity.id] = row.layout;
+      layouts[entity.id] = {
+        ...(row.layout || {}),
+        ...(layouts[entity.id] || {})
+      };
     }
   });
 
@@ -230,7 +244,6 @@ async function saveAllLivingLibraryLayoutsToSupabase() {
 
   for (const entityId of Object.keys(layouts)) {
     const entity = Library.getEntity(entityId);
-
     if (!entity) continue;
 
     await saveLivingLibraryEntityToSupabase(entityId);
