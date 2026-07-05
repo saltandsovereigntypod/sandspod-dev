@@ -118,9 +118,9 @@ const cabinetItems = [
       icon: "🌿",
       keywords: ["purification", "blessing", "grounding"],
       forms: [
-        { label: "Sprig", image: "../assets/altar/objects/herbs/Cedar/Cedar-sprig.png", type: "herb", herb: "Cedar", form: "sprig" },
-        { label: "Loose", image: "../assets/altar/objects/herbs/Cedar/Cedar-loose.png", type: "herb", herb: "Cedar", form: "loose" },
-        { label: "Oil", image: "../assets/altar/objects/herbs/Cedar/Cedar-oil.png", type: "oil", herb: "Cedar", form: "oil" }
+        { label: "Sprig", image: "../assets/altar/objects/herbs/cedar/cedar-sprig.png", type: "herb", herb: "cedar", form: "sprig" },
+        { label: "Loose", image: "../assets/altar/objects/herbs/cedar/cedar-loose.png", type: "herb", herb: "cedar", form: "loose" },
+        { label: "Oil", image: "../assets/altar/objects/herbs/cedar/cedar-oil.png", type: "oil", herb: "cedar", form: "oil" }
       ]
     },
 
