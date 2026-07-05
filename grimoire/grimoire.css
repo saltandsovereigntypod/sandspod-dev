@@ -2484,36 +2484,38 @@ body.grimoire-font-handwritten {
         cursor:pointer;
     }
 
-    .book-sidebar,
-    .book-toc,
-    .grimoire-sidebar{
+   .book-sidebar,
+.book-toc,
+.grimoire-sidebar {
+  position: fixed;
 
-        position:fixed;
+  top: 0;
+  left: 0;
 
-        top:0;
-        left:0;
+  width: min(340px, 85vw);
+  height: 100vh;
 
-        width:min(340px,85vw);
-        height:100vh;
+  max-height: none;
+  margin: 0;
 
-        max-height:none;
+  z-index: 300;
 
-        margin:0;
+  transform: translateX(-105%);
+  transition: .28s ease;
 
-        z-index:300;
+  overflow-y: auto;
 
-        transform:translateX(-105%);
-        transition:.28s ease;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 18rem),
+    linear-gradient(145deg, rgba(9, 16, 11, 0.98), rgba(3, 5, 4, 0.99));
 
-        overflow-y:auto;
-    }
+  box-shadow: 18px 0 80px rgba(0, 0, 0, 0.72);
+}
 
-    .book-sidebar.mobile-open,
-    .book-toc.mobile-open,
-    .grimoire-sidebar.mobile-open{
-
-        transform:translateX(0);
-    }
+.book-sidebar.mobile-open,
+.book-toc.mobile-open,
+.grimoire-sidebar.mobile-open {
+  transform: translateX(0);
 }
 
 /* =========================================================
