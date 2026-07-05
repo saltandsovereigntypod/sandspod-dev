@@ -92,13 +92,37 @@ const cabinetItems = [
     category: "herbs",
     name: "Cinnamon",
     icon: "🌿",
-    keywords: ["wishes", "protection", "manifestation"],
+    keywords: ["prosperity", "speed", "success"],
     forms: [
       { label: "Sprig", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-sprig.png", type: "herb", herb: "cinnamon", form: "sprig" },
       { label: "Loose", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-loose.png", type: "herb", herb: "cinnamon", form: "loose" },
       { label: "Oil", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-oil.png", type: "oil", herb: "cinnamon", form: "oil" }
     ]
   },
+
+   {
+      category: "herbs",
+      name: "Basil",
+      icon: "🌿",
+      keywords: ["courage", "cleansing", "prosperity"],
+      forms: [
+        { label: "Sprig", image: "../assets/altar/objects/herbs/basil/basil-sprig.png", type: "herb", herb: "basil", form: "sprig" },
+        { label: "Loose", image: "../assets/altar/objects/herbs/basil/basil-loose.png", type: "herb", herb: "basil", form: "loose" },
+        { label: "Oil", image: "../assets/altar/objects/herbs/basil/basil-oil.png", type: "oil", herb: "basil", form: "oil" }
+      ]
+    },
+
+   {
+      category: "herbs",
+      name: "Cedar",
+      icon: "🌿",
+      keywords: ["purification", "blessing", "grounding"],
+      forms: [
+        { label: "Sprig", image: "../assets/altar/objects/herbs/Cedar/Cedar-sprig.png", type: "herb", herb: "Cedar", form: "sprig" },
+        { label: "Loose", image: "../assets/altar/objects/herbs/Cedar/Cedar-loose.png", type: "herb", herb: "Cedar", form: "loose" },
+        { label: "Oil", image: "../assets/altar/objects/herbs/Cedar/Cedar-oil.png", type: "oil", herb: "Cedar", form: "oil" }
+      ]
+    },
 
   {
     category: "crystals",
