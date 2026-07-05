@@ -69,22 +69,47 @@ function getApothecaryDetailsForObject(object) {
 }
 
 function getCompanionDisplaySettings() {
-  if (typeof getLocalMySettings !== "function") {
-    return {
-      companion_my_enabled: true,
-      companion_my_ingredients: true,
-      companion_my_intention: true,
-      companion_my_notes: true,
-      companion_my_grimoire: true,
-      companion_my_dressings: true,
-      companion_my_groups: true,
+  const settings =
+    typeof getLocalMySettings === "function"
+      ? getLocalMySettings()
+      : {};
 
-      companion_traditional_enabled: false,
-      companion_community_enabled: false
-    };
+  if (settings.companion_copy_grimoire_settings) {
+    return settings;
   }
 
-  return getLocalMySettings();
+  const mappedSettings = { ...settings };
+
+  mappedSettings.library_layer_order =
+    settings.companion_layer_order || "myPractice,traditional,community";
+
+  ["my", "traditional", "community"].forEach((layer) => {
+    const libraryLayer = layer === "my" ? "myPractice" : layer;
+
+    mappedSettings[`library_${libraryLayer}_enabled`] =
+      Boolean(settings[`companion_${layer}_enabled`]);
+
+    [
+      "meanings",
+      "uses",
+      "correspondences",
+      "ingredients",
+      "intentions",
+      "pairings",
+      "substitutions",
+      "warnings",
+      "grimoire",
+      "dressings",
+      "groups",
+      "notes",
+      "sources"
+    ].forEach((field) => {
+      mappedSettings[`library_${libraryLayer}_${field}`] =
+        Boolean(settings[`companion_${layer}_${field}`]);
+    });
+  });
+
+  return mappedSettings;
 }
 
 function getLibraryEntityForObject(object) {
@@ -99,6 +124,101 @@ function getLibraryEntityForObject(object) {
   return Library.getEntity(entityId);
 }
 
+function renderCompanionLibraryEntity(entity, settings = {}) {
+  const layerOrder = String(settings.library_layer_order || "myPractice,traditional,community")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  function fieldCategory(key = "") {
+    const categories = {
+      Meaning: "meanings",
+      Meanings: "meanings",
+      Uses: "uses",
+      Domains: "uses",
+      Purpose: "uses",
+      Element: "correspondences",
+      Planet: "correspondences",
+      Chakra: "correspondences",
+      Pantheon: "correspondences",
+      Ingredients: "ingredients",
+      Intention: "intentions",
+      Intentions: "intentions",
+      PairsWith: "pairings",
+      BestWith: "pairings",
+      Substitutions: "substitutions",
+      TraditionalWarnings: "warnings",
+      Warnings: "warnings",
+      GrimoireStatus: "grimoire",
+      CandleDressings: "dressings",
+      Groups: "groups",
+      Notes: "notes",
+      Sources: "sources",
+      Source: "sources"
+    };
+
+    return categories[key] || "notes";
+  }
+
+  function shouldShowField(layer, key) {
+    const category = fieldCategory(key);
+    return settings[`library_${layer}_${category}`] !== false;
+  }
+
+  function renderLayer(title, layer, data = {}) {
+    if (settings[`library_${layer}_enabled`] === false) return "";
+
+    const entries = Object.entries(data).filter(([key, value]) => {
+      if (key === "tags") return false;
+      if (!value) return false;
+      return shouldShowField(layer, key);
+    });
+
+    if (!entries.length) return "";
+
+    return `
+      <div class="altar-info-card-section">
+        <p><strong>${title}</strong></p>
+
+        ${entries
+          .map(([key, value]) => `
+            <p>
+              <strong>${String(key).replaceAll("_", " ")}:</strong>
+              ${Array.isArray(value) ? value.join(", ") : value}
+            </p>
+          `)
+          .join("")}
+      </div>
+    `;
+  }
+
+  const layers = layerOrder
+    .map((layer) => {
+      if (layer === "myPractice") {
+        return renderLayer("My Practice", "myPractice", entity.myPractice || {});
+      }
+
+      if (layer === "traditional") {
+        return renderLayer("Traditional", "traditional", entity.traditional || {});
+      }
+
+      if (layer === "community") {
+        return renderLayer("Community", "community", entity.community || {});
+      }
+
+      return "";
+    })
+    .join("");
+
+  return `
+    <div class="altar-info-card-inner is-panel-view">
+      <h3>${entity.name || "Library Entry"}</h3>
+      <p class="altar-info-card-type">${entity.type || "entry"}</p>
+      ${layers || `<p>Select an object to see its details.</p>`}
+    </div>
+  `;
+}
+
 function buildObjectInfoMarkup(object, mode = "compact") {
   const label = object.dataset.label || "Altar Object";
   const typeLabel = getObjectTypeLabel(object);
@@ -110,6 +230,18 @@ function buildObjectInfoMarkup(object, mode = "compact") {
     community: {}
   };
   const companionSettings = getCompanionDisplaySettings();
+  const libraryEntity =
+    object.dataset.entityId && typeof Library !== "undefined"
+      ? Library.getEntity(object.dataset.entityId)
+      : null;
+
+  if (mode === "panel" && libraryEntity && typeof renderCompanionLibraryEntity === "function") {
+    return renderCompanionLibraryEntity(libraryEntity, companionSettings);
+  }
+
+  if (mode === "panel" && entity && typeof renderCompanionLibraryEntity === "function") {
+    return renderCompanionLibraryEntity(entity, companionSettings);
+  }
   const useSettings = mode === "panel";
   const activeGroup = object.dataset.groupId
     ? altarGroups.find((group) => group.id === object.dataset.groupId)

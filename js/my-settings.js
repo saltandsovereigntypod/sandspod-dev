@@ -16,26 +16,95 @@ function getDefaultMySettings() {
     grimoire_page_font: "classic-serif",
 
     sync_traditional_library_to_grimoire: false,
+
+    library_layer_order: "myPractice,traditional,community",
+
+    library_myPractice_enabled: true,
+    library_myPractice_meanings: true,
+    library_myPractice_uses: true,
+    library_myPractice_correspondences: true,
+    library_myPractice_ingredients: true,
+    library_myPractice_intentions: true,
+    library_myPractice_pairings: true,
+    library_myPractice_substitutions: true,
+    library_myPractice_warnings: true,
+    library_myPractice_grimoire: true,
+    library_myPractice_dressings: true,
+    library_myPractice_groups: true,
+    library_myPractice_notes: true,
+    library_myPractice_sources: true,
+
+    library_traditional_enabled: true,
+    library_traditional_meanings: true,
+    library_traditional_uses: true,
+    library_traditional_correspondences: true,
+    library_traditional_ingredients: true,
+    library_traditional_intentions: true,
+    library_traditional_pairings: true,
+    library_traditional_substitutions: true,
+    library_traditional_warnings: true,
+    library_traditional_grimoire: false,
+    library_traditional_dressings: false,
+    library_traditional_groups: true,
+    library_traditional_notes: true,
+    library_traditional_sources: true,
+
+    library_community_enabled: false,
+    library_community_meanings: true,
+    library_community_uses: true,
+    library_community_correspondences: true,
+    library_community_ingredients: true,
+    library_community_intentions: true,
+    library_community_pairings: true,
+    library_community_substitutions: true,
+    library_community_warnings: true,
+    library_community_grimoire: false,
+    library_community_dressings: false,
+    library_community_groups: true,
+    library_community_notes: true,
+    library_community_sources: true,
     
+    companion_copy_grimoire_settings: true,
+    companion_layer_order: "myPractice,traditional,community",
+
     companion_my_enabled: true,
+    companion_my_meanings: true,
+    companion_my_uses: true,
+    companion_my_correspondences: true,
     companion_my_ingredients: true,
-    companion_my_intention: true,
-    companion_my_notes: true,
+    companion_my_intentions: true,
+    companion_my_pairings: true,
+    companion_my_substitutions: true,
+    companion_my_warnings: true,
     companion_my_grimoire: true,
     companion_my_dressings: true,
     companion_my_groups: true,
+    companion_my_notes: true,
+    companion_my_sources: true,
 
     companion_traditional_enabled: false,
     companion_traditional_meanings: false,
+    companion_traditional_uses: true,
     companion_traditional_correspondences: false,
+    companion_traditional_ingredients: true,
+    companion_traditional_intentions: true,
+    companion_traditional_pairings: true,
+    companion_traditional_substitutions: true,
     companion_traditional_warnings: false,
     companion_traditional_sources: false,
 
     companion_community_enabled: false,
+    companion_community_meanings: true,
+    companion_community_uses: true,
+    companion_community_correspondences: true,
+    companion_community_ingredients: true,
+    companion_community_intentions: true,
+    companion_community_pairings: true,
+    companion_community_substitutions: true,
+    companion_community_warnings: true,
     companion_community_notes: false,
-    companion_community_correspondences: false,
-    companion_community_warnings: false,
-    companion_community_substitutions: false
+    companion_community_sources: true,
+    
   };
 }
 
@@ -151,6 +220,9 @@ document.addEventListener("submit", async (event) => {
   try {
     await saveMySettings(settings);
     await applyMundaneModePreference();
+
+    window.dispatchEvent(new CustomEvent("saltSettingsChanged"));
+
     showMySanctuaryNotice("Settings saved.");
   } catch (error) {
     console.error(error);

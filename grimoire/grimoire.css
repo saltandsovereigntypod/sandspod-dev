@@ -1668,3 +1668,1294 @@ body.grimoire-font-handwritten {
   gap: 0.55rem;
   margin-top: 1.2rem;
 }
+
+.book-library-related-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.book-library-related-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 999px;
+  padding: 0.65rem 0.9rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.06);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.book-library-related-link:hover,
+.book-library-related-link:focus-visible {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.book-library-related-link small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.book-library-related-group {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 1.2rem;
+}
+
+.book-library-related-group h3 {
+  margin: 0;
+  color: var(--cream);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.book-library-chip-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.06);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.book-library-chip-button:hover,
+.book-library-chip-button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+.library-settings-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.library-settings-columns > div {
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+  background: rgba(8, 10, 8, 0.22);
+}
+
+@media (max-width: 800px) {
+  .library-settings-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   MY SANCTUARY SETTINGS CLEANUP
+   Living Library settings layout
+   ========================================================= */
+
+.library-settings-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.library-settings-columns > div {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(8, 10, 8, 0.28);
+}
+
+.library-settings-columns .eyebrow {
+  margin-bottom: 0.75rem;
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+}
+
+.library-settings-columns .my-sanctuary-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.45rem 0;
+  line-height: 1.35;
+}
+
+.library-settings-columns .my-sanctuary-check input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+@media (min-width: 900px) {
+  .library-settings-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.book-library-edit-fields {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.book-library-edit-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.book-library-edit-field h3 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.book-library-rich-input {
+  min-height: 7rem;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  padding: 1rem;
+  color: var(--cream);
+  background: rgba(8, 10, 8, 0.26);
+  line-height: 1.7;
+}
+
+.book-library-rich-input:focus {
+  outline: 2px solid rgba(185, 160, 93, 0.35);
+  outline-offset: 3px;
+}
+
+.book-library-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.2rem;
+}
+
+.book-rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.book-rich-toolbar button {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.06);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.book-rich-toolbar button:hover,
+.book-rich-toolbar button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+.book-library-layer {
+  border-top: 1px solid rgba(185, 160, 93, 0.22);
+  padding-top: 2.2rem;
+}
+
+.book-library-fields {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.book-library-field {
+  padding-bottom: 0;
+  border-bottom: 0 !important;
+}
+
+.book-library-field h3 {
+  margin: 0 0 0.35rem;
+  color: var(--gold);
+  font-size: 0.82rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.book-library-field p,
+.book-library-field ul,
+.book-library-field ol,
+.book-library-field blockquote {
+  margin-top: 0;
+}
+
+.book-library-field blockquote {
+  max-width: 38rem;
+  border-left: 3px solid var(--gold);
+  border-radius: 0.65rem;
+  padding: 0.85rem 1rem;
+  background: rgba(185, 160, 93, 0.07);
+  font-style: italic;
+}
+
+.book-library-body .book-library-layer h2 {
+  margin-bottom: 1.35rem;
+}
+
+.book-library-subsection {
+  margin-top: 1.6rem;
+}
+
+.book-library-subsection h3 {
+  margin: 0 0 0.85rem;
+  color: var(--gold);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.1;
+}
+
+.book-library-subsection .book-library-fields {
+  gap: 1rem;
+}
+
+.book-library-subsection {
+  margin-top: 0;
+}
+
+.book-library-subsection h3 {
+  font-size: inherit;
+}
+
+.book-library-layer .book-library-field h3,
+.book-library-layer--traditional .book-library-field h3,
+.book-library-layer--my-practice .book-library-field h3,
+.book-library-layer--community .book-library-field h3 {
+  margin: 0 0 0.35rem;
+  color: var(--gold);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.book-library-layer--traditional .book-library-fields,
+.book-library-layer--my-practice .book-library-fields,
+.book-library-layer--community .book-library-fields {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.book-library-layer--traditional .book-library-field,
+.book-library-layer--my-practice .book-library-field,
+.book-library-layer--community .book-library-field {
+  border-bottom: 0 !important;
+  padding-bottom: 0;
+}
+
+.book-library-related-group h3 {
+  margin: 0 0 0.35rem;
+  color: var(--gold);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.book-library-related-group {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 1.4rem;
+}
+
+.book-library-sticky-tools {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.2rem auto 0;
+  padding: 0.65rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 999px;
+  background: rgba(12, 14, 10, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.book-library-sticky-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.book-library-sticky-search input {
+  min-height: 2.35rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  background: rgba(244, 236, 216, 0.06);
+}
+
+.book-library-mundane-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+}
+
+@media (max-width: 700px) {
+  .book-library-sticky-tools {
+    align-items: stretch;
+    border-radius: 1rem;
+    flex-direction: column;
+  }
+
+  .book-library-sticky-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .book-library-sticky-search input,
+  .book-library-sticky-left .button,
+  .book-library-mundane-toggle {
+    width: 100%;
+  }
+}
+.book-library-entity-page > .book-page-tools,
+.book-library-entity-page .book-reader-tools,
+.book-library-entity-page .book-reader-search,
+.book-library-entity-page [data-entry-search],
+.book-library-entity-page [data-mundane-toggle]:not(.book-library-mundane-toggle input) {
+  display: none;
+}
+
+.book-library-sticky-tools {
+  margin: 0 0 2.25rem;
+  top: 0.75rem;
+}
+
+.book-library-sticky-left {
+  flex: 1;
+}
+
+.book-library-mundane-toggle {
+  margin-left: auto;
+}
+
+.book-library-sticky-tools {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.book-library-sticky-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.book-library-mundane-toggle {
+  margin-left: auto;
+}
+
+.book-page-toolbar {
+  display: none;
+}
+
+.library-field-move {
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  margin-right: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.06);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.library-field-hide {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.35rem;
+}
+
+.library-field-hide input {
+  width: auto;
+  accent-color: var(--gold);
+}
+
+.book-library-custom-field-row {
+  margin-top: 1rem;
+}
+
+.book-library-edit-field h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.library-field-hide {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.library-field-hide input {
+  width: auto;
+  accent-color: var(--gold);
+}
+
+.library-section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.library-section-controls {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.library-section-controls button {
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.06);
+  font: inherit;
+  cursor: pointer;
+}
+
+.library-search-hidden {
+  display: none !important;
+}
+
+.library-search-match {
+  border-radius: 0.75rem;
+  background: rgba(185, 160, 93, 0.08);
+}
+
+.book-library-hero-image {
+  width: min(360px, 80%);
+  margin: 0 auto 1.5rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: rgba(8, 10, 8, 0.34);
+}
+
+.book-library-hero-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.book-library-image-upload {
+  cursor: pointer;
+}
+
+/* Hide only the old user-created page shelf, keep Living Library shelves */
+#bookTocList,
+.book-actions,
+.book-note {
+  display: none !important;
+}
+
+.book-library-sticky-tools {
+  display: grid !important;
+  grid-template-columns: minmax(120px, 1fr) auto auto auto auto;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.book-library-sticky-left {
+  display: contents !important;
+}
+
+.book-library-sticky-search input {
+  min-height: 2rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.book-library-sticky-tools .button,
+.book-library-mundane-toggle {
+  min-height: 2rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.book-library-image-upload {
+  white-space: nowrap;
+}
+
+.book-library-mundane-toggle {
+  margin-left: 0;
+}
+
+.global-library-search-results {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0 1.5rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.2);
+  border-radius: 1rem;
+  background: rgba(8, 10, 8, 0.38);
+}
+
+.global-library-search-results button {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.06);
+  font: inherit;
+  cursor: pointer;
+}
+
+.global-library-search-results small {
+  color: var(--gold);
+}
+
+/* ==========================================================
+   MOBILE GRIMOIRE (PHASE 1)
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+  /* ---------- Overall Layout ---------- */
+
+  .grimoire-layout,
+  .book-layout {
+    display: block;
+  }
+
+  .book-reader {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .book-reader-page {
+    padding: 1rem;
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  .book-sidebar,
+  .book-toc,
+  .grimoire-sidebar {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 1rem;
+    max-height: 40vh;
+    overflow-y: auto;
+    border-radius: 18px;
+  }
+
+  /* ---------- Search ---------- */
+
+  .library-sidebar-search input,
+  .book-library-sticky-search input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  /* ---------- Sticky Toolbar ---------- */
+
+  .book-library-sticky-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+  }
+
+  .book-library-sticky-tools .button,
+  .book-library-sticky-tools button,
+  .book-library-mundane-toggle {
+
+    min-height: 44px;
+    font-size: .85rem;
+    white-space: nowrap;
+  }
+
+  .book-library-sticky-search {
+    flex: 1 1 100%;
+  }
+
+  /* ---------- Images ---------- */
+
+  .book-library-hero-image img,
+  .book-library-field img,
+  .book-reader img {
+
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* ---------- Rich Text ---------- */
+
+  .book-rich-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+
+  .book-rich-toolbar button {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: .9rem;
+  }
+
+  /* ---------- Inputs ---------- */
+
+  textarea,
+  input,
+  select {
+
+    width: 100%;
+    font-size: 16px;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+
+  /* ---------- Custom Fields ---------- */
+
+  .book-library-edit-field h3 {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    align-items: center;
+  }
+
+  .library-field-move {
+
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* ---------- Chips ---------- */
+
+  .book-library-chips {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+  }
+
+  .book-library-chip-button {
+
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  /* ---------- Tables ---------- */
+
+  table {
+
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  /* ---------- Modals ---------- */
+
+  .book-modal {
+
+    width: 95vw;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* ---------- Search Results ---------- */
+
+  .global-library-search-results button {
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+}
+
+
+/* ==========================================================
+   PORTRAIT PHONES
+   ========================================================== */
+
+@media (max-width: 600px) {
+
+  .book-reader-page {
+    padding: .8rem;
+  }
+
+  .book-library-header h1 {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+
+  .book-library-intro {
+    text-align: center;
+  }
+
+  .book-library-sticky-tools {
+
+    position: sticky;
+    top: 0;
+    z-index: 50;
+
+    padding: .75rem;
+
+    background: rgba(15,15,15,.95);
+    backdrop-filter: blur(12px);
+
+    border-radius: 14px;
+
+    margin-bottom: 1rem;
+  }
+
+  .book-library-layer {
+
+    padding: 1rem;
+  }
+
+}
+
+/* ==========================================================
+   MOBILE SIDEBAR DRAWER
+   ========================================================== */
+
+.grimoire-menu-button{
+    display:none;
+}
+
+.grimoire-sidebar-overlay{
+    display:none;
+}
+
+@media (max-width:900px){
+
+    .grimoire-menu-button{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        width:44px;
+        height:44px;
+
+        font-size:1.4rem;
+
+        border:none;
+        border-radius:12px;
+
+        cursor:pointer;
+    }
+
+    .book-sidebar,
+    .book-toc,
+    .grimoire-sidebar{
+
+        position:fixed;
+
+        top:0;
+        left:0;
+
+        width:min(340px,85vw);
+        height:100vh;
+
+        max-height:none;
+
+        margin:0;
+
+        z-index:300;
+
+        transform:translateX(-105%);
+        transition:.28s ease;
+
+        overflow-y:auto;
+    }
+
+    .book-sidebar.mobile-open,
+    .book-toc.mobile-open,
+    .grimoire-sidebar.mobile-open{
+
+        transform:translateX(0);
+    }
+}
+
+/* =========================================================
+   MOBILE GRIMOIRE EDITING POLISH
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .grimoire-main {
+    width: 100%;
+    padding: 1rem 0 5rem;
+  }
+
+  .grimoire-cover {
+    padding: 0 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .grimoire-cover h1 {
+    max-width: none;
+    font-size: clamp(3.1rem, 16vw, 4.6rem);
+  }
+
+  .book-of-shadows {
+    display: block;
+  }
+
+  .book-page {
+    width: 100%;
+    min-height: auto;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-radius: 0 !important;
+    padding: 1rem !important;
+  }
+
+  .book-page-toolbar,
+  .book-library-sticky-tools {
+    position: sticky;
+    top: 0.65rem;
+    z-index: 50;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+    padding: 0.45rem;
+    border: 1px solid rgba(185, 160, 93, 0.28);
+    border-radius: 999px;
+    background: rgba(8, 10, 8, 0.88);
+    backdrop-filter: blur(12px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .book-page-toolbar::-webkit-scrollbar,
+  .book-library-sticky-tools::-webkit-scrollbar {
+    display: none;
+  }
+
+  .book-page-toolbar > *,
+  .book-library-sticky-tools > * {
+    flex: 0 0 auto;
+  }
+
+  .book-search,
+  .book-library-sticky-search {
+    width: min(13rem, 52vw);
+  }
+
+  .book-search span {
+    display: none;
+  }
+
+  .book-search input,
+  .book-library-sticky-search input {
+    min-height: 2.35rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .book-edit-button,
+  .book-page-toolbar .button,
+  .book-library-sticky-tools .button,
+  .book-mundane-toggle,
+  .book-library-mundane-toggle,
+  .grimoire-menu-button {
+    min-height: 2.35rem;
+    border-radius: 999px;
+    padding: 0.45rem 0.7rem;
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+
+  .book-reader-page,
+  .book-editor-page {
+    padding-inline: 0 !important;
+  }
+
+  .book-editor-header {
+    gap: 0.8rem;
+  }
+
+  .book-editor-header input {
+    font-size: clamp(2.1rem, 13vw, 3.4rem);
+  }
+
+  .book-editor-actions {
+    position: sticky;
+    top: 4.2rem;
+    z-index: 45;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.45rem;
+    margin: 0 -0.25rem 1rem;
+    padding: 0.45rem;
+    border: 1px solid rgba(185, 160, 93, 0.25);
+    border-radius: 999px;
+    background: rgba(8, 10, 8, 0.88);
+    backdrop-filter: blur(12px);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .book-editor-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .book-editor-actions button,
+  .book-editor-actions .button {
+    flex: 0 0 auto;
+    min-height: 2.3rem;
+    padding: 0.42rem 0.7rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .book-editor-elements {
+    gap: 0.85rem;
+  }
+
+  .book-edit-element {
+    padding: 0.85rem;
+    border-radius: 1rem;
+  }
+
+  .book-element-controls {
+    justify-content: flex-start;
+    gap: 0.35rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .book-element-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .book-element-controls button {
+    flex: 0 0 auto;
+    min-width: 2.15rem;
+    min-height: 2.15rem;
+  }
+
+  .book-rich-toolbar {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    border-radius: 1rem;
+    padding: 0.45rem;
+  }
+
+  .book-rich-toolbar button {
+    min-height: 2rem;
+    padding: 0.3rem 0.55rem;
+    font-size: 0.76rem;
+  }
+
+  .book-rich-input,
+  .book-library-rich-input {
+    min-height: 9rem;
+    border-radius: 1rem;
+    font-size: 1rem;
+  }
+
+  .book-rich-heading {
+    min-height: 4rem;
+    font-size: clamp(1.8rem, 10vw, 2.8rem);
+  }
+
+  .book-add-elements {
+    gap: 0.85rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .book-element-group div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .book-add-elements button,
+  .book-element-group button {
+    min-height: 2.25rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .book-library-edit-fields {
+    gap: 1rem;
+  }
+
+  .book-library-edit-field {
+    padding: 0.85rem;
+    border: 1px solid rgba(185, 160, 93, 0.2);
+    border-radius: 1rem;
+    background: rgba(244, 236, 216, 0.035);
+  }
+
+  .book-library-edit-field h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+  }
+
+  .library-field-move {
+    min-width: 2rem;
+    min-height: 2rem;
+  }
+
+  .library-field-hide {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+  }
+
+  .library-field-hide input {
+    width: auto;
+  }
+
+  .book-library-edit-actions {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 45;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.45rem;
+    padding: 0.45rem;
+    border: 1px solid rgba(185, 160, 93, 0.25);
+    border-radius: 999px;
+    background: rgba(8, 10, 8, 0.88);
+    backdrop-filter: blur(12px);
+    overflow-x: auto;
+  }
+
+  .book-library-edit-actions button {
+    flex: 0 0 auto;
+  }
+
+  .book-modal {
+    max-height: 88vh;
+    border-radius: 1rem;
+  }
+
+  .book-modal h2 {
+    font-size: clamp(2.2rem, 12vw, 3.3rem);
+  }
+}
+
+/* =========================================================
+   MOBILE GRIMOIRE TOP TOOLBAR FIX
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .book-page-toolbar {
+    justify-content: flex-start;
+    border-radius: 1rem;
+    padding: 0.45rem;
+  }
+
+  .grimoire-menu-button {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2.35rem;
+    height: 2.35rem;
+    min-height: 2.35rem;
+    border: 1px solid rgba(185, 160, 93, 0.34);
+    border-radius: 999px;
+    padding: 0;
+    color: var(--gold);
+    background: rgba(185, 160, 93, 0.08);
+    font: inherit;
+    font-size: 0.9rem;
+  }
+
+  .book-page-toolbar .book-search {
+    flex: 1 1 auto;
+    min-width: 9rem;
+    width: auto;
+  }
+
+  .book-page-toolbar .book-search input {
+    width: 100%;
+  }
+
+  .book-page-toolbar .book-mundane-toggle {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .book-page-toolbar .book-edit-button {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .book-page-toolbar .book-mundane-toggle span {
+    display: none;
+  }
+
+  .book-page-toolbar .book-mundane-toggle {
+    width: 2.35rem;
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+.grimoire-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+
+   background:
+    radial-gradient(circle at center,
+        rgba(30, 24, 14, 0.35),
+        rgba(0, 0, 0, 0.88));
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease, visibility .25s ease;
+}
+
+.grimoire-sidebar-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* =========================================================
+   MOBILE LIBRARY TOOLBAR FINAL CLEANUP
+   Row 1: Menu / Search / Mundane checkbox
+   Row 2: Edit / Delete / Upload Image
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .book-library-sticky-tools {
+    display: grid !important;
+    grid-template-columns: 2.35rem minmax(0, 1fr) 2.35rem;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.6rem;
+    border-radius: 1rem;
+    overflow: visible;
+  }
+
+  .book-library-sticky-left {
+    display: contents !important;
+  }
+
+  .book-library-sticky-left .grimoire-menu-button {
+    grid-column: 1;
+    grid-row: 1;
+    width: 2.35rem;
+    height: 2.35rem;
+    min-height: 2.35rem;
+    padding: 0;
+  }
+
+  .book-library-sticky-search {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .book-library-sticky-search input {
+    width: 100%;
+    min-height: 2.35rem;
+  }
+
+  .book-library-mundane-toggle {
+    grid-column: 3;
+    grid-row: 1;
+    display: grid !important;
+    place-items: center;
+    width: 2.35rem;
+    min-width: 2.35rem;
+    height: 2.35rem;
+    min-height: 2.35rem;
+    padding: 0 !important;
+    border-radius: 999px;
+    font-size: 0;
+  }
+
+  .book-library-mundane-toggle input {
+    width: auto;
+    margin: 0;
+    font-size: initial;
+  }
+
+  .book-library-edit-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+    overflow: visible;
+  }
+
+  .book-library-edit-actions .button,
+  .book-library-edit-actions .book-library-image-upload {
+    width: 100%;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.5rem;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 0.78rem;
+  }
+}

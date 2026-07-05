@@ -3,6 +3,15 @@
    Object transforms, placement, dragging, duplication, delete
    ========================================================= */
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function updateObjectTransform(object) {
   const scale = Number(object.dataset.scale || 1);
   const rotation = Number(object.dataset.rotation || 0);
@@ -453,9 +462,27 @@ function placeObject(options) {
      apothecaryGrimoireStatus
    } = options;
 
+  const entityName =
+    herb ||
+    crystal ||
+    deity ||
+    tool ||
+    vessel ||
+    color ||
+    label ||
+    "Object";
+
+  const entityType =
+    herb ? "herb" :
+    crystal ? "crystal" :
+    deity ? "deity" :
+    tool ? "tool" :
+    vessel ? "vessel" :
+    type || "object";
+
   const entity = Library.getOrCreateEntity({
-    name: label || "Object",
-    type: type || "object",
+    name: entityName,
+    type: entityType,
     image: imagePath || ""
   });
   const object = document.createElement("button");
@@ -583,3 +610,252 @@ function duplicateObject(object) {
   renderLighting();
   saveWorkingAltarDraft();
 }
+
+/* =========================================================
+   COMPANION PANEL EDITING
+   Mobile + desktop
+   ========================================================= */
+
+function escapeAltarHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function getCurrentSelectedAltarObject() {
+  return selectedObject || document.querySelector(".altar-object.is-selected");
+}
+
+function getSelectedCompanionEntity() {
+  const object = getCurrentSelectedAltarObject();
+
+  if (!object || typeof Library === "undefined") return null;
+
+  let entityId = object.dataset.entityId;
+
+  if (!entityId) {
+    const entityName =
+      object.dataset.herb ||
+      object.dataset.crystal ||
+      object.dataset.deity ||
+      object.dataset.tool ||
+      object.dataset.vessel ||
+      object.dataset.label ||
+      "Object";
+
+    const entityType =
+      object.dataset.herb ? "herb" :
+      object.dataset.crystal ? "crystal" :
+      object.dataset.deity ? "deity" :
+      object.dataset.tool ? "tool" :
+      object.dataset.vessel ? "vessel" :
+      object.dataset.type || "object";
+
+    const entity = Library.getOrCreateEntity({
+      name: entityName,
+      type: entityType,
+      image: getObjectImagePath(object) || ""
+    });
+
+    object.dataset.entityId = entity.id;
+    entityId = entity.id;
+  }
+
+  return Library.getEntity(entityId);
+}
+
+function renderCompanionRichField(key, label, value = "") {
+  return `
+    <section class="companion-edit-field">
+      <h3>${label}</h3>
+
+      <div class="book-rich-toolbar companion-rich-toolbar" aria-label="Formatting tools">
+        <button type="button" data-companion-rich-command="bold">B</button>
+        <button type="button" data-companion-rich-command="italic"><em>I</em></button>
+        <button type="button" data-companion-rich-command="underline"><u>U</u></button>
+        <button type="button" data-companion-rich-command="insertUnorderedList">• List</button>
+        <button type="button" data-companion-rich-command="insertOrderedList">1. List</button>
+        <button type="button" data-companion-rich-command="formatBlock" data-companion-rich-value="blockquote">Quote</button>
+      </div>
+
+      <div
+        class="book-rich-input companion-rich-input"
+        contenteditable="true"
+        data-companion-edit-field="${key}">
+        ${value || ""}
+      </div>
+    </section>
+  `;
+}
+
+function openCompanionEditModal() {
+  const object = getCurrentSelectedAltarObject();
+  const entity = getSelectedCompanionEntity();
+
+  if (!object || !entity) {
+    showAltarToast("Select an object first");
+    return;
+  }
+
+  const myPractice = entity.myPractice || {};
+  const modal = document.createElement("div");
+
+  modal.className = "library-section-editor-modal companion-edit-modal";
+  modal.setAttribute("data-companion-edit-modal", "");
+
+  modal.innerHTML = `
+    <div class="library-section-editor-card companion-edit-card" role="dialog" aria-modal="true">
+      <button class="library-section-editor-close" type="button" data-close-companion-edit-modal aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">Companion Editor</p>
+      <h2>Edit ${escapeAltarHtml(object.dataset.label || entity.name || "Object")}</h2>
+
+      <form data-companion-edit-form>
+        <label class="companion-edit-label">
+          Display Name
+          <input type="text" name="label" value="${escapeAltarHtml(object.dataset.label || entity.name || "")}" />
+        </label>
+
+        ${renderCompanionRichField("Meaning", "Meaning", myPractice.Meaning || "")}
+        ${renderCompanionRichField("Uses", "Uses", myPractice.Uses || "")}
+        ${renderCompanionRichField("PairsWith", "Pairs With", myPractice.PairsWith || "")}
+        ${renderCompanionRichField("Substitutions", "Substitutions", myPractice.Substitutions || "")}
+        ${renderCompanionRichField("Notes", "Notes", myPractice.Notes || "")}
+
+        <button class="button button--primary" type="submit">
+          Save Changes
+        </button>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function closeCompanionEditModal() {
+  document.querySelector("[data-companion-edit-modal]")?.remove();
+}
+
+function saveCompanionEditForm(form) {
+  const object = getCurrentSelectedAltarObject();
+  const entity = getSelectedCompanionEntity();
+
+  if (!object || !entity || typeof Library === "undefined") return;
+
+  const formData = new FormData(form);
+  const label = String(formData.get("label") || "").trim();
+
+  if (label) {
+    object.dataset.label = label;
+    object.setAttribute("aria-label", `${label}. Click to select. Drag to move.`);
+  }
+
+  const myPractice = {};
+
+  form.querySelectorAll("[data-companion-edit-field]").forEach((field) => {
+    const key = field.dataset.companionEditField;
+    const value = field.innerHTML.trim();
+
+    if (value) {
+      myPractice[key] = value;
+    }
+  });
+
+  Library.updateEntity(entity.id, {
+    name: label || entity.name,
+    myPractice
+  });
+
+  if (typeof Library.syncMyPracticeConnections === "function") {
+    Library.syncMyPracticeConnections(entity.id);
+  }
+
+  saveWorkingAltarDraft();
+
+  if (typeof showAltarInfoCard === "function") {
+    showAltarInfoCard(object);
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const richButton = event.target.closest("[data-companion-rich-command]");
+
+  if (richButton) {
+    event.preventDefault();
+
+    const command = richButton.dataset.companionRichCommand;
+    const value = richButton.dataset.companionRichValue || null;
+
+    document.execCommand(command, false, value);
+    return;
+  }
+
+  const editButton = event.target.closest("[data-edit-companion-entry]");
+
+  if (editButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    openCompanionEditModal();
+    return;
+  }
+
+  const closeButton = event.target.closest("[data-close-companion-edit-modal]");
+
+  if (closeButton) {
+    event.preventDefault();
+    closeCompanionEditModal();
+  }
+}, true);
+
+document.addEventListener("submit", (event) => {
+  const form = event.target.closest("[data-companion-edit-form]");
+  if (!form) return;
+
+  event.preventDefault();
+
+  saveCompanionEditForm(form);
+  closeCompanionEditModal();
+  showAltarToast("Entry updated");
+}, true);
+
+/* =========================================================
+   ENSURE COMPANION EDIT BUTTON EXISTS
+   ========================================================= */
+
+function ensureCompanionEditButton() {
+  const object = getCurrentSelectedAltarObject();
+  const companionContent = document.querySelector(".altar-companion-content");
+
+  if (!object || !companionContent) return;
+  if (companionContent.querySelector("[data-edit-companion-entry]")) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "altar-companion-edit-button";
+  button.setAttribute("data-edit-companion-entry", "");
+  button.textContent = "Edit This Entry";
+
+  companionContent.appendChild(button);
+}
+
+const companionEditButtonObserver = new MutationObserver(() => {
+  ensureCompanionEditButton();
+});
+
+companionEditButtonObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
+  attributes: true,
+  attributeFilter: ["class", "hidden"]
+});
+
+document.addEventListener("click", () => {
+  window.setTimeout(ensureCompanionEditButton, 50);
+});
+
+ensureCompanionEditButton();

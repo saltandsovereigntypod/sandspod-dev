@@ -8,6 +8,30 @@
 
 const LIBRARY_STORAGE_KEY = "saltAndSovereigntyLibrary";
 
+const LIBRARY_RELATIONS = {
+
+  PAIRS_WITH: "pairs_with",
+
+  SUBSTITUTES: "substitutes",
+
+  SUBSTITUTE_FOR: "substitute_for",
+
+  INGREDIENT_IN: "ingredient_in",
+
+  CONTAINS: "contains",
+
+  USED_IN: "used_in",
+
+  ASSOCIATED_WITH: "associated_with",
+
+  OFFERED_TO: "offered_to",
+
+  RULED_BY: "ruled_by",
+
+  RELATED_TO: "related_to"
+
+};
+
 const Library = (() => {
 
   let library = load();
@@ -96,7 +120,8 @@ function getOrCreateEntity({
     traditional = {},
     myPractice = {},
     community = {},
-    metadata = {}
+    metadata = {},
+    aliases = []
   }) {
 
     id ||= crypto.randomUUID();
@@ -105,11 +130,17 @@ function getOrCreateEntity({
       id,
       type,
       name,
+
+      aliases,
+
       image,
+
       traditional,
       myPractice,
       community,
+
       metadata,
+
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -150,6 +181,136 @@ function getOrCreateEntity({
 
     return library.entities[id];
   }
+
+function addAlias(id, alias) {
+
+  const entity = library.entities[id];
+  if (!entity || !alias) return;
+
+  entity.aliases ??= [];
+
+  if (!entity.aliases.includes(alias)) {
+    entity.aliases.push(alias);
+  }
+
+  entity.updatedAt = new Date().toISOString();
+  save();
+}
+
+function removeAlias(id, alias) {
+
+  const entity = library.entities[id];
+  if (!entity) return;
+
+  entity.aliases = (entity.aliases || []).filter(a => a !== alias);
+
+  entity.updatedAt = new Date().toISOString();
+  save();
+}
+
+function findByAlias(alias) {
+
+  alias = alias.trim().toLowerCase();
+
+  return Object.values(library.entities).find(entity =>
+
+    (entity.aliases || []).some(a =>
+      a.toLowerCase() === alias
+    )
+
+  ) || null;
+}
+
+function disconnect(from, relation, to) {
+
+  library.relations = library.relations.filter(link =>
+
+    !(link.from === from &&
+      link.relation === relation &&
+      link.to === to)
+
+  );
+
+  save();
+}
+
+function getRelated(id, relation = null) {
+
+  const links = library.relations.filter(link =>
+
+    relation
+      ? (link.from === id && link.relation === relation)
+      : (link.from === id)
+
+  );
+
+  return links
+    .map(link => getEntity(link.to))
+    .filter(Boolean);
+}
+
+function replaceConnections(from, relation, targets = []) {
+
+  library.relations = library.relations.filter(link =>
+
+    !(link.from === from &&
+      link.relation === relation)
+
+  );
+
+  targets.forEach(target => {
+
+    library.relations.push({
+
+      id: crypto.randomUUID(),
+
+      from,
+      relation,
+      to: target
+
+    });
+
+  });
+
+  save();
+}
+
+function mergeEntities(sourceId, destinationId) {
+
+  if (sourceId === destinationId) return;
+
+  const source = getEntity(sourceId);
+  const destination = getEntity(destinationId);
+
+  if (!source || !destination) return;
+
+  destination.aliases = [
+    ...(destination.aliases || []),
+    source.name,
+    ...(source.aliases || [])
+  ];
+
+  destination.myPractice = {
+    ...destination.myPractice,
+    ...source.myPractice
+  };
+
+  destination.community = {
+    ...destination.community,
+    ...source.community
+  };
+
+  library.relations.forEach(link => {
+
+    if (link.from === sourceId) link.from = destinationId;
+    if (link.to === sourceId) link.to = destinationId;
+
+  });
+
+  removeEntity(sourceId);
+
+  save();
+}  
 
   function getEntity(id) {
 
@@ -246,7 +407,53 @@ function getOrCreateEntity({
     return structuredClone(library);
   }
 
-  function importTraditionalLibrary() {
+  function splitConnectionList(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeEntityName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("_", " ");
+}
+
+function findBestTraditionalEntityMatch(name) {
+  const normalizedName = normalizeEntityName(name);
+
+  return Object.values(library.entities).find((entity) => {
+    const names = [
+      entity.name,
+      ...(entity.aliases || [])
+    ].map(normalizeEntityName);
+
+    return names.includes(normalizedName);
+  }) || null;
+}
+
+function connectUnique(from, relation, to) {
+  const exists = library.relations.some((link) => {
+    return (
+      link.from === from &&
+      link.relation === relation &&
+      link.to === to
+    );
+  });
+
+  if (exists) return;
+
+  library.relations.push({
+    id: crypto.randomUUID(),
+    from,
+    relation,
+    to
+  });
+}
+
+function importTraditionalLibrary() {
   if (typeof TraditionalLibrary === "undefined") return;
 
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
@@ -261,33 +468,102 @@ function getOrCreateEntity({
     });
   });
 
+  Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
+    Object.entries(collection).forEach(([key, data]) => {
+      const entity = findEntityByNameAndType(key.replaceAll("_", " "), type);
+      if (!entity) return;
+
+      if (data.PairsWith) {
+        splitConnectionList(data.PairsWith).forEach((name) => {
+          const target = findBestTraditionalEntityMatch(name);
+          if (!target || target.id === entity.id) return;
+
+          connectUnique(entity.id, LIBRARY_RELATIONS.PAIRS_WITH, target.id);
+          connectUnique(target.id, LIBRARY_RELATIONS.PAIRS_WITH, entity.id);
+        });
+      }
+
+      if (data.Substitutions) {
+        splitConnectionList(data.Substitutions).forEach((name) => {
+          const target = findBestTraditionalEntityMatch(name);
+          if (!target || target.id === entity.id) return;
+
+          connectUnique(entity.id, LIBRARY_RELATIONS.SUBSTITUTES, target.id);
+          connectUnique(target.id, LIBRARY_RELATIONS.SUBSTITUTE_FOR, entity.id);
+        });
+      }
+    });
+  });
+
   save();
 }
 
-  return {
+function syncMyPracticeConnections(entityId) {
+  const entity = getEntity(entityId);
+  if (!entity) return;
 
-    createEntity,
-    getOrCreateEntity,
-    importTraditionalLibrary,
+  const myPractice = entity.myPractice || {};
 
-    updateEntity,
+  replaceConnections(entity.id, LIBRARY_RELATIONS.PAIRS_WITH, []);
+  replaceConnections(entity.id, LIBRARY_RELATIONS.SUBSTITUTES, []);
 
-    updateEntity,
-    updateEntitySection,
-    updateEntityType,
-    updateEntityImage,
+  if (myPractice.PairsWith) {
+    splitConnectionList(myPractice.PairsWith).forEach((name) => {
+      const target = findBestTraditionalEntityMatch(name);
+      if (!target || target.id === entity.id) return;
 
-    getEntity,
-    getEntitiesByType,
-    getMyPracticeEntitiesByType,
-    getIndex,
+      connectUnique(entity.id, LIBRARY_RELATIONS.PAIRS_WITH, target.id);
+      connectUnique(target.id, LIBRARY_RELATIONS.PAIRS_WITH, entity.id);
+    });
+  }
 
-    connect,
-    getConnections,
+  if (myPractice.Substitutions) {
+    splitConnectionList(myPractice.Substitutions).forEach((name) => {
+      const target = findBestTraditionalEntityMatch(name);
+      if (!target || target.id === entity.id) return;
 
-    removeEntity,
+      connectUnique(entity.id, LIBRARY_RELATIONS.SUBSTITUTES, target.id);
+      connectUnique(target.id, LIBRARY_RELATIONS.SUBSTITUTE_FOR, entity.id);
+    });
+  }
 
-    exportLibrary
+  save();
+}
+
+return {
+
+  LIBRARY_RELATIONS,
+
+  createEntity,
+  getOrCreateEntity,
+  importTraditionalLibrary,
+  syncMyPracticeConnections,
+
+  updateEntity,
+  updateEntitySection,
+  updateEntityType,
+  updateEntityImage,
+
+  addAlias,
+  removeAlias,
+  findByAlias,
+
+  getEntity,
+  getEntitiesByType,
+  getMyPracticeEntitiesByType,
+  getIndex,
+
+  connect,
+  disconnect,
+  getConnections,
+  getRelated,
+  replaceConnections,
+
+  mergeEntities,
+
+  removeEntity,
+
+  exportLibrary
 
 };
 

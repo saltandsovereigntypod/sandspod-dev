@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    
     <title>Book of Shadows | Salt & Sovereignty</title>
 
     <meta
@@ -19,20 +19,23 @@
   </head>
 
   <body class="altar-page grimoire-page-shell">
-    <a class="skip-link" href="#grimoire-main">Skip to content</a>
-
     <header class="site-header" data-header>
       <nav class="nav" aria-label="Primary navigation">
-        <a class="brand" href="../index.html">
+        <a class="brand" href="#hero" aria-label="Salt & Sovereignty home">
           <span class="brand-mark" aria-hidden="true">S&S</span>
           <span>Salt & Sovereignty</span>
         </a>
-
-        <div class="nav-links">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+          <span class="sr-only">Toggle navigation</span>
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-menu">
           <a href="../index.html#about">About</a>
           <a href="../index.html#podcast">Podcast</a>
           <a href="../index.html#books">Books</a>
           <a href="../index.html#blog">Blog</a>
+          <a href="../index.html#contact">Contact</a>
+
           <button class="nav-sanctuary-button" type="button" data-my-sanctuary-open>
             My Sanctuary
           </button>
@@ -68,25 +71,6 @@
         </aside>
 
         <article class="book-page" data-book-page>
-          <div class="book-page-toolbar">
-            <label class="book-search">
-              <span>Search</span>
-              <input
-                type="search"
-                data-entry-search
-                placeholder="Search your pages..."
-              />
-            </label>
-
-            <label class="book-mundane-toggle">
-              <input type="checkbox" data-mundane-toggle />
-              <span>Mundane</span>
-            </label>
-            
-            <button class="book-edit-button" type="button" data-toggle-edit hidden>
-              ✎ Edit
-            </button>
-          </div>
 
           <div class="book-page-empty" data-grimoire-empty>
             <p class="book-divider">✦ ☽ ✦ ☾ ✦</p>
@@ -213,5 +197,7 @@
     
     <script src="js/app.js"></script>
     <script src="js/core/events.js"></script>
+
+    <div class="grimoire-sidebar-overlay" id="grimoireSidebarOverlay"></div>
   </body>
 </html>

@@ -258,6 +258,86 @@ function createMySanctuaryPanel() {
             </select>
           </label>
 
+          <fieldset class="my-sanctuary-settings-group">
+            <legend>Living Library Pages</legend>
+
+            <p class="my-sanctuary-intro">
+              Choose which knowledge layers appear on Living Library pages and what each layer is allowed to show.
+            </p>
+
+            <label>
+              Layer Order
+              <select name="library_layer_order">
+                <option value="myPractice,traditional,community">My Practice, Traditional, Community</option>
+                <option value="traditional,myPractice,community">Traditional, My Practice, Community</option>
+                <option value="community,myPractice,traditional">Community, My Practice, Traditional</option>
+                <option value="myPractice,community,traditional">My Practice, Community, Traditional</option>
+              </select>
+            </label>
+
+            <div class="library-settings-accordions">
+              <details class="my-settings-drawer" open>
+                <summary>My Practice</summary>
+                <div class="my-settings-drawer-panel">
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_enabled" /> Show My Practice</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_meanings" /> Meanings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_uses" /> Uses</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_correspondences" /> Correspondences</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_ingredients" /> Ingredients</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_intentions" /> Intentions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_pairings" /> Pairings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_substitutions" /> Substitutions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_warnings" /> Warnings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_grimoire" /> Grimoire links/status</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_dressings" /> Candle dressings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_groups" /> Groups / connected items</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_notes" /> Notes</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_myPractice_sources" /> Sources</label>
+                </div>
+              </details>
+
+              <details class="my-settings-drawer">
+                <summary>Traditional Information</summary>
+                <div class="my-settings-drawer-panel">
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_enabled" /> Show Traditional</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_meanings" /> Meanings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_uses" /> Uses</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_correspondences" /> Correspondences</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_ingredients" /> Ingredients</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_intentions" /> Intentions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_pairings" /> Pairings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_substitutions" /> Substitutions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_warnings" /> Warnings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_grimoire" /> Grimoire links/status</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_dressings" /> Candle dressings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_groups" /> Groups / connected items</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_notes" /> Notes</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_traditional_sources" /> Sources</label>
+                </div>
+              </details>
+
+              <details class="my-settings-drawer">
+                <summary>Community Information</summary>
+                <div class="my-settings-drawer-panel">
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_enabled" /> Show Community</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_meanings" /> Meanings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_uses" /> Uses</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_correspondences" /> Correspondences</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_ingredients" /> Ingredients</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_intentions" /> Intentions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_pairings" /> Pairings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_substitutions" /> Substitutions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_warnings" /> Warnings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_grimoire" /> Grimoire links/status</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_dressings" /> Candle dressings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_groups" /> Groups / connected items</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_notes" /> Notes</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="library_community_sources" /> Sources</label>
+                </div>
+              </details>
+            </div>
+          </fieldset>
+
           <fieldset class="my-sanctuary-settings-group companion-settings">
             <legend>Companion Panel</legend>
 
@@ -265,105 +345,75 @@ function createMySanctuaryPanel() {
               Choose what information appears beside the altar when an object is selected.
             </p>
 
-            <details open>
-              <summary>My Information</summary>
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="companion_copy_grimoire_settings" />
+              Copy my Living Library page settings
+            </label>
 
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_enabled" />
-                Show my information
-              </label>
+            <label>
+              Companion Layer Order
+              <select name="companion_layer_order">
+                <option value="myPractice,traditional,community">My Practice, Traditional, Community</option>
+                <option value="traditional,myPractice,community">Traditional, My Practice, Community</option>
+                <option value="community,myPractice,traditional">Community, My Practice, Traditional</option>
+                <option value="myPractice,community,traditional">My Practice, Community, Traditional</option>
+              </select>
+            </label>
 
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_ingredients" />
-                Show ingredients
-              </label>
+            <div class="library-settings-accordions">
+              <details class="my-settings-drawer" open>
+                <summary>My Practice</summary>
+                <div class="my-settings-drawer-panel">
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_enabled" /> Show My Practice</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_meanings" /> Meanings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_uses" /> Uses</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_correspondences" /> Correspondences</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_ingredients" /> Ingredients</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_intentions" /> Intentions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_pairings" /> Pairings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_substitutions" /> Substitutions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_warnings" /> Warnings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_grimoire" /> Grimoire links/status</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_dressings" /> Candle dressings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_groups" /> Groups / connected items</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_notes" /> Notes</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_my_sources" /> Sources</label>
+                </div>
+              </details>
 
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_intention" />
-                Show intention
-              </label>
+              <details class="my-settings-drawer">
+                <summary>Traditional Information</summary>
+                <div class="my-settings-drawer-panel">
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_enabled" /> Show Traditional</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_meanings" /> Meanings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_uses" /> Uses</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_correspondences" /> Correspondences</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_ingredients" /> Ingredients</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_intentions" /> Intentions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_pairings" /> Pairings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_substitutions" /> Substitutions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_warnings" /> Warnings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_traditional_sources" /> Sources</label>
+                </div>
+              </details>
 
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_notes" />
-                Show notes
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_grimoire" />
-                Show Grimoire links/status
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_dressings" />
-                Show candle dressings
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_my_groups" />
-                Show group information
-              </label>
-            </details>
-
-            <details>
-              <summary>Traditional Information</summary>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_traditional_enabled" />
-                Show traditional information
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_traditional_meanings" />
-                Show traditional meanings / uses
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_traditional_correspondences" />
-                Show correspondences
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_traditional_warnings" />
-                Show warnings
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_traditional_sources" />
-                Show sources
-              </label>
-
-              <p class="my-sanctuary-soft-note">
-                Traditional information will appear once the correspondence library is built.
-              </p>
-            </details>
-
-            <details>
-              <summary>Community Information</summary>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_community_enabled" />
-                Show community information
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_community_notes" />
-                Show community notes
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_community_correspondences" />
-                Show community correspondences
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_community_warnings" />
-                Show community warnings
-              </label>
-
-              <label class="my-sanctuary-check">
-                <input type="checkbox" name="companion_community_substitutions" />
-                Show substitutions
-              </label>
+              <details class="my-settings-drawer">
+                <summary>Community Information</summary>
+                <div class="my-settings-drawer-panel">
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_enabled" /> Show Community</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_meanings" /> Meanings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_uses" /> Uses</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_correspondences" /> Correspondences</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_ingredients" /> Ingredients</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_intentions" /> Intentions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_pairings" /> Pairings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_substitutions" /> Substitutions</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_warnings" /> Warnings</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_notes" /> Notes</label>
+                  <label class="my-sanctuary-check"><input type="checkbox" name="companion_community_sources" /> Sources</label>
+                </div>
+              </details>
+            </div>
 
               <p class="my-sanctuary-soft-note">
                 Community information will appear once the Community Grimoire is connected.

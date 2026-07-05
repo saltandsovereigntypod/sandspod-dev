@@ -143,23 +143,6 @@ img {
   color: var(--cream);
 }
 
-.nav-toggle {
-  display: none;
-  background: none;
-  border: 0;
-  color: var(--cream);
-  padding: 0.5rem;
-}
-
-.nav-toggle span:not(.sr-only) {
-  display: block;
-  width: 1.6rem;
-  height: 1px;
-  margin: 0.4rem;
-  background: currentColor;
-}
-
-
 /* =========================================================
    4. SHARED LAYOUT, TYPOGRAPHY, AND BUTTONS
    ========================================================= */
@@ -584,62 +567,127 @@ summary:focus-visible {
    RESPONSIVE STYLES
    ========================================================= */
 
-@media (max-width: 900px) {
-  .nav-toggle {
-    display: block;
-  }
+@media (max-width:900px){
 
-  .nav-links {
-    position: fixed;
-    inset: 4.75rem 0 auto;
-    display: grid;
-    gap: 0;
-    padding: 0.5rem 1rem 1rem;
-    background: rgba(17, 21, 18, 0.98);
-    border-bottom: 1px solid var(--line);
-    transform: translateY(-120%);
-    transition: transform 0.25s ease;
-  }
+.nav{
+    position:relative;
+}
 
-  .nav-links a {
-    padding: 0.8rem 0;
-  }
+.nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
 
-  .nav-links.is-open {
-    transform: translateY(0);
-  }
+    min-width: 56px;
+    height: 42px;
+    padding: 0 1.1rem;
 
-  .about-grid,
-  .feature-layout,
-  .contact-grid,
-  .support-panel {
-    grid-template-columns: 1fr;
-    display: grid;
-  }
+    border: 1px solid rgba(185,160,93,.35);
+    border-radius: 999px;
 
-  .book-grid,
-  .book-grid--featured,
-  .blog-grid,
-  .service-grid,
-  .resource-grid {
-    grid-template-columns: 1fr;
-  }
+    background:
+        radial-gradient(circle at top,
+        rgba(185,160,93,.12),
+        transparent 70%),
+        rgba(18,18,18,.75);
 
-  .book-card--main {
-    max-width: none;
-  }
+    color: var(--cream);
 
-  .hero {
-    min-height: 88vh;
-  }
+    font-family: "Cormorant Garamond", serif;
+    font-size: .95rem;
+    letter-spacing: .08em;
+}
 
-  .hero__media {
-    background-position: 58% center;
-  }
+.nav-toggle::before{
+    content:"✦ Explore ✦";
+}
 
-  .footer {
-    flex-direction: column;
-  }
+.nav-toggle span:not(.sr-only){
+    display:none;
+}
+
+.nav-links{
+
+    position:absolute;
+    top:100%;
+    right:0;
+
+    width:290px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+
+    gap:.35rem;
+
+    padding:1rem;
+
+    border:1px solid var(--line);
+    border-radius:18px;
+
+    background:rgba(17,21,18,.98);
+    backdrop-filter:blur(18px);
+
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+
+    opacity:0;
+    visibility:hidden;
+
+    transform:translateY(-10px);
+
+    transition:
+        opacity .22s,
+        transform .22s,
+        visibility .22s;
+
+}
+
+.nav-links.is-open{
+
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+
+}
+
+.nav-links a,
+.nav-links button{
+
+    width:100%;
+    text-align:left;
+
+    padding:.8rem 1rem;
+
+    border-radius:10px;
+
+}
+
+.about-grid,
+.feature-layout,
+.contact-grid,
+.support-panel{
+
+    grid-template-columns:1fr;
+
+}
+
+.book-grid,
+.book-grid--featured,
+.blog-grid,
+.service-grid,
+.resource-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.footer{
+
+    flex-direction:column;
+
+}
+
 }
 
 @media (min-width: 720px) {
@@ -1685,4 +1733,249 @@ body:has(.sanctuary-submission-form) h1 {
   min-height: 1.5rem;
   color: var(--gold);
   font-style: italic;
+}
+
+.library-settings-accordions {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.my-settings-drawer {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  background: rgba(8, 10, 8, 0.28);
+  overflow: hidden;
+}
+
+.my-settings-drawer summary {
+  padding: 0.85rem 1rem;
+  color: var(--gold);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.my-settings-drawer-panel {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0 1rem 1rem;
+}
+
+.my-settings-drawer-panel .my-sanctuary-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  line-height: 1.35;
+}
+
+.my-settings-drawer-panel .my-sanctuary-check input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+@media (max-width:900px){
+
+.site-header{
+    overflow:visible;
+}
+
+.nav{
+
+    min-height:72px;
+
+}
+
+.nav-toggle{
+
+    display:flex;
+    flex-shrink:0;
+
+}
+
+.nav-links{
+
+    position:absolute;
+
+    top:100%;
+    left:0;
+    right:0;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:0;
+
+    padding:1rem;
+
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+
+    background:#111512;
+
+    transform:scaleY(0);
+    transform-origin:top;
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:
+        transform .25s ease,
+        opacity .25s ease;
+
+    z-index:500;
+
+}
+
+.nav-links.is-open{
+
+    transform:scaleY(1);
+
+    opacity:1;
+
+    pointer-events:auto;
+
+}
+
+.nav-links a,
+.nav-links button{
+
+    width:100%;
+
+    text-align:left;
+
+    padding:.9rem 0;
+
+}
+
+}
+
+/* ==========================================================
+   MOBILE LAYOUT OVERRIDE
+   Global Mobile Polish
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+  /* ---------- Page ---------- */
+
+  .section {
+    padding: 3rem 1rem;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ---------- Typography ---------- */
+
+  h1 {
+    max-width: none;
+    font-size: clamp(3rem, 13vw, 4.75rem);
+    text-align: center;
+  }
+
+  h2 {
+    max-width: none;
+    font-size: clamp(2.2rem, 10vw, 3.4rem);
+    text-align: center;
+  }
+
+  h3 {
+    max-width: none;
+  }
+
+  p {
+    font-size: .98rem;
+  }
+
+  .section-intro {
+    text-align: center;
+  }
+
+  .section-intro p {
+    margin-inline: auto;
+  }
+
+  /* ---------- Hero ---------- */
+
+  .hero {
+    min-height: auto;
+    padding-top: 3rem;
+  }
+
+  .hero__content {
+    text-align: center;
+    padding-bottom: 3rem;
+  }
+
+  .hero__subtitle {
+    margin-inline: auto;
+  }
+
+  /* ---------- Buttons ---------- */
+
+  .button-row {
+    justify-content: center;
+  }
+
+  .button {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  /* ---------- Cards ---------- */
+
+  .portrait-card,
+  .featured-card,
+  .small-card,
+  .book-card,
+  .faq,
+  .contact-form,
+  .contact-aside,
+  .support-panel {
+
+    width: 100%;
+  }
+
+  /* ---------- Grids ---------- */
+
+  .about-grid,
+  .feature-layout,
+  .contact-grid,
+  .book-grid,
+  .book-grid--featured,
+  .blog-grid,
+  .service-grid,
+  .resource-grid {
+
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem;
+  }
+
+  /* ---------- Podcast ---------- */
+
+  .podcast-buttons {
+    justify-content: center;
+  }
+
+  iframe {
+    max-width: 100%;
+  }
+
+  /* ---------- Footer ---------- */
+
+  .footer {
+    text-align: center;
+    align-items: center;
+  }
+
+  .footer div {
+    justify-content: center;
+  }
+
 }

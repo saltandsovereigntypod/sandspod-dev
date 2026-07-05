@@ -494,3 +494,123 @@ window.setTimeout(() => {
   }
 }, 500);
 
+/* =========================================================
+   MOBILE / UNIVERSAL SELECTION LOCK
+   Only the Done button deselects altar objects
+   ========================================================= */
+
+function getSelectedAltarObjectElement() {
+  return document.querySelector(".altar-object.is-selected");
+}
+
+function intentionallyDeselectAltarObject() {
+  const selected = getSelectedAltarObjectElement();
+
+  if (selected) {
+    selected.classList.remove("is-selected", "is-dragging");
+  }
+
+  try {
+    if (typeof selectedObject !== "undefined") selectedObject = null;
+  } catch {}
+
+  try {
+    if (typeof activeObject !== "undefined") activeObject = null;
+  } catch {}
+
+  const toolbar = document.querySelector(".altar-toolbar");
+  if (toolbar) {
+    toolbar.hidden = true;
+  }
+
+  const companion = document.querySelector(".altar-companion-panel");
+  if (companion) {
+    companion.classList.remove("is-visible");
+  }
+
+  document.body.classList.remove("altar-object-selected");
+}
+
+function ensureDeselectButton() {
+  const toolbar = document.querySelector(".altar-toolbar");
+
+  if (!toolbar) return;
+  if (toolbar.querySelector("[data-deselect-object]")) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "altar-toolbar-done";
+  button.setAttribute("data-deselect-object", "");
+  button.setAttribute("aria-label", "Deselect object");
+  button.textContent = "✓";
+
+  toolbar.appendChild(button);
+}
+
+document.addEventListener("click", (event) => {
+  const doneButton = event.target.closest("[data-deselect-object]");
+
+  if (doneButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    intentionallyDeselectAltarObject();
+    return;
+  }
+});
+
+document.addEventListener(
+  "click",
+  (event) => {
+    const stage = event.target.closest("[data-altar-stage]");
+    const selected = getSelectedAltarObjectElement();
+
+    if (!stage || !selected) return;
+
+    const clickedObject = event.target.closest(".altar-object");
+    const clickedToolbar = event.target.closest(".altar-toolbar");
+    const clickedCompanion = event.target.closest(".altar-companion-panel");
+    const clickedCabinet = event.target.closest(".altar-cabinet-overlay");
+
+    if (clickedObject || clickedToolbar || clickedCompanion || clickedCabinet) return;
+
+    event.stopImmediatePropagation();
+  },
+  true
+);
+
+const altarSelectionObserver = new MutationObserver(() => {
+  ensureDeselectButton();
+
+  const selected = getSelectedAltarObjectElement();
+  document.body.classList.toggle("altar-object-selected", Boolean(selected));
+});
+
+altarSelectionObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
+  attributes: true,
+  attributeFilter: ["class", "hidden"]
+});
+
+ensureDeselectButton();
+
+/* =========================================================
+   MOBILE COMPANION PANEL TOGGLE
+   ========================================================= */
+
+document.addEventListener("click", (event) => {
+  const companionButton = event.target.closest(
+    "[data-companion-mobile-toggle], .altar-companion-header button"
+  );
+
+  if (!companionButton) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  document.body.classList.toggle("altar-companion-mobile-minimized");
+
+  companionButton.textContent = document.body.classList.contains("altar-companion-mobile-minimized")
+    ? "+"
+    : "−";
+});

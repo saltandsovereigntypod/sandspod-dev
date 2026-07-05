@@ -915,16 +915,6 @@ body.altar-modal-open {
 }
 
 @media (max-width: 700px) {
-  .altar-page .site-header {
-    position: static !important;
-    min-height: auto;
-  }
-
-  .altar-page .nav {
-    min-height: auto;
-    width: min(1180px, calc(100% - 1.3rem));
-    align-items: center;
-  }
 
   .altar-page .brand {
     font-size: 0.9rem;
@@ -932,29 +922,6 @@ body.altar-modal-open {
 
   .altar-page .brand-mark {
     width: 2rem;
-  }
-
-  .altar-page .nav-links {
-    position: static !important;
-    inset: auto !important;
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.65rem;
-    width: 100%;
-    max-height: none !important;
-    padding: 0.5rem 0 0;
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: none !important;
-    pointer-events: auto !important;
-    background: transparent !important;
-  }
-
-  .altar-page .nav-links a {
-    display: inline-flex !important;
-    font-size: 0.82rem;
   }
 
   .altar-main {
@@ -2540,4 +2507,594 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
   font: inherit;
   font-size: 1.4rem;
   cursor: pointer;
+}
+
+/* ==========================================================
+   MOBILE SANCTUARY POLISH
+   Version 3
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+  /* ---------- General ---------- */
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .altar-main {
+    padding: 1rem .75rem 7rem;
+  }
+
+  .altar-hero {
+    margin-bottom: 1rem;
+  }
+
+  .altar-hero h1 {
+    font-size: clamp(2.8rem, 13vw, 4rem);
+    text-align: center;
+  }
+
+  .altar-hero p {
+    font-size: .95rem;
+    text-align: center;
+  }
+
+  /* ---------- Workspace ---------- */
+
+  .altar-workspace {
+    gap: 1rem;
+  }
+
+  .altar-stage-wrap {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  .altar-stage {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  /* ---------- Action Bar ---------- */
+
+  .altar-action-bar {
+
+    display: flex !important;
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    gap: .5rem;
+
+    padding: .75rem;
+
+    overflow: visible;
+
+  }
+
+  .altar-action-group {
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    gap:.45rem;
+
+  }
+
+  .altar-action-divider{
+
+    display:none;
+
+  }
+
+  .altar-action-bar button{
+
+    min-width:120px;
+
+    flex:1 1 auto;
+
+  }
+
+  /* ---------- Toolbar ---------- */
+
+  .altar-toolbar{
+
+    left:.5rem;
+    right:.5rem;
+
+    width:auto;
+
+    max-height:38vh;
+
+    overflow-y:auto;
+
+    border-radius:18px;
+
+  }
+
+  .altar-toolbar button{
+
+    width:42px;
+    height:42px;
+
+  }
+
+  /* ---------- Cabinet ---------- */
+
+  .altar-cabinet{
+
+    padding:1rem;
+
+  }
+
+  .altar-cabinet-tabs{
+
+    grid-template-columns:repeat(2,1fr);
+
+  }
+
+  .altar-cabinet-content{
+
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+
+    gap:.75rem !important;
+
+  }
+
+  .cabinet-tile{
+
+    min-height:150px !important;
+
+  }
+
+  .cabinet-tile-image-wrap{
+
+    width:70px !important;
+    height:70px !important;
+
+  }
+
+  /* ---------- Saved Altars ---------- */
+
+  .saved-altars-grid{
+
+    grid-template-columns:1fr;
+
+  }
+
+  .saved-altar-card{
+
+    grid-template-columns:1fr;
+
+    text-align:center;
+
+  }
+
+  .saved-altar-actions{
+
+    justify-content:center;
+
+  }
+
+  /* ---------- Modals ---------- */
+
+  .altar-save-modal-card,
+  .saved-altars-card,
+  .group-choice-card,
+  .apothecary-create-card,
+  .library-section-editor-card{
+
+    width:calc(100vw - 1rem);
+
+    max-height:88vh;
+
+    padding:1rem;
+
+  }
+
+}
+
+/* ==========================================================
+   MOBILE COMPANION PANEL
+   Portrait + Landscape
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+  .altar-companion-panel {
+    display: block !important;
+    width: 100%;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .altar-companion-panel[hidden] {
+    display: block !important;
+  }
+
+  .altar-companion-inner {
+    max-height: 34vh;
+    overflow-y: auto;
+    border: 1px solid rgba(185, 160, 93, 0.3);
+    border-radius: 1rem;
+    padding: 0.85rem;
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 16rem),
+      rgba(10, 8, 6, 0.82);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(8px);
+  }
+
+  .altar-companion-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: start;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+  }
+
+  .altar-companion-header h2 {
+    max-width: none;
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .altar-info-card {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+
+  .altar-workspace {
+    grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .altar-workspace-tools {
+    grid-column: 1 / -1;
+  }
+
+  .altar-companion-panel {
+    grid-column: 1;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 2;
+  }
+
+  .altar-companion-inner {
+    max-height: calc(100vh - 8rem);
+  }
+
+  .altar-action-bar {
+    grid-column: 1 / -1;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPANION + INTENTIONAL DESELECT
+   ========================================================= */
+
+.altar-toolbar-done {
+  color: var(--gold) !important;
+  border-color: rgba(185, 160, 93, 0.55) !important;
+  background: rgba(185, 160, 93, 0.16) !important;
+}
+
+.altar-companion-mobile-toggle {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .altar-companion-panel {
+    display: block !important;
+    width: 100%;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .altar-companion-panel[hidden] {
+    display: block !important;
+  }
+
+  .altar-companion-inner {
+    max-height: 34vh;
+    overflow-y: auto;
+    border: 1px solid rgba(185, 160, 93, 0.3);
+    border-radius: 1rem;
+    padding: 0.85rem;
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 16rem),
+      rgba(10, 8, 6, 0.82);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(8px);
+  }
+
+  .altar-companion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .altar-companion-mobile-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    aspect-ratio: 1;
+    border: 1px solid rgba(185, 160, 93, 0.35);
+    border-radius: 999px;
+    color: var(--gold);
+    background: rgba(185, 160, 93, 0.08);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  body.altar-companion-mobile-minimized .altar-companion-content {
+    display: none;
+  }
+
+  body.altar-companion-mobile-minimized .altar-companion-inner {
+    max-height: none;
+  }
+
+  .altar-info-card {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .altar-workspace {
+    grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .altar-workspace-tools {
+    grid-column: 1 / -1;
+  }
+
+  .altar-companion-panel {
+    grid-column: 1;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 2;
+  }
+
+  .altar-companion-inner {
+    max-height: calc(100vh - 8rem);
+  }
+
+  .altar-action-bar {
+    grid-column: 1 / -1;
+  }
+}
+
+/* =========================================================
+   MOBILE COMPANION BUTTON POLISH
+   Removes default white button styling
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .altar-page .altar-companion-toggle,
+  .altar-page .altar-companion-header button,
+  .altar-page [data-companion-mobile-toggle] {
+    display: inline-grid !important;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border: 1px solid rgba(185, 160, 93, 0.45) !important;
+    border-radius: 999px !important;
+    color: var(--gold) !important;
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.18), transparent 70%),
+      rgba(10, 8, 6, 0.78) !important;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .altar-page .altar-companion-toggle:hover,
+  .altar-page .altar-companion-header button:hover,
+  .altar-page [data-companion-mobile-toggle]:hover {
+    border-color: var(--gold) !important;
+    background: rgba(185, 160, 93, 0.16) !important;
+  }
+}
+
+/* Hide unused companion toggle button above the panel */
+@media (max-width: 900px) {
+  .altar-workspace-tools .altar-companion-toggle {
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   COMPANION EDIT BUTTON
+   ========================================================= */
+
+.altar-companion-edit-button {
+  width: 100%;
+  margin-top: 0.9rem;
+  border: 1px solid rgba(185, 160, 93, 0.34);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  cursor: pointer;
+}
+
+.altar-companion-edit-button:hover,
+.altar-companion-edit-button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+/* =========================================================
+   COMPANION EDIT MODAL POLISH
+   ========================================================= */
+
+.companion-edit-card {
+  width: min(720px, calc(100vw - 1.5rem));
+  padding: clamp(1.15rem, 4vw, 2rem);
+}
+
+.companion-edit-card h2 {
+  max-width: 12ch;
+  margin-bottom: 1.1rem;
+  font-size: clamp(2.5rem, 9vw, 4.25rem);
+}
+
+.companion-edit-card form {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.companion-edit-label input {
+  border-radius: 0.8rem;
+}
+
+.companion-edit-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.companion-edit-field h3 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.companion-rich-toolbar {
+  width: 100%;
+  border-radius: 1rem;
+}
+
+.companion-rich-input {
+  min-height: 8rem;
+  border-radius: 1rem;
+  background: rgba(244, 236, 216, 0.07);
+}
+
+.companion-rich-input blockquote {
+  margin: 0.75rem 0;
+  border-left: 3px solid var(--gold);
+  padding: 0.75rem 1rem;
+  background: rgba(185, 160, 93, 0.08);
+  font-style: italic;
+}
+
+@media (max-width: 700px) {
+  .companion-edit-card {
+    max-height: 88vh;
+  }
+
+  .companion-edit-card h2 {
+    font-size: clamp(2.4rem, 14vw, 3.6rem);
+  }
+
+  .companion-rich-toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .companion-rich-toolbar button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   COMPANION EDITOR BUTTON POLISH + MOBILE LIST FIX
+   ========================================================= */
+
+.companion-rich-toolbar,
+.book-rich-toolbar.companion-rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.45rem;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 999px;
+  background: rgba(8, 10, 8, 0.36);
+}
+
+.companion-rich-toolbar button,
+.book-rich-toolbar.companion-rich-toolbar button {
+  display: inline-grid;
+  place-items: center;
+  min-height: 2rem;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.companion-rich-toolbar button:hover,
+.companion-rich-toolbar button:focus-visible {
+  border-color: var(--gold);
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+.altar-companion-content ul,
+.altar-companion-content ol {
+  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.35rem;
+  color: var(--cream);
+  text-align: left;
+}
+
+.altar-companion-content li {
+  margin: 0.25rem 0;
+  padding-left: 0.15rem;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.altar-companion-content .altar-info-card-section p,
+.altar-companion-content .altar-info-card-section div {
+  text-align: left;
+}
+
+@media (max-width: 700px) {
+  .companion-rich-toolbar,
+  .book-rich-toolbar.companion-rich-toolbar {
+    width: 100%;
+    border-radius: 1rem;
+  }
+
+  .companion-rich-toolbar button,
+  .book-rich-toolbar.companion-rich-toolbar button {
+    min-width: auto;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.74rem;
+  }
+
+  .altar-companion-content ul,
+  .altar-companion-content ol {
+    padding-left: 1.25rem;
+  }
+
+  .altar-companion-content li {
+    font-size: 0.9rem;
+  }
 }

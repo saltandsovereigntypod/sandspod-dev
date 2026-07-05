@@ -3,23 +3,48 @@ const navLinks = document.querySelector(".nav-links");
 const header = document.querySelector("[data-header]");
 const year = document.querySelector("[data-year]");
 const form = document.querySelector(".contact-form");
+const nav = document.querySelector(".nav");
 
 if (year) {
   year.textContent = new Date().getFullYear();
 }
 
 if (navToggle && navLinks) {
-  navToggle.addEventListener("click", () => {
-    const isOpen = navLinks.classList.toggle("is-open");
-    navToggle.setAttribute("aria-expanded", String(isOpen));
-  });
 
-  navLinks.addEventListener("click", (event) => {
-    if (event.target.matches("a")) {
-      navLinks.classList.remove("is-open");
-      navToggle.setAttribute("aria-expanded", "false");
-    }
-  });
+    navToggle.addEventListener("click", () => {
+
+        const open = navLinks.classList.toggle("is-open");
+
+        navToggle.setAttribute("aria-expanded", open);
+
+    });
+
+    navLinks.querySelectorAll("a,button").forEach(item => {
+
+        item.addEventListener("click", () => {
+
+            navLinks.classList.remove("is-open");
+
+            navToggle.setAttribute("aria-expanded","false");
+
+        });
+
+    });
+
+    document.addEventListener("click",(e)=>{
+
+        if(
+            !nav.contains(e.target)
+        ){
+
+            navLinks.classList.remove("is-open");
+
+            navToggle.setAttribute("aria-expanded","false");
+
+        }
+
+    });
+
 }
 
 if (header) {

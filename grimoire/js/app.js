@@ -72,8 +72,9 @@ async function initGrimoire() {
 
     if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
       renderWelcomeState();
+      renderShelf();
       await renderLivingLibraryShelves();
-      renderLibraryEntity(lastView.id);
+      await renderLibraryEntity(lastView.id);
     } else if (lastView?.type === "page" && pages.some((page) => page.id === lastView.id)) {
       await openPage(lastView.id, lastView.mode || "read");
       await renderLivingLibraryShelves();
@@ -82,6 +83,7 @@ async function initGrimoire() {
       await renderLivingLibraryShelves();
     } else {
       renderWelcomeState();
+      renderShelf();
       await renderLivingLibraryShelves();
     }
 
@@ -551,6 +553,39 @@ async function applyTemplateToCurrentPage() {
 
 let activeLibraryEntityId = null;
 
+let libraryEditMode = false;
+
+const LIBRARY_PAGE_LAYOUT_KEY = "saltAndSovereigntyLibraryPageLayouts";
+
+function getLibraryPageLayouts() {
+  try {
+    return JSON.parse(localStorage.getItem(LIBRARY_PAGE_LAYOUT_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLibraryPageLayouts(layouts) {
+  localStorage.setItem(LIBRARY_PAGE_LAYOUT_KEY, JSON.stringify(layouts));
+}
+
+function getLibraryPageLayout(entityId) {
+  const layouts = getLibraryPageLayouts();
+
+  return layouts[entityId] || {
+    sectionOrder: ["myPractice", "traditional", "community", "related"],
+    hiddenFields: {},
+    fieldOrder: {},
+    customFields: []
+  };
+}
+
+function saveLibraryPageLayout(entityId, layout) {
+  const layouts = getLibraryPageLayouts();
+  layouts[entityId] = layout;
+  saveLibraryPageLayouts(layouts);
+}
+
 const GRIMOIRE_LAST_VIEW_KEY = "saltAndSovereigntyLastGrimoireView";
 
 function saveLastGrimoireView(view) {
@@ -716,7 +751,7 @@ function formatLibraryEntityName(name = "") {
 function formatLibraryFieldName(name = "") {
   const labels = {
     PairsWith: "Pairs Well With",
-    TraditionalWarnings: "Traditional Notes & Warnings",
+    TraditionalWarnings: "Warnings",
     SacredSymbols: "Sacred Symbols",
     SacredAnimals: "Sacred Animals",
     SacredPlants: "Sacred Plants",
@@ -783,10 +818,10 @@ function renderLibraryPlainValue(value) {
     return value.map((item) => escapeHtml(item)).join(", ");
   }
 
-  return escapeHtml(value);
+  return String(value || "");
 }
 
-function renderLibraryField(key, value) {
+function renderLibraryField(key, value, layer = "", entityId = "") {
   if (!value || key === "tags") return "";
 
   const chipFields = [
@@ -807,14 +842,23 @@ function renderLibraryField(key, value) {
     "tags"
   ];
 
-  const useChips = chipFields.includes(key);
+  const valueText = String(value || "");
+  const containsHtml = /<\/?[a-z][\s\S]*>/i.test(valueText);
+  const useChips = chipFields.includes(key) && !containsHtml;
 
   return `
     <div class="book-library-field">
       ${
-        ["Uses", "TraditionalWarnings"].includes(key)
-          ? ""
-          : `<h3>${formatLibraryFieldName(key)}</h3>`
+        `<h3>
+            ${libraryEditMode && layer && entityId ? `
+              <button class="library-field-move" type="button" data-move-library-field-up="${entityId}" data-layer="${layer}" data-field="${key}">↑</button>
+              <button class="library-field-move" type="button" data-move-library-field-down="${entityId}" data-layer="${layer}" data-field="${key}">↓</button>
+              <label class="library-field-hide">
+                <input type="checkbox" data-toggle-library-field="${entityId}" data-layer="${layer}" data-field="${key}" checked />
+              </label>
+            ` : ""}
+            ${formatLibraryFieldName(key)}
+          </h3>`
       }
       ${
         useChips
@@ -825,78 +869,62 @@ function renderLibraryField(key, value) {
   `;
 }
 
-function groupTraditionalFields(traditional = {}) {
-  const groups = [
-    {
-      title: "Correspondences",
-      keys: ["Element", "Planet", "Chakra", "Pantheon"]
-    },
-    {
-      title: "Magical Uses",
-      keys: ["Uses", "Domains", "Purpose", "UsedFor", "BestFor"]
-    },
-    {
-      title: "Pairings & Substitutions",
-      keys: ["PairsWith", "Substitutions", "BestWith", "Herbs", "Crystals", "CandleColors"]
-    },
-    {
-      title: "Sacred Associations",
-      keys: ["SacredSymbols", "SacredAnimals", "SacredPlants", "Offerings"]
-    },
-    {
-      title: "Materials & Care",
-      keys: ["TraditionallyMadeFrom", "TraditionallyUsedFor", "CommonMaterials", "Cleansing"]
-    },
-    {
-      title: "Traditional Notes",
-      keys: ["TraditionalWarnings"]
-    }
-  ];
-
+function groupTraditionalFields(traditional = {}, layout = {}) {
   const usedKeys = new Set();
 
-  const renderedGroups = groups
-    .map((group) => {
-      const fields = group.keys
-        .filter((key) => traditional[key])
-        .map((key) => {
-          usedKeys.add(key);
-          return renderLibraryField(key, traditional[key]);
-        })
-        .join("");
+  const orderedKeys = [
+    "Meaning",
+    "Meanings",
+    "Uses",
+    "Domains",
+    "Purpose",
+    "Element",
+    "Planet",
+    "Chakra",
+    "Pantheon",
+    "PairsWith",
+    "Substitutions",
+    "BestWith",
+    "Ingredients",
+    "Intention",
+    "Intentions",
+    "SacredSymbols",
+    "SacredAnimals",
+    "SacredPlants",
+    "Offerings",
+    "TraditionallyMadeFrom",
+    "TraditionallyUsedFor",
+    "CommonMaterials",
+    "Cleansing",
+    "TraditionalWarnings",
+    "Warnings",
+    "Sources",
+    "Source",
+    "Notes"
+  ];
 
-      if (!fields) return "";
+  const hidden = layout.hiddenFields?.traditional || [];
+  const order = layout.fieldOrder?.traditional?.length ? layout.fieldOrder.traditional : orderedKeys;
 
-      return `
-        <section class="book-library-layer">
-          <h2>${group.title}</h2>
-          <div class="book-library-fields">
-            ${fields}
-          </div>
-        </section>
-      `;
+  const fields = order
+    .filter((key) => traditional[key])
+    .filter((key) => !hidden.includes(key))
+    .map((key) => {
+      usedKeys.add(key);
+      return renderLibraryField(key, traditional[key], "traditional", activeLibraryEntityId);
     })
     .join("");
 
   const extraFields = Object.entries(traditional)
     .filter(([key]) => key !== "tags" && !usedKeys.has(key))
-    .map(([key, value]) => renderLibraryField(key, value))
+    .map(([key, value]) => renderLibraryField(key, value, "traditional", activeLibraryEntityId))
     .join("");
 
   return `
-    ${renderedGroups}
-    ${
-      extraFields
-        ? `
-          <section class="book-library-layer">
-            <h2>Additional Traditional Notes</h2>
-            <div class="book-library-fields">
-              ${extraFields}
-            </div>
-          </section>
-        `
-        : ""
-    }
+    <div class="book-library-fields">
+      ${fields}
+      ${extraFields}
+    </div>
   `;
 }
 
@@ -993,20 +1021,112 @@ async function renderTraditionalLibraryShelf() {
 
   grimoireShelf.appendChild(wrapper);
 }
-
-function renderMyPracticeLayer(entity) {
+function renderMyPracticeLayer(entity, layout = getLibraryPageLayout(entity.id)) {
   const myPractice = entity.myPractice || {};
   const entries = Object.entries(myPractice).filter(([, value]) => value);
 
+  if (libraryEditMode) {
+    let fields = [
+      ["Meaning", "Meaning"],
+      ["Uses", "Uses"],
+      ["PairsWith", "Pairs With"],
+      ["Substitutions", "Substitutions"],
+      ["Notes", "Notes"],
+      ...((layout.customFields || []).map((field) => [field.key, field.label]))
+    ];
+
+    const fieldOrder = layout.fieldOrder?.myPractice || [];
+
+    if (fieldOrder.length) {
+      fields = fields.sort(([a], [b]) => {
+        const aIndex = fieldOrder.indexOf(a);
+        const bIndex = fieldOrder.indexOf(b);
+
+        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+      });
+    }
+
+    return `
+      <div data-editing-my-practice="${entity.id}">
+        <h2>My Practice</h2>
+
+        <div class="book-library-edit-fields">
+          ${fields
+            .filter(([key]) => !(layout.hiddenFields?.myPractice || []).includes(key) || libraryEditMode)
+            .map(([key, label]) => `
+              <section class="book-library-edit-field">
+                <h3>
+                  <button class="library-field-move" type="button" data-move-library-field-up="${entity.id}" data-layer="myPractice" data-field="${key}">↑</button>
+                  <button class="library-field-move" type="button" data-move-library-field-down="${entity.id}" data-layer="myPractice" data-field="${key}">↓</button>
+
+                  <label class="library-field-hide">
+                    <input
+                      type="checkbox"
+                      data-toggle-library-field="${entity.id}"
+                      data-layer="myPractice"
+                      data-field="${key}"
+                      ${(layout.hiddenFields?.myPractice || []).includes(key) ? "" : "checked"}
+                    />
+                    Show
+                  </label>
+
+                  ${label}
+                </h3>
+
+                <div class="book-rich-toolbar" aria-label="Formatting tools">
+                  <button type="button" data-rich-command="bold">B</button>
+                  <button type="button" data-rich-command="italic"><em>I</em></button>
+                  <button type="button" data-rich-command="underline"><u>U</u></button>
+                  <button type="button" data-rich-command="insertUnorderedList">• List</button>
+                  <button type="button" data-rich-command="insertOrderedList">1. List</button>
+                  <button type="button" data-rich-command="formatBlock" data-rich-value="blockquote">Quote</button>
+                </div>
+
+                <div
+                  class="book-rich-input book-library-rich-input"
+                  contenteditable="true"
+                  data-library-edit-field="${key}">
+                  ${myPractice[key] || ""}
+                </div>
+              </section>
+            `)
+            .join("")}
+        </div>
+
+        <div class="book-library-custom-field-row">
+          <button class="button button--small" type="button" data-add-library-custom-field="${entity.id}">
+            Add Custom Field
+          </button>
+        </div>
+
+        <div class="book-library-edit-actions">
+          <button class="button button--primary button--small" type="button" data-save-library-practice="${entity.id}">
+            Save My Practice
+          </button>
+
+          <button class="button button--small button--ghost" type="button" data-cancel-library-edit>
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   return `
-    <section class="book-library-layer book-library-layer--my-practice">
-      <h2>My Practice</h2>
+    <div>
 
       ${
         entries.length
           ? `
             <div class="book-library-fields">
-              ${entries.map(([key, value]) => renderLibraryField(key, value)).join("")}
+              ${entries
+                .filter(([key]) => !(layout.hiddenFields?.myPractice || []).includes(key))
+                .sort(([a], [b]) => {
+                  const order = layout.fieldOrder?.myPractice || [];
+                  return (order.indexOf(a) === -1 ? 999 : order.indexOf(a)) - (order.indexOf(b) === -1 ? 999 : order.indexOf(b));
+                })
+                .map(([key, value]) => renderLibraryField(key, value, "myPractice", entity.id))
+                .join("")}
             </div>
           `
           : `
@@ -1015,8 +1135,42 @@ function renderMyPracticeLayer(entity) {
             </p>
           `
       }
-    </section>
+    </div>
   `;
+}
+
+async function saveLibraryPracticeFromPage(entityId) {
+  if (typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  const section = document.querySelector(`[data-editing-my-practice="${entityId}"]`);
+  if (!section) return;
+
+  const myPractice = {};
+
+  section.querySelectorAll("[data-library-edit-field]").forEach((field) => {
+    const key = field.dataset.libraryEditField;
+    const value = field.innerHTML.trim();
+
+    if (value) {
+      myPractice[key] = value;
+    }
+  });
+
+  Library.updateEntity(entityId, { myPractice });
+
+  if (typeof Library.syncMyPracticeConnections === "function") {
+    Library.syncMyPracticeConnections(entityId);
+  }
+
+  libraryEditMode = false;
+
+  await renderLivingLibraryShelves();
+  await renderLibraryEntity(entityId);
+
+  flashStatus("My Practice saved.");
 }
 
 function renderCommunityLayer(entity) {
@@ -1024,14 +1178,24 @@ function renderCommunityLayer(entity) {
   const entries = Object.entries(community).filter(([, value]) => value);
 
   return `
-    <section class="book-library-layer book-library-layer--community">
-      <h2>Community</h2>
+    <div>
 
       ${
         entries.length
           ? `
             <div class="book-library-fields">
-              ${entries.map(([key, value]) => renderLibraryField(key, value)).join("")}
+              ${entries
+                .filter(([key]) => {
+                  const layout = getLibraryPageLayout(entity.id);
+                  return !(layout.hiddenFields?.community || []).includes(key);
+                })
+                .sort(([a], [b]) => {
+                  const layout = getLibraryPageLayout(entity.id);
+                  const order = layout.fieldOrder?.community || [];
+                  return (order.indexOf(a) === -1 ? 999 : order.indexOf(a)) - (order.indexOf(b) === -1 ? 999 : order.indexOf(b));
+                })
+                .map(([key, value]) => renderLibraryField(key, value, "community", entity.id))
+                .join("")}
             </div>
           `
           : `
@@ -1040,11 +1204,287 @@ function renderCommunityLayer(entity) {
             </p>
           `
       }
+    </div>
+  `;
+}
+
+function renderRelatedEntriesLayer(entity) {
+  if (typeof Library === "undefined") return "";
+
+  const connections = Library.getConnections(entity.id) || [];
+  const grouped = {};
+
+  connections.forEach((connection) => {
+    const relatedId = connection.from === entity.id ? connection.to : connection.from;
+    const relatedEntity = Library.getEntity(relatedId);
+
+    if (!relatedEntity) return;
+
+    const relation = connection.relation || "related_to";
+
+    if (!grouped[relation]) grouped[relation] = new Map();
+
+    grouped[relation].set(relatedEntity.id, relatedEntity);
+  });
+
+  const relationLabels = {
+    pairs_with: "Pairs With",
+    substitutes: "Substitutes",
+    substitute_for: "Substitute For",
+    ingredient_in: "Ingredient In",
+    contains: "Contains",
+    used_in: "Used In",
+    associated_with: "Associated With",
+    offered_to: "Offered To",
+    ruled_by: "Ruled By",
+    related_to: "Related To"
+  };
+
+  const relationOrder = [
+    "pairs_with",
+    "substitutes",
+    "substitute_for",
+    "ingredient_in",
+    "contains",
+    "used_in",
+    "associated_with",
+    "offered_to",
+    "ruled_by",
+    "related_to"
+  ];
+
+  const hasConnections = Object.keys(grouped).length > 0;
+
+  if (!hasConnections) return "";
+
+  return `
+   <div>
+
+      ${relationOrder
+        .filter((relation) => grouped[relation])
+        .map((relation) => {
+          const entities = Array.from(grouped[relation].values())
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          return `
+            <div class="book-library-related-group">
+              <h3>${relationLabels[relation] || formatLibraryFieldName(relation)}</h3>
+
+              <div class="book-library-chips">
+                ${entities
+                  .map((relatedEntity) => `
+                    <button
+                      type="button"
+                      class="book-library-chip-button"
+                      data-library-entity-id="${relatedEntity.id}">
+                      ${formatLibraryEntityName(relatedEntity.name)}
+                    </button>
+                  `)
+                  .join("")}
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+let cachedLibraryPageSettings = null;
+
+async function getLibraryPageSettings() {
+  if (cachedLibraryPageSettings) return cachedLibraryPageSettings;
+
+  if (typeof getMySettings !== "function") {
+    cachedLibraryPageSettings = {};
+    return cachedLibraryPageSettings;
+  }
+
+  cachedLibraryPageSettings = await getMySettings();
+  return cachedLibraryPageSettings;
+}
+
+function libraryFieldCategory(key = "") {
+  const categories = {
+    Meaning: "meanings",
+    Meanings: "meanings",
+    Uses: "uses",
+    Domains: "uses",
+    Purpose: "uses",
+    Element: "correspondences",
+    Planet: "correspondences",
+    Chakra: "correspondences",
+    Pantheon: "correspondences",
+    Ingredients: "ingredients",
+    Intention: "intentions",
+    Intentions: "intentions",
+    PairsWith: "pairings",
+    BestWith: "pairings",
+    Substitutions: "substitutions",
+    TraditionalWarnings: "warnings",
+    Warnings: "warnings",
+    GrimoireStatus: "grimoire",
+    CandleDressings: "dressings",
+    Groups: "groups",
+    Notes: "notes",
+    Sources: "sources",
+    Source: "sources"
+  };
+
+  return categories[key] || "notes";
+}
+
+function shouldShowLibraryField(settings, layer, key) {
+  const category = libraryFieldCategory(key);
+  return settings[`library_${layer}_${category}`] !== false;
+}
+
+function filterLibraryLayerData(data = {}, settings = {}, layer = "traditional") {
+  return Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => {
+      if (key === "tags") return true;
+      if (!value) return false;
+      return shouldShowLibraryField(settings, layer, key);
+    })
+  );
+}
+
+function renderSectionShell(layer, entity, content) {
+  if (!content) return "";
+
+  const labels = {
+    myPractice: "My Practice",
+    traditional: "Traditional Information",
+    community: "Community",
+    related: "Connected To"
+  };
+
+  const controls = libraryEditMode
+    ? `
+      <div class="library-section-controls">
+        <button type="button" data-move-library-section-up="${entity.id}" data-section="${layer}">↑</button>
+        <button type="button" data-move-library-section-down="${entity.id}" data-section="${layer}">↓</button>
+      </div>
+    `
+    : "";
+
+  return `
+    <section class="book-library-layer book-library-layer--${layer}">
+      <div class="library-section-heading-row">
+        <h2>${labels[layer] || formatLibraryEntityName(layer)}</h2>
+        ${controls}
+      </div>
+
+      ${content}
     </section>
   `;
 }
 
-function renderLibraryEntity(entityId) {
+function renderLibraryLayerByName(layer, entity, settings, layout = getLibraryPageLayout(entity.id)) {
+  const sectionLabels = {
+    myPractice: "My Practice",
+    traditional: "Traditional Information",
+    community: "Community",
+    related: "Connected To"
+  };
+  if (settings[`library_${layer}_enabled`] === false) return "";
+
+  if (layer === "myPractice") {
+    const filtered = filterLibraryLayerData(entity.myPractice || {}, settings, "myPractice");
+    return renderSectionShell(
+      "myPractice",
+      entity,
+      renderMyPracticeLayer({ ...entity, myPractice: filtered }, layout)
+    );
+  }
+
+  if (layer === "traditional") {
+    const filtered = filterLibraryLayerData(entity.traditional || {}, settings, "traditional");
+
+    return renderSectionShell(
+      "traditional",
+      entity,
+      groupTraditionalFields(filtered, layout) || `<p class="book-placeholder">No traditional information is available yet.</p>`
+    );
+  }
+
+  if (layer === "community") {
+    const filtered = filterLibraryLayerData(entity.community || {}, settings, "community");
+    return renderSectionShell(
+      "community",
+      entity,
+      renderCommunityLayer({ ...entity, community: filtered })
+    );
+  }
+
+  return "";
+}
+
+function renderLibraryLayers(entity, settings, layout = getLibraryPageLayout(entity.id)) {
+  const defaultOrder = String(settings.library_layer_order || "myPractice,traditional,community")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const sectionOrder = layout.sectionOrder?.length
+    ? layout.sectionOrder
+    : [...defaultOrder, "related"];
+
+  return sectionOrder
+    .map((layer) => {
+      if (layer === "related") {
+        return renderSectionShell("related", entity, renderRelatedEntriesLayer(entity));
+      }
+
+      return renderLibraryLayerByName(layer, entity, settings, layout);
+    })
+    .join("");
+}
+
+function getLibrarySearchText(entity) {
+  return [
+    entity.name,
+    entity.type,
+    ...(entity.aliases || []),
+    JSON.stringify(entity.traditional || {}),
+    JSON.stringify(entity.myPractice || {}),
+    JSON.stringify(entity.community || {})
+  ].join(" ").toLowerCase();
+}
+
+function renderGlobalLibrarySearchResults(term) {
+  const existing = document.querySelector("[data-global-library-search-results]");
+  if (existing) existing.remove();
+
+  if (!term || typeof Library === "undefined") return;
+
+  const page = document.querySelector(".book-library-entity-page");
+  if (!page) return;
+
+  const results = Object.values(Library.exportLibrary().entities || {})
+    .filter((entity) => getLibrarySearchText(entity).includes(term))
+    .slice(0, 12);
+
+  const box = document.createElement("div");
+  box.className = "global-library-search-results";
+  box.setAttribute("data-global-library-search-results", "");
+
+  box.innerHTML = results.length
+    ? results
+        .map((entity) => `
+          <button type="button" data-library-entity-id="${entity.id}">
+            <span>${formatLibraryEntityName(entity.name)}</span>
+            <small>${getMyPracticeTypeLabel(entity.type)}</small>
+          </button>
+        `)
+        .join("")
+    : `<p>No matching library entries found.</p>`;
+
+  const toolbar = page.querySelector(".book-library-sticky-tools");
+  toolbar?.insertAdjacentElement("afterend", box);
+}
+
+async function renderLibraryEntity(entityId) {
   if (!entryList || typeof Library === "undefined") return;
 
   const entity = Library.getEntity(entityId);
@@ -1070,14 +1510,60 @@ function renderLibraryEntity(entityId) {
   const traditional = entity.traditional || {};
   const tags = Array.isArray(traditional.tags) ? traditional.tags : [];
 
+  const settings = await getLibraryPageSettings();
+  const layout = getLibraryPageLayout(entity.id);
+  const renderedLayers = renderLibraryLayers(entity, settings, layout);
+
   entryList.innerHTML = `
     <section class="book-reader-page book-library-entity-page">
+       <div class="book-library-sticky-tools">
+          <div class="book-library-sticky-left">
+            <button
+              class="grimoire-menu-button"
+              type="button"
+              data-grimoire-menu-button
+              aria-label="Open Table of Contents">
+              ☰
+            </button>
+            <label class="book-library-sticky-search">
+              <span class="sr-only">Search this page</span>
+              <input type="search" placeholder="Search this page..." data-library-page-search />
+            </label>
+
+            ${
+              Object.keys(entity.myPractice || {}).length
+                ? `
+                  <button class="button button--small" type="button" data-toggle-library-edit="${entity.id}">
+                    ${libraryEditMode ? "Preview" : "Edit"}
+                  </button>
+
+                  <label class="button button--small button--ghost book-library-image-upload">
+                    Upload Image
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-upload-library-image="${entity.id}" hidden />
+                  </label>
+
+                  <button class="button button--small button--ghost" type="button" data-delete-library-entry="${entity.id}">
+                    Del
+                  </button>
+                `
+                : ""
+            }
+          </div>
+
+          <label class="book-library-mundane-toggle">
+            <input type="checkbox" data-mundane-toggle ${document.body.classList.contains("mundane-mode") ? "checked" : ""} />
+            Mundane
+          </label>
+        </div>
       <header class="book-reader-header book-library-header">
-        <p class="book-apothecary-meta">
-          ${getTraditionalTypeLabel(entity.type)}
-        </p>
 
         <h1>${formatLibraryEntityName(entity.name)}</h1>
+
+        ${entity.image ? `
+          <figure class="book-library-hero-image">
+            <img src="${entity.image}" alt="${escapeHtml(entity.name)}" />
+          </figure>
+        ` : ""}
 
         <p class="book-library-intro">
           ${escapeHtml(getLibraryEntityIntro(entity))}
@@ -1085,37 +1571,10 @@ function renderLibraryEntity(entityId) {
 
         <div class="book-reader-divider">✦ ☽ ✦ ☾ ✦</div>
 
-        ${
-          tags.length
-            ? `
-              <div class="book-library-tags">
-                ${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
-              </div>
-            `
-            : ""
-        }
-
-        ${
-          Object.keys(entity.myPractice || {}).length
-            ? `
-              <div class="book-library-actions">
-                <button class="button button--small" type="button" data-edit-library-entry="${entity.id}">
-                  Edit My Practice
-                </button>
-
-                <button class="button button--small button--ghost" type="button" data-delete-library-entry="${entity.id}">
-                  Delete From My Practice
-                </button>
-              </div>
-            `
-            : ""
-        }
       </header>
 
       <div class="book-reader-body book-library-body">
-        ${groupTraditionalFields(traditional)}
-        ${renderMyPracticeLayer(entity)}
-        ${renderCommunityLayer(entity)}
+        ${renderedLayers}
       </div>
     </section>
   `;
@@ -1230,6 +1689,7 @@ function createLibraryEntryFromForm(form) {
   });
 
   Library.updateEntitySection(entity.id, "myPractice", myPractice);
+  Library.syncMyPracticeConnections(entity.id);
 
   return Library.getEntity(entity.id);
 }
@@ -1382,6 +1842,8 @@ async function updateLibraryEntryFromForm(form) {
     myPractice
   });
 
+  Library.syncMyPracticeConnections(entityId);
+
   return Library.getEntity(entityId);
 }
 
@@ -1402,7 +1864,7 @@ async function deleteLibraryEntryFromMyPractice(entityId) {
   });
 
   await renderLivingLibraryShelves();
-  renderLibraryEntity(entityId);
+  await renderLibraryEntity(entityId);
 
   flashStatus("Removed from My Practice.");
 }
@@ -1418,6 +1880,117 @@ document.addEventListener("click", async (event) => {
   const editEntryButton = event.target.closest("[data-edit-library-entry]");
   const deleteEntryButton = event.target.closest("[data-delete-library-entry]");
   const closeEditModalButton = event.target.closest("[data-close-library-edit-modal]");
+  const toggleLibraryEditButton = event.target.closest("[data-toggle-library-edit]");
+  const saveLibraryPracticeButton = event.target.closest("[data-save-library-practice]");
+  const cancelLibraryEditButton = event.target.closest("[data-cancel-library-edit]");
+  const richCommandButton = event.target.closest("[data-rich-command]");
+  const addCustomFieldButton = event.target.closest("[data-add-library-custom-field]");
+  const moveFieldUpButton = event.target.closest("[data-move-library-field-up]");
+  const moveFieldDownButton = event.target.closest("[data-move-library-field-down]");
+  const toggleFieldButton = event.target.closest("[data-toggle-library-field]");
+  const moveSectionUpButton = event.target.closest("[data-move-library-section-up]");
+  const moveSectionDownButton = event.target.closest("[data-move-library-section-down]");
+
+  if (richCommandButton) {
+    const command = richCommandButton.dataset.richCommand;
+    const value = richCommandButton.dataset.richValue || null;
+
+    document.execCommand(command, false, value);
+    return;
+  }
+
+  if (moveSectionUpButton || moveSectionDownButton) {
+    const button = moveSectionUpButton || moveSectionDownButton;
+    const entityId = button.dataset.moveLibrarySectionUp || button.dataset.moveLibrarySectionDown;
+    const section = button.dataset.section;
+    const direction = moveSectionUpButton ? -1 : 1;
+
+    const layout = getLibraryPageLayout(entityId);
+    layout.sectionOrder ||= ["myPractice", "traditional", "community", "related"];
+
+    const index = layout.sectionOrder.indexOf(section);
+    const newIndex = index + direction;
+
+    if (index >= 0 && newIndex >= 0 && newIndex < layout.sectionOrder.length) {
+      const [moved] = layout.sectionOrder.splice(index, 1);
+      layout.sectionOrder.splice(newIndex, 0, moved);
+    }
+
+    saveLibraryPageLayout(entityId, layout);
+    await renderLibraryEntity(entityId);
+    return;
+  }
+  
+  if (addCustomFieldButton) {
+    const entityId = addCustomFieldButton.dataset.addLibraryCustomField;
+    const label = window.prompt("Name this custom field:", "Dream Notes");
+    if (!label || !label.trim()) return;
+
+    const layout = getLibraryPageLayout(entityId);
+    const key = label.trim().replace(/\s+/g, "_");
+
+    layout.customFields ||= [];
+    layout.customFields.push({ key, label: label.trim() });
+
+    saveLibraryPageLayout(entityId, layout);
+    await renderLibraryEntity(entityId);
+    return;
+  }
+
+  if (moveFieldUpButton || moveFieldDownButton) {
+    const button = moveFieldUpButton || moveFieldDownButton;
+    const entityId = button.dataset.moveLibraryFieldUp || button.dataset.moveLibraryFieldDown;
+    const layer = button.dataset.layer;
+    const field = button.dataset.field;
+    const direction = moveFieldUpButton ? -1 : 1;
+
+    const layout = getLibraryPageLayout(entityId);
+    layout.fieldOrder ||= {};
+    layout.fieldOrder[layer] ||= [];
+
+    const entity = Library.getEntity(entityId);
+    const defaultMyPracticeFields = ["Meaning", "Uses", "PairsWith", "Substitutions", "Notes"];
+    const customFields = (layout.customFields || []).map((field) => field.key);
+
+    const fieldKeys =
+      layer === "myPractice"
+        ? [...defaultMyPracticeFields, ...customFields]
+        : Object.keys(entity?.[layer] || {}).filter((key) => key !== "tags");
+
+    const order = layout.fieldOrder[layer].length ? layout.fieldOrder[layer] : fieldKeys;
+    const index = order.indexOf(field);
+    const newIndex = index + direction;
+
+    if (index >= 0 && newIndex >= 0 && newIndex < order.length) {
+      const [moved] = order.splice(index, 1);
+      order.splice(newIndex, 0, moved);
+    }
+
+    layout.fieldOrder[layer] = order;
+    saveLibraryPageLayout(entityId, layout);
+    await renderLibraryEntity(entityId);
+    return;
+  }
+
+  if (toggleFieldButton) {
+    const entityId = toggleFieldButton.dataset.toggleLibraryField;
+    const layer = toggleFieldButton.dataset.layer;
+    const field = toggleFieldButton.dataset.field;
+
+    const layout = getLibraryPageLayout(entityId);
+    layout.hiddenFields ||= {};
+    layout.hiddenFields[layer] ||= [];
+
+    if (layout.hiddenFields[layer].includes(field)) {
+      layout.hiddenFields[layer] = layout.hiddenFields[layer].filter((item) => item !== field);
+    } else {
+      layout.hiddenFields[layer].push(field);
+    }
+
+    saveLibraryPageLayout(entityId, layout);
+    await renderLibraryEntity(entityId);
+    return;
+  }
 
   if (createEntryButton) {
     openCreateLibraryEntryModal();
@@ -1470,8 +2043,78 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  if (toggleLibraryEditButton) {
+  libraryEditMode = !libraryEditMode;
+  await renderLibraryEntity(toggleLibraryEditButton.dataset.toggleLibraryEdit);
+  return;
+}
+
+document.addEventListener("change", async (event) => {
+  const imageInput = event.target.closest("[data-upload-library-image]");
+  if (!imageInput) return;
+
+  const entityId = imageInput.dataset.uploadLibraryImage;
+  const file = imageInput.files?.[0];
+
+  if (!file || typeof Library === "undefined") return;
+
+  const image = await readLibraryImageFile(file);
+
+  Library.updateEntityImage(entityId, image);
+
+  await renderLivingLibraryShelves();
+  await renderLibraryEntity(entityId);
+
+  flashStatus("Image updated.");
+});
+
+document.addEventListener("input", (event) => {
+  const searchInput = event.target.closest("[data-library-page-search]");
+  if (!searchInput) return;
+
+  const term = searchInput.value.trim().toLowerCase();
+  renderGlobalLibrarySearchResults(term);
+  const page = document.querySelector(".book-library-entity-page");
+  if (!page) return;
+
+  page.querySelectorAll(".library-search-hidden").forEach((item) => {
+    item.classList.remove("library-search-hidden");
+  });
+
+  page.querySelectorAll(".library-search-match").forEach((item) => {
+    item.classList.remove("library-search-match");
+  });
+
+  if (!term) return;
+
+  const searchableItems = page.querySelectorAll(
+    ".book-library-field, .book-library-related-group, .book-library-intro"
+  );
+
+  searchableItems.forEach((item) => {
+    const matches = item.textContent.toLowerCase().includes(term);
+
+    if (matches) {
+      item.classList.add("library-search-match");
+    } else {
+      item.classList.add("library-search-hidden");
+    }
+  });
+});
+
+if (saveLibraryPracticeButton) {
+  await saveLibraryPracticeFromPage(saveLibraryPracticeButton.dataset.saveLibraryPractice);
+  return;
+}
+
+if (cancelLibraryEditButton) {
+  libraryEditMode = false;
+  await renderLibraryEntity(activeLibraryEntityId);
+  return;
+}
+
   if (libraryEntityButton) {
-    renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
+    await renderLibraryEntity(libraryEntityButton.dataset.libraryEntityId);
     return;
   }
 
@@ -1516,7 +2159,7 @@ document.addEventListener("submit", async (event) => {
   closeCreateLibraryEntryModal();
 
   await renderLivingLibraryShelves();
-  renderLibraryEntity(entity.id);
+  await renderLibraryEntity(entity.id);
 
   flashStatus("Entry created.");
 });
@@ -1537,9 +2180,17 @@ document.addEventListener("submit", async (event) => {
   closeEditLibraryEntryModal();
 
   await renderLivingLibraryShelves();
-  renderLibraryEntity(entity.id);
+  await renderLibraryEntity(entity.id);
 
   flashStatus("Entry saved.");
+});
+
+window.addEventListener("saltSettingsChanged", async () => {
+  cachedLibraryPageSettings = null;
+
+  if (activeLibraryEntityId) {
+    await renderLibraryEntity(activeLibraryEntityId);
+  }
 });
 
 /* =========================================================
@@ -1708,3 +2359,70 @@ window.addEventListener("load", () => {
     }
   }, 800);
 });
+
+const menuButton = null;
+const sidebarOverlay = document.getElementById("grimoireSidebarOverlay");
+
+function getSidebar() {
+  return document.querySelector(".book-sidebar")
+    || document.querySelector(".book-toc")
+    || document.querySelector(".grimoire-sidebar");
+}
+
+function openGrimoireSidebar() {
+  const sidebar = getSidebar();
+  if (!sidebar) return;
+
+  sidebar.classList.add("mobile-open");
+  sidebarOverlay?.classList.add("show");
+  document.body.classList.add("toc-open");
+}
+
+function closeGrimoireSidebar() {
+  const sidebar = getSidebar();
+
+  sidebar?.classList.remove("mobile-open");
+  sidebarOverlay?.classList.remove("show");
+  document.body.classList.remove("toc-open");
+}
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-grimoire-menu-button]");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (document.body.classList.contains("toc-open")) {
+    closeGrimoireSidebar();
+  } else {
+    openGrimoireSidebar();
+  }
+});
+
+sidebarOverlay?.addEventListener("click", closeGrimoireSidebar);
+
+document.addEventListener("pointerdown", (event) => {
+  if (window.innerWidth > 900) return;
+  if (!document.body.classList.contains("toc-open")) return;
+
+  const sidebar = getSidebar();
+
+  if (!sidebar) return;
+  if (sidebar.contains(event.target)) return;
+  if (event.target.closest("[data-grimoire-menu-button]")) return;
+
+  closeGrimoireSidebar();
+});
+
+document.addEventListener("click", (event) => {
+  if (window.innerWidth > 900) return;
+
+  if (
+    event.target.closest("[data-library-entity-id]") ||
+    event.target.closest(".book-page-link")
+  ) {
+    closeGrimoireSidebar();
+  }
+});
+
