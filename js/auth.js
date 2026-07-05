@@ -184,4 +184,10 @@ db.auth.onAuthStateChange((event, session) => {
   );
 });
 
-getCurrentUser();
+getCurrentUser().then((user) => {
+  document.dispatchEvent(
+    new CustomEvent("saltAuthReady", {
+      detail: { user }
+    })
+  );
+});

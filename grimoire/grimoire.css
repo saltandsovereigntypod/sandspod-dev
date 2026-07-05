@@ -2484,36 +2484,38 @@ body.grimoire-font-handwritten {
         cursor:pointer;
     }
 
-    .book-sidebar,
-    .book-toc,
-    .grimoire-sidebar{
+   .book-sidebar,
+.book-toc,
+.grimoire-sidebar {
+  position: fixed;
 
-        position:fixed;
+  top: 0;
+  left: 0;
 
-        top:0;
-        left:0;
+  width: min(340px, 85vw);
+  height: 100vh;
 
-        width:min(340px,85vw);
-        height:100vh;
+  max-height: none;
+  margin: 0;
 
-        max-height:none;
+  z-index: 300;
 
-        margin:0;
+  transform: translateX(-105%);
+  transition: .28s ease;
 
-        z-index:300;
+  overflow-y: auto;
 
-        transform:translateX(-105%);
-        transition:.28s ease;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 18rem),
+    linear-gradient(145deg, rgba(9, 16, 11, 0.98), rgba(3, 5, 4, 0.99));
 
-        overflow-y:auto;
-    }
+  box-shadow: 18px 0 80px rgba(0, 0, 0, 0.72);
+}
 
-    .book-sidebar.mobile-open,
-    .book-toc.mobile-open,
-    .grimoire-sidebar.mobile-open{
-
-        transform:translateX(0);
-    }
+.book-sidebar.mobile-open,
+.book-toc.mobile-open,
+.grimoire-sidebar.mobile-open {
+  transform: translateX(0);
 }
 
 /* =========================================================
@@ -2957,5 +2959,99 @@ body.grimoire-font-handwritten {
     text-align: center;
     white-space: nowrap;
     font-size: 0.78rem;
+  }
+}
+
+/* =========================================================
+   MOBILE GRIMOIRE SIDEBAR
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .book-toc.mobile-open,
+  .book-sidebar.mobile-open,
+  .grimoire-sidebar.mobile-open {
+    z-index: 1001 !important;
+
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(185, 160, 93, 0.12),
+        transparent 18rem
+      ),
+      linear-gradient(
+        145deg,
+        rgba(9, 16, 11, 0.98),
+        rgba(3, 5, 4, 0.99)
+      ) !important;
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow: 18px 0 80px rgba(0, 0, 0, 0.72);
+  }
+
+  .grimoire-sidebar-overlay,
+  #grimoireSidebarOverlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 1000 !important;
+
+    background: rgba(0, 0, 0, 0.78) !important;
+
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .grimoire-sidebar-overlay.show,
+  #grimoireSidebarOverlay.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto;
+  }
+}
+
+/* =========================================================
+   FINAL MOBILE TOC DRAWER BACKGROUND FIX
+   Must stay at the very bottom of grimoire.css
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .book-of-shadows .book-toc.mobile-open,
+  body .book-toc.mobile-open,
+  body .book-sidebar.mobile-open,
+  body .grimoire-sidebar.mobile-open {
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+      linear-gradient(145deg, #09100b 0%, #050806 58%, #020302 100%) !important;
+
+    background-color: #050806 !important;
+    opacity: 1 !important;
+
+    border-right: 1px solid rgba(185, 160, 93, 0.38) !important;
+    box-shadow: 18px 0 90px rgba(0, 0, 0, 0.85) !important;
+
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .book-of-shadows .book-toc.mobile-open *,
+  body .book-toc.mobile-open *,
+  body .book-sidebar.mobile-open *,
+  body .grimoire-sidebar.mobile-open * {
+    opacity: 1 !important;
+  }
+
+  #grimoireSidebarOverlay.show,
+  .grimoire-sidebar-overlay.show {
+    background: rgba(0, 0, 0, 0.82) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
   }
 }

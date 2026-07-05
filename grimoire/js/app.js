@@ -67,7 +67,13 @@ async function initGrimoire() {
     await loadOrCreateBook(user);
     await loadSections();
     await loadPages();
-
+    
+    await syncTraditionalLibraryToGrimoireIfEnabled();
+    
+    if (typeof initLivingLibrarySupabaseSync === "function") {
+      await initLivingLibrarySupabaseSync();
+    }
+    
     const lastView = getLastGrimoireView();
 
     if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
@@ -85,6 +91,16 @@ async function initGrimoire() {
       renderWelcomeState();
       renderShelf();
       await renderLivingLibraryShelves();
+    
+      if (typeof Library !== "undefined") {
+        const entities = Object.values(Library.exportLibrary().entities || {})
+          .filter((entity) => entity.traditional || entity.myPractice)
+          .sort((a, b) => a.name.localeCompare(b.name));
+    
+        if (entities.length) {
+          await renderLibraryEntity(entities[0].id);
+        }
+      }
     }
 
     setStatus("");
@@ -2198,12 +2214,11 @@ window.addEventListener("saltSettingsChanged", async () => {
    ========================================================= */
 
 updateMundaneModeUI();
-updateAuthState();
 
+document.addEventListener("saltAuthReady", updateAuthState);
 document.addEventListener("saltAuthChanged", updateAuthState);
 document.addEventListener("saltAuthSuccess", updateAuthState);
 document.addEventListener("saltAuthSignedOut", updateAuthState);
-
 /* =========================================================
    ALTAR + APOTHECARY IMPORTS
    ========================================================= */
