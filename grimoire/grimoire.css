@@ -3015,3 +3015,43 @@ body.grimoire-font-handwritten {
     pointer-events: auto;
   }
 }
+
+/* =========================================================
+   FINAL MOBILE TOC DRAWER BACKGROUND FIX
+   Must stay at the very bottom of grimoire.css
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .book-of-shadows .book-toc.mobile-open,
+  body .book-toc.mobile-open,
+  body .book-sidebar.mobile-open,
+  body .grimoire-sidebar.mobile-open {
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+      linear-gradient(145deg, #09100b 0%, #050806 58%, #020302 100%) !important;
+
+    background-color: #050806 !important;
+    opacity: 1 !important;
+
+    border-right: 1px solid rgba(185, 160, 93, 0.38) !important;
+    box-shadow: 18px 0 90px rgba(0, 0, 0, 0.85) !important;
+
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .book-of-shadows .book-toc.mobile-open *,
+  body .book-toc.mobile-open *,
+  body .book-sidebar.mobile-open *,
+  body .grimoire-sidebar.mobile-open * {
+    opacity: 1 !important;
+  }
+
+  #grimoireSidebarOverlay.show,
+  .grimoire-sidebar-overlay.show {
+    background: rgba(0, 0, 0, 0.82) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
