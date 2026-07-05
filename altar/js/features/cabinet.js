@@ -152,7 +152,7 @@ const cabinetItems = [
     category: "crystals",
     name: "Clear Quartz",
     icon: "💎",
-    keywords: ["intuition", "dreams", "calm"],
+    keywords: ["amplification", "clarity", "intention"],
     forms: [
       { label: "Point", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-point.png", type: "crystal", crystal: "clear-quartz", form: "point" },
       { label: "Chips", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-chips.png", type: "crystal", crystal: "clear-quartz", form: "chips" },
