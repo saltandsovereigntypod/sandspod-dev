@@ -2198,12 +2198,11 @@ window.addEventListener("saltSettingsChanged", async () => {
    ========================================================= */
 
 updateMundaneModeUI();
-updateAuthState();
 
+document.addEventListener("saltAuthReady", updateAuthState);
 document.addEventListener("saltAuthChanged", updateAuthState);
 document.addEventListener("saltAuthSuccess", updateAuthState);
 document.addEventListener("saltAuthSignedOut", updateAuthState);
-
 /* =========================================================
    ALTAR + APOTHECARY IMPORTS
    ========================================================= */
