@@ -1655,7 +1655,7 @@ function renderGlobalLibrarySearchResults(term) {
 async function renderLibraryEntity(entityId) {
   if (!entryList || typeof Library === "undefined") return;
 
-  const entityImage = getLibraryDisplayImage(entity);
+  const entity = Library.getEntity(entityId);
   if (!entity) return;
 
   activeLibraryEntityId = entityId;
@@ -1682,7 +1682,7 @@ async function renderLibraryEntity(entityId) {
   const settings = await getLibraryPageSettings();
   const layout = getLibraryPageLayout(entity.id);
   const renderedLayers = renderLibraryLayers(entity, settings, layout);
-  const entityImage = entity.image || getDefaultLibraryImage(entity);
+  const entityImage = getLibraryDisplayImage(entity);
 
   entryList.innerHTML = `
     <section class="book-reader-page book-library-entity-page">
