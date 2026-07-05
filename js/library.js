@@ -68,15 +68,21 @@ function rebuildIndexes() {
 
 }
 
-  function save() {
+function save() {
+  rebuildIndexes();
 
-    rebuildIndexes();
+  const lightweightLibrary = structuredClone(library);
 
-    localStorage.setItem(
-        LIBRARY_STORAGE_KEY,
-        JSON.stringify(library)
-    );
+  Object.values(lightweightLibrary.entities || {}).forEach((entity) => {
+    if (String(entity.image || "").startsWith("data:image/")) {
+      entity.image = "";
+    }
+  });
 
+  localStorage.setItem(
+    LIBRARY_STORAGE_KEY,
+    JSON.stringify(lightweightLibrary)
+  );
 }
 
 function findEntityByNameAndType(name, type) {

@@ -6,6 +6,16 @@
 const LIVING_LIBRARY_TABLE = "living_library_entries";
 const LIVING_LIBRARY_LOCAL_MIGRATION_KEY = "saltAndSovereigntyLivingLibraryMigratedToSupabase";
 
+function cleanLivingLibraryImage(image = "") {
+  const value = String(image || "");
+
+  if (value.startsWith("data:image/")) {
+    return "";
+  }
+
+  return value;
+}
+
 let livingLibrarySyncReady = false;
 let livingLibrarySaveTimers = {};
 
