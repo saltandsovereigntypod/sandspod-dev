@@ -67,7 +67,9 @@ async function initGrimoire() {
     await loadOrCreateBook(user);
     await loadSections();
     await loadPages();
-
+    
+    await syncTraditionalLibraryToGrimoireIfEnabled();
+    
     const lastView = getLastGrimoireView();
 
     if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
@@ -85,6 +87,16 @@ async function initGrimoire() {
       renderWelcomeState();
       renderShelf();
       await renderLivingLibraryShelves();
+    
+      if (typeof Library !== "undefined") {
+        const entities = Object.values(Library.exportLibrary().entities || {})
+          .filter((entity) => entity.traditional || entity.myPractice)
+          .sort((a, b) => a.name.localeCompare(b.name));
+    
+        if (entities.length) {
+          await renderLibraryEntity(entities[0].id);
+        }
+      }
     }
 
     setStatus("");
