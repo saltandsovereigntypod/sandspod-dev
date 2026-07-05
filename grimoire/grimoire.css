@@ -2959,3 +2959,57 @@ body.grimoire-font-handwritten {
     font-size: 0.78rem;
   }
 }
+
+/* =========================================================
+   MOBILE GRIMOIRE SIDEBAR
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .book-toc.mobile-open,
+  .book-sidebar.mobile-open,
+  .grimoire-sidebar.mobile-open {
+    z-index: 1001 !important;
+
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(185, 160, 93, 0.12),
+        transparent 18rem
+      ),
+      linear-gradient(
+        145deg,
+        rgba(9, 16, 11, 0.98),
+        rgba(3, 5, 4, 0.99)
+      ) !important;
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow: 18px 0 80px rgba(0, 0, 0, 0.72);
+  }
+
+  .grimoire-sidebar-overlay,
+  #grimoireSidebarOverlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 1000 !important;
+
+    background: rgba(0, 0, 0, 0.78) !important;
+
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .grimoire-sidebar-overlay.show,
+  #grimoireSidebarOverlay.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto;
+  }
+}
