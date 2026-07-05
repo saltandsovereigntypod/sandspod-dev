@@ -824,14 +824,18 @@ function getDefaultLibraryImage(entity) {
   if (!entity) return "";
 
   const entityName = normalizeLibraryImageName(entity.name);
+  const entityType = normalizeLibraryImageName(entity.type);
+
+  const looseHerbImages = {
+    rosemary: "../assets/altar/objects/herbs/rosemary/rosemary-loose.png",
+    lavender: "../assets/altar/objects/herbs/lavender/lavender-loose.png",
+    mugwort: "../assets/altar/objects/herbs/mugwort/mugwort-loose.png",
+    "bay leaf": "../assets/altar/objects/herbs/bay-leaf/bay-loose.png",
+    bay: "../assets/altar/objects/herbs/bay-leaf/bay-loose.png",
+    cinnamon: "../assets/altar/objects/herbs/cinnamon/cinnamon-loose.png"
+  };
 
   const defaultImages = {
-    rosemary: "../assets/altar/objects/herbs/rosemary/rosemary-sprig.png",
-    lavender: "../assets/altar/objects/herbs/lavender/lavender-sprig.png",
-    mugwort: "../assets/altar/objects/herbs/mugwort/mugwort-sprig.png",
-    "bay leaf": "../assets/altar/objects/herbs/bay-leaf/bay-sprig.png",
-    cinnamon: "../assets/altar/objects/herbs/cinnamon/cinnamon-sprig.png",
-
     amethyst: "../assets/altar/objects/crystals/amethyst/amethyst-point.png",
 
     key: "../assets/altar/objects/tools/key/key.png",
@@ -841,10 +845,22 @@ function getDefaultLibraryImage(entity) {
     "salt circle": "../assets/altar/objects/tools/salt-circle/2E77AAEA-4775-4EB3-9EEF-659AB1218A61.png",
 
     hekate: "../assets/altar/objects/tools/deities/hekate/hekate-statue.png",
+    "hekate statue": "../assets/altar/objects/tools/deities/hekate/hekate-statue.png",
+
     lilith: "../assets/altar/objects/tools/deities/lilith/lilith-statue.png",
+    "lilith statue": "../assets/altar/objects/tools/deities/lilith/lilith-statue.png",
+
     cauldron: "../assets/altar/objects/vessels/cauldron/cauldron.png",
     "spell jar": "../assets/altar/objects/vessels/spell-jar/spell-jar.png"
   };
+
+  if (looseHerbImages[entityName]) {
+    return looseHerbImages[entityName];
+  }
+
+  if (entityType === "herb") {
+    return "../assets/altar/objects/herbs/rosemary/rosemary-loose.png";
+  }
 
   return defaultImages[entityName] || "";
 }
@@ -1639,7 +1655,7 @@ function renderGlobalLibrarySearchResults(term) {
 async function renderLibraryEntity(entityId) {
   if (!entryList || typeof Library === "undefined") return;
 
-  const entity = Library.getEntity(entityId);
+  const entityImage = getLibraryDisplayImage(entity);
   if (!entity) return;
 
   activeLibraryEntityId = entityId;
