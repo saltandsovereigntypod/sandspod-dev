@@ -37,20 +37,34 @@ const Library = (() => {
   let library = load();
 
   function load() {
-    try {
-      return JSON.parse(localStorage.getItem(LIBRARY_STORAGE_KEY)) || {
-        entities: {},
-        relations: [],
-        indexes: {}
+  try {
+    const saved = JSON.parse(localStorage.getItem(LIBRARY_STORAGE_KEY)) || {
+      entities: {},
+      relations: [],
+      indexes: {}
     };
-    } catch {
-      return {
-        entities: {},
-        relations: [],
-        indexes: {}
+
+    Object.values(saved.entities || {}).forEach((entity) => {
+      if (String(entity.image || "").startsWith("data:image/")) {
+        entity.image = "";
+      }
+    });
+
+    localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(saved));
+
+    return saved;
+  } catch (error) {
+    console.warn("Could not load local Living Library cache. Resetting local cache.", error);
+
+    localStorage.removeItem(LIBRARY_STORAGE_KEY);
+
+    return {
+      entities: {},
+      relations: [],
+      indexes: {}
     };
-    }
   }
+}
 
 function rebuildIndexes() {
 
@@ -79,10 +93,27 @@ function save() {
     }
   });
 
-  localStorage.setItem(
-    LIBRARY_STORAGE_KEY,
-    JSON.stringify(lightweightLibrary)
-  );
+  try {
+    localStorage.setItem(
+      LIBRARY_STORAGE_KEY,
+      JSON.stringify(lightweightLibrary)
+    );
+  } catch (error) {
+    console.warn("Library localStorage save failed. Clearing heavy local cache.", error);
+
+    Object.values(library.entities || {}).forEach((entity) => {
+      if (String(entity.image || "").startsWith("data:image/")) {
+        entity.image = "";
+      }
+    });
+
+    localStorage.removeItem(LIBRARY_STORAGE_KEY);
+
+    localStorage.setItem(
+      LIBRARY_STORAGE_KEY,
+      JSON.stringify(lightweightLibrary)
+    );
+  }
 }
 
 function findEntityByNameAndType(name, type) {
