@@ -824,41 +824,37 @@ function getDefaultLibraryImage(entity) {
   if (!entity) return "";
 
   const entityName = normalizeLibraryImageName(entity.name);
-  const entityType = normalizeLibraryImageName(entity.type);
 
-  const looseHerbImages = {
-    rosemary: "../assets/altar/objects/herbs/rosemary/rosemary-loose.png",
-    lavender: "../assets/altar/objects/herbs/lavender/lavender-loose.png",
-    mugwort: "../assets/altar/objects/herbs/mugwort/mugwort-loose.png",
-    "bay leaf": "../assets/altar/objects/herbs/bay-leaf/bay-loose.png",
-    bay: "../assets/altar/objects/herbs/bay-leaf/bay-loose.png",
-    cinnamon: "../assets/altar/objects/herbs/cinnamon/cinnamon-loose.png"
-  };
+  if (typeof cabinetItems === "undefined") return "";
 
-  const defaultImages = {
-    amethyst: "../assets/altar/objects/crystals/amethyst/amethyst-point.png",
+  const matchingItem = cabinetItems.find((item) => {
+    const itemName = normalizeLibraryImageName(item.name);
 
-    key: "../assets/altar/objects/tools/key/key.png",
-    athame: "../assets/altar/objects/tools/athame/athame.png",
-    "raven skull": "../assets/altar/objects/tools/raven-skull/raven-skull.png",
-    "black salt": "../assets/altar/objects/tools/black-salt/black-salt.png",
-    "salt circle": "../assets/altar/objects/tools/salt-circle/2E77AAEA-4775-4EB3-9EEF-659AB1218A61.png",
+    if (itemName === entityName) return true;
 
-    hekate: "../assets/altar/objects/tools/deities/hekate/hekate-statue.png",
-    "hekate statue": "../assets/altar/objects/tools/deities/hekate/hekate-statue.png",
+    return (item.forms || []).some((form) => {
+      return (
+        normalizeLibraryImageName(form.herb) === entityName ||
+        normalizeLibraryImageName(form.crystal) === entityName ||
+        normalizeLibraryImageName(form.tool) === entityName ||
+        normalizeLibraryImageName(form.vessel) === entityName ||
+        normalizeLibraryImageName(form.deity) === entityName ||
+        normalizeLibraryImageName(form.color + " candle") === entityName
+      );
+    });
+  });
 
-    lilith: "../assets/altar/objects/tools/deities/lilith/lilith-statue.png",
-    "lilith statue": "../assets/altar/objects/tools/deities/lilith/lilith-statue.png",
+  if (!matchingItem) return "";
 
-    cauldron: "../assets/altar/objects/vessels/cauldron/cauldron.png",
-    "spell jar": "../assets/altar/objects/vessels/spell-jar/spell-jar.png"
-  };
+  if (normalizeLibraryImageName(entity.type) === "herb") {
+    const looseForm = matchingItem.forms?.find((form) => {
+      return normalizeLibraryImageName(form.form) === "loose";
+    });
 
-  if (looseHerbImages[entityName]) {
-    return looseHerbImages[entityName];
+    if (looseForm?.image) return looseForm.image;
   }
 
-  return looseHerbImages[entityName] || defaultImages[entityName] || "";
+  return matchingItem.forms?.find((form) => form.image)?.image || "";
 }
 
 function getLibraryDisplayImage(entity) {
