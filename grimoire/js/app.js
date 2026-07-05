@@ -2238,25 +2238,6 @@ if (restoreDefaultImageButton) {
   return;
 }
 
-document.addEventListener("change", (event) => {
-  const mundaneToggle = event.target.closest("[data-mundane-toggle]");
-  if (!mundaneToggle) return;
-
-  const isMundane = mundaneToggle.checked;
-
-  document.body.classList.toggle("mundane-mode", isMundane);
-
-  document.querySelectorAll("[data-mundane-toggle]").forEach((toggle) => {
-    toggle.checked = isMundane;
-  });
-
-  localStorage.setItem("saltAndSovereigntyMundaneMode", isMundane ? "true" : "false");
-
-  if (typeof updateMundaneModeUI === "function") {
-    updateMundaneModeUI();
-  }
-});
-
 document.addEventListener("change", async (event) => {
   const imageInput = event.target.closest("[data-library-image-upload]");
   if (!imageInput) return;
@@ -2424,11 +2405,82 @@ window.addEventListener("saltSettingsChanged", async () => {
   }
 });
 
+const MUNDANE_MODE_KEY = "saltAndSovereigntyMundaneMode";
+
+function setMundaneMode(isMundane) {
+  document.body.classList.toggle("mundane-mode", isMundane);
+
+  localStorage.setItem(MUNDANE_MODE_KEY, isMundane ? "true" : "false");
+
+  document.querySelectorAll("[data-mundane-toggle]").forEach((toggle) => {
+    toggle.checked = isMundane;
+  });
+
+  if (typeof updateMundaneModeUI === "function") {
+    updateMundaneModeUI();
+  }
+}
+
+function initMundaneMode() {
+  setMundaneMode(localStorage.getItem(MUNDANE_MODE_KEY) === "true");
+}
+
+document.addEventListener("click", (event) => {
+  const mundaneLabel = event.target.closest(".book-library-mundane-toggle");
+  if (!mundaneLabel) return;
+
+  const checkbox = mundaneLabel.querySelector("[data-mundane-toggle]");
+  if (!checkbox) return;
+
+  event.preventDefault();
+
+  setMundaneMode(!checkbox.checked);
+});
+
+const MUNDANE_MODE_KEY = "saltAndSovereigntyMundaneMode";
+
+function setMundaneMode(isMundane) {
+  document.body.classList.toggle("mundane-mode", isMundane);
+
+  localStorage.setItem(MUNDANE_MODE_KEY, isMundane ? "true" : "false");
+
+  document.querySelectorAll("[data-mundane-toggle]").forEach((toggle) => {
+    toggle.checked = isMundane;
+  });
+
+  if (typeof updateMundaneModeUI === "function") {
+    updateMundaneModeUI();
+  }
+}
+
+function initMundaneMode() {
+  setMundaneMode(localStorage.getItem(MUNDANE_MODE_KEY) === "true");
+}
+
+document.addEventListener("click", (event) => {
+  const mundaneLabel = event.target.closest(".book-library-mundane-toggle");
+  if (!mundaneLabel) return;
+
+  const checkbox = mundaneLabel.querySelector("[data-mundane-toggle]");
+  if (!checkbox) return;
+
+  event.preventDefault();
+
+  setMundaneMode(!checkbox.checked);
+});
+
+document.addEventListener("change", (event) => {
+  const mundaneToggle = event.target.closest("[data-mundane-toggle]");
+  if (!mundaneToggle) return;
+
+  setMundaneMode(mundaneToggle.checked);
+});
+
 /* =========================================================
    STARTUP
    ========================================================= */
 
-updateMundaneModeUI();
+initMundaneMode();
 
 document.addEventListener("saltAuthReady", updateAuthState);
 document.addEventListener("saltAuthChanged", updateAuthState);
