@@ -811,6 +811,47 @@ function getLibraryEntityIntro(entity) {
   return `${formatLibraryEntityName(entity.name)} is traditionally associated with ${String(uses).toLowerCase()}.`;
 }
 
+function normalizeLibraryImageName(value = "") {
+  return String(value)
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replaceAll("-", " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getDefaultLibraryImage(entity) {
+  if (!entity) return "";
+
+  const entityName = normalizeLibraryImageName(entity.name);
+
+  if (typeof cabinetItems !== "undefined") {
+    const matchingItem = cabinetItems.find((item) => {
+      const itemName = normalizeLibraryImageName(item.name);
+
+      const formMatch = (item.forms || []).some((form) => {
+        return (
+          normalizeLibraryImageName(form.herb) === entityName ||
+          normalizeLibraryImageName(form.crystal) === entityName ||
+          normalizeLibraryImageName(form.tool) === entityName ||
+          normalizeLibraryImageName(form.vessel) === entityName ||
+          normalizeLibraryImageName(form.deity) === entityName ||
+          normalizeLibraryImageName(form.color + " candle") === entityName ||
+          normalizeLibraryImageName(item.name + " " + form.label) === entityName
+        );
+      });
+
+      return itemName === entityName || formMatch;
+    });
+
+    const firstImage = matchingItem?.forms?.find((form) => form.image)?.image;
+
+    if (firstImage) return firstImage;
+  }
+
+  return "";
+}
+
 
 
 function splitLibraryList(value) {
@@ -1535,6 +1576,7 @@ async function renderLibraryEntity(entityId) {
   const settings = await getLibraryPageSettings();
   const layout = getLibraryPageLayout(entity.id);
   const renderedLayers = renderLibraryLayers(entity, settings, layout);
+  const entityImage = entity.image || getDefaultLibraryImage(entity);
 
   entryList.innerHTML = `
     <section class="book-reader-page book-library-entity-page">
@@ -1581,9 +1623,9 @@ async function renderLibraryEntity(entityId) {
 
         <h1>${formatLibraryEntityName(entity.name)}</h1>
 
-        ${entity.image ? `
+        ${entityImage ? `
           <figure class="book-library-hero-image">
-            <img src="${entity.image}" alt="${escapeHtml(entity.name)}" />
+            <img src="${entityImage}" alt="${escapeHtml(entity.name)}" />
           </figure>
         ` : ""}
 
