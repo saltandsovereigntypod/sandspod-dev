@@ -614,3 +614,23 @@ document.addEventListener("click", (event) => {
     ? "+"
     : "−";
 });
+
+/* =========================================================
+   LIVING LIBRARY STARTUP
+   ========================================================= */
+
+document.addEventListener("saltAuthReady", () => {
+  if (typeof Library !== "undefined" && typeof Library.importTraditionalLibrary === "function") {
+    Library.importTraditionalLibrary();
+  }
+
+  if (typeof initLivingLibrarySupabaseSync === "function") {
+    initLivingLibrarySupabaseSync();
+  }
+});
+
+document.addEventListener("saltAuthSuccess", () => {
+  if (typeof initLivingLibrarySupabaseSync === "function") {
+    initLivingLibrarySupabaseSync();
+  }
+});
