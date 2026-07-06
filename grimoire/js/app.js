@@ -2394,18 +2394,8 @@ function updateMundaneModeUI() {
   const title = document.querySelector(".grimoire-cover h1, .grimoire-hero h1, .book-hero h1");
   const tagline = document.querySelector(".grimoire-cover p, .grimoire-hero p, .book-hero p");
 
-  if (eyebrow) {
-    eyebrow.textContent = isMundane ? "Life Chronicles" : "Private Grimoire";
-  }
-
   if (title) {
     title.textContent = isMundane ? "Personal Journal" : "Book of Shadows";
-  }
-
-  if (tagline) {
-    tagline.textContent = isMundane
-      ? "Space for your thoughts, anywhere."
-      : "A living archive of your practice. Create your own sections, turn to your own pages, and let the book become what your path requires.";
   }
 
   const pageTitle = document.querySelector(".book-library-header h1, .book-reader-header h1");
