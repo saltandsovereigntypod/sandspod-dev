@@ -1713,9 +1713,7 @@ async function renderLibraryEntity(entityId) {
 
           <label class="book-library-mundane-toggle">
            <input type="checkbox" data-mundane-toggle ${document.body.classList.contains("mundane-mode") ? "checked" : ""} />
-           <span data-mundane-label>
-             ${document.body.classList.contains("mundane-mode") ? "Journal Mode" : "Magickal Mode"}
-           </span>
+           <span data-mundane-label>Mundane</span>
          </label>
         </div>
       <header class="book-reader-header book-library-header">
@@ -2389,25 +2387,49 @@ function updateMundaneModeUI() {
   });
 
   document.querySelectorAll("[data-mundane-label]").forEach((label) => {
-    label.textContent = isMundane ? "Journal Mode" : "Magickal Mode";
+    label.textContent = "Mundane";
   });
 
-  const heading = document.querySelector(".book-library-header h1");
+  const eyebrow = document.querySelector(".grimoire-cover .eyebrow, .grimoire-hero-kicker, .book-hero-kicker");
+  const title = document.querySelector(".grimoire-cover h1, .grimoire-hero h1, .book-hero h1");
+  const tagline = document.querySelector(".grimoire-cover p, .grimoire-hero p, .book-hero p");
 
-  if (heading && activeLibraryEntityId && typeof Library !== "undefined") {
-    const entity = Library.getEntity(activeLibraryEntityId);
+  if (eyebrow) {
+    eyebrow.textContent = isMundane ? "Life Chronicles" : "Private Grimoire";
+  }
 
-    if (entity) {
-      heading.textContent = formatLibraryEntityName(entity.name);
-    }
+  if (title) {
+    title.textContent = isMundane ? "Personal Journal" : "Book of Shadows";
+  }
+
+  if (tagline) {
+    tagline.textContent = isMundane
+      ? "Space for your thoughts, anywhere."
+      : "A living archive of your practice. Create your own sections, turn to your own pages, and let the book become what your path requires.";
+  }
+
+  const pageTitle = document.querySelector(".book-library-header h1, .book-reader-header h1");
+
+  if (pageTitle && isMundane) {
+    pageTitle.dataset.originalTitle ||= pageTitle.textContent;
+
+    const today = new Date();
+    pageTitle.textContent = today.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  }
+
+  if (pageTitle && !isMundane && pageTitle.dataset.originalTitle) {
+    pageTitle.textContent = pageTitle.dataset.originalTitle;
+    delete pageTitle.dataset.originalTitle;
   }
 }
 
 function setMundaneMode(isMundane) {
   document.body.classList.toggle("mundane-mode", isMundane);
-
   localStorage.setItem(MUNDANE_MODE_KEY, isMundane ? "true" : "false");
-
   updateMundaneModeUI();
 }
 
@@ -2423,7 +2445,6 @@ document.addEventListener("click", (event) => {
   if (!checkbox) return;
 
   event.preventDefault();
-
   setMundaneMode(!checkbox.checked);
 });
 
