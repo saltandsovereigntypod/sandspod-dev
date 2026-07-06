@@ -520,6 +520,8 @@ async function saveCreatedApothecaryItem(form, modal) {
     logToGrimoire,
     grimoireStatus: existingItem?.grimoireStatus || "",
     grimoireEntryId: existingItem?.grimoireEntryId || "",
+    entityId: existingItem?.entityId || "",
+    instanceId: existingItem?.instanceId || "",
     ingredients,
     createdAt: existingItem?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
