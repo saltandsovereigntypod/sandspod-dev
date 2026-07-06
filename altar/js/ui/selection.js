@@ -165,6 +165,29 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
     return settings[`library_${layer}_${category}`] !== false;
   }
 
+  function renderCompanionFieldValue(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (item && typeof item === "object") {
+            const amount = item.amount ? `${item.amount} ` : "";
+            const name = item.libraryName || item.label || item.name || "Ingredient";
+            return `${amount}${name}`.trim();
+          }
+
+          return item;
+        })
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    if (value && typeof value === "object") {
+      return value.label || value.name || JSON.stringify(value);
+    }
+
+    return value;
+  }
+
   function renderLayer(title, layer, data = {}) {
     if (settings[`library_${layer}_enabled`] === false) return "";
 
@@ -184,7 +207,7 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
           .map(([key, value]) => `
             <p>
               <strong>${String(key).replaceAll("_", " ")}:</strong>
-              ${Array.isArray(value) ? value.join(", ") : value}
+              ${renderCompanionFieldValue(value)}
             </p>
           `)
           .join("")}

@@ -353,8 +353,19 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
 
         <div class="apothecary-ingredient-list">
           <p class="eyebrow">Ingredients</p>
+
           ${ingredientSnapshots
-            .map((ingredient) => `<span>${ingredient.label}</span>`)
+            .map((ingredient, index) => `
+              <label class="apothecary-ingredient-amount-row">
+                <span>${ingredient.label}</span>
+                <input
+                  type="text"
+                  name="ingredient_amount_${index}"
+                  value="${ingredient.amount || ""}"
+                  placeholder="Amount, ex: 1 pinch, 3 drops, 2 tsp"
+                />
+              </label>
+            `)
             .join("")}
         </div>
 
@@ -490,7 +501,10 @@ async function saveCreatedApothecaryItem(form, modal) {
     imagePath = await readUploadedImage(file);
   }
 
-  const ingredients = JSON.parse(modal.dataset.ingredients || "[]");
+  const ingredients = JSON.parse(modal.dataset.ingredients || "[]").map((ingredient, index) => ({
+    ...ingredient,
+    amount: String(formData.get(`ingredient_amount_${index}`) || "").trim()
+  }));
   const items = getApothecaryItems();
   const existingItem = editItemId ? getApothecaryItemById(editItemId) : null;
 
