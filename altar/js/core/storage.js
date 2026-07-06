@@ -97,6 +97,7 @@ function createAltarSnapshot(name = "Working Altar") {
       label: object.dataset.label || "object",
       type: object.dataset.type || "",
       entityId: object.dataset.entityId || "",
+      instanceId: object.dataset.instanceId || "",
       herb: object.dataset.herb || "",
       form: object.dataset.form || "",
       color: object.dataset.color || "",
@@ -293,6 +294,7 @@ function createSavedObject(savedObject) {
   object.dataset.label = savedObject.label || "object";
   object.dataset.type = savedObject.type || "";
   object.dataset.entityId = savedObject.entityId || "";
+  object.dataset.instanceId = savedObject.instanceId || "";
   object.dataset.herb = savedObject.herb || "";
   object.dataset.form = savedObject.form || "";
   object.dataset.color = savedObject.color || "";
