@@ -525,6 +525,28 @@ async function saveCreatedApothecaryItem(form, modal) {
   };
 
   item = await createOrUpdateApothecaryLibraryEntity(item);
+  
+  if (typeof createObjectInstance === "function") {
+    const instance = await createObjectInstance({
+      entity_id: item.entityId || "",
+      source: "apothecary",
+      instance_type: "apothecary_item",
+      name: item.name,
+      object_type: "apothecary",
+      subtype: item.typeLabel || item.type || "",
+      apothecary_item_id: item.id,
+      metadata: {
+        intention: item.intention || "",
+        notes: item.notes || "",
+        ingredients: item.ingredients || []
+      }
+    });
+
+    if (instance?.id) {
+      item.instanceId = instance.id;
+    }
+  }
+
   item = createGrimoireHandoffForApothecaryItem(item);
 
   const updatedItems = existingItem
