@@ -36,6 +36,125 @@ function saveApothecaryItems(items) {
   localStorage.setItem(APOTHECARY_STORAGE_KEY, JSON.stringify(items));
 }
 
+/* =========================================================
+   APOTHECARY + LIVING LIBRARY
+   ========================================================= */
+
+function getApothecaryIngredientLibraryType(ingredient = {}) {
+  if (ingredient.herb) return "herb";
+  if (ingredient.crystal) return "crystal";
+  if (ingredient.color) return "candle";
+  if (ingredient.tool) return "tool";
+  if (ingredient.vessel) return "vessel";
+  if (ingredient.deity) return "deity";
+
+  return ingredient.type || "note";
+}
+
+function getApothecaryIngredientLibraryName(ingredient = {}) {
+  if (ingredient.herb) return ingredient.herb.replaceAll("-", " ");
+  if (ingredient.crystal) return ingredient.crystal.replaceAll("-", " ");
+  if (ingredient.color) return `${ingredient.color} candle`;
+  if (ingredient.tool) return ingredient.tool.replaceAll("-", " ");
+  if (ingredient.vessel) return ingredient.vessel.replaceAll("-", " ");
+  if (ingredient.deity) return ingredient.deity.replaceAll("-", " ");
+
+  return ingredient.label || "Ingredient";
+}
+
+function enrichApothecaryIngredientsForLibrary(ingredients = []) {
+  if (typeof Library === "undefined") return ingredients;
+
+  return ingredients.map((ingredient) => {
+    const libraryType = getApothecaryIngredientLibraryType(ingredient);
+    const libraryName = getApothecaryIngredientLibraryName(ingredient);
+
+    const entity = Library.getOrCreateEntity({
+      name: libraryName,
+      type: libraryType,
+      image: ingredient.imagePath || ""
+    });
+
+    return {
+      ...ingredient,
+      entityId: entity.id,
+      libraryType,
+      libraryName,
+      amount: ingredient.amount || ""
+    };
+  });
+}
+
+function connectApothecaryIngredientsToLibraryEntity(entityId, ingredients = []) {
+  if (typeof Library === "undefined") return;
+  if (!Library.LIBRARY_RELATIONS) return;
+
+  ingredients.forEach((ingredient) => {
+    if (!ingredient.entityId) return;
+
+    Library.connect(entityId, Library.LIBRARY_RELATIONS.CONTAINS, ingredient.entityId);
+    Library.connect(ingredient.entityId, Library.LIBRARY_RELATIONS.INGREDIENT_IN, entityId);
+  });
+}
+
+async function createOrUpdateApothecaryLibraryEntity(item) {
+  if (typeof Library === "undefined") return item;
+
+  const entity = item.entityId
+    ? Library.getEntity(item.entityId)
+    : Library.getOrCreateEntity({
+        name: item.name,
+        type: "apothecary",
+        image: item.imagePath || ""
+      });
+
+  if (!entity) return item;
+
+  const ingredients = enrichApothecaryIngredientsForLibrary(item.ingredients || []);
+
+  Library.updateEntity(entity.id, {
+    name: item.name,
+    type: "apothecary",
+    image: item.imagePath || "",
+    myPractice: {
+      ...(entity.myPractice || {}),
+      Subtype: item.typeLabel || item.type || "Apothecary Item",
+      Intention: item.intention || "",
+      Ingredients: ingredients,
+      Notes: item.notes || "",
+      GrimoireStatus: item.logToGrimoire ? "Linked to Living Library" : "",
+      CreatedFrom: "Altar Apothecary"
+    },
+    metadata: {
+      ...(entity.metadata || {}),
+      apothecaryItemId: item.id,
+      apothecaryType: item.type,
+      isApothecaryRecipe: true,
+      createdAt: item.createdAt || new Date().toISOString(),
+      updatedAt: item.updatedAt || new Date().toISOString()
+    }
+  });
+
+  connectApothecaryIngredientsToLibraryEntity(entity.id, ingredients);
+
+  if (typeof saveLivingLibraryEntityToSupabase === "function") {
+    await saveLivingLibraryEntityToSupabase(entity.id);
+
+    for (const ingredient of ingredients) {
+      if (ingredient.entityId) {
+        await saveLivingLibraryEntityToSupabase(ingredient.entityId);
+      }
+    }
+  }
+
+  return {
+    ...item,
+    entityId: entity.id,
+    ingredients,
+    grimoireStatus: item.logToGrimoire ? "linked to Living Library" : item.grimoireStatus || ""
+  };
+}
+
 function getApothecaryItemById(itemId) {
   return getApothecaryItems().find((item) => item.id === itemId) || null;
 }
@@ -325,6 +444,7 @@ function replaceSelectedIngredientsWithApothecaryObject(item) {
     label: item.name,
     type: "apothecary",
     form: item.type,
+    entityId: item.entityId || "",
     apothecaryItemId: item.id,
     apothecaryType: item.type,
     apothecaryIngredients: JSON.stringify(item.ingredients || []),
@@ -390,6 +510,7 @@ async function saveCreatedApothecaryItem(form, modal) {
     updatedAt: new Date().toISOString()
   };
 
+  item = await createOrUpdateApothecaryLibraryEntity(item);
   item = createGrimoireHandoffForApothecaryItem(item);
 
   const updatedItems = existingItem
@@ -426,6 +547,7 @@ function placeApothecaryItem(itemId) {
     label: item.name,
     type: "apothecary",
     form: item.type,
+    placeApothecaryItem(itemId)
     apothecaryItemId: item.id,
     apothecaryType: item.type,
     apothecaryIngredients: JSON.stringify(item.ingredients || []),
@@ -446,6 +568,7 @@ function syncPlacedApothecaryObjects(item) {
     .querySelectorAll(`.altar-object[data-apothecary-item-id="${item.id}"]`)
     .forEach((object) => {
       object.dataset.label = item.name;
+      object.dataset.entityId = item.entityId || "";
       object.dataset.apothecaryType = item.type;
       object.dataset.apothecaryIngredients = JSON.stringify(item.ingredients || []);
       object.dataset.apothecaryIntention = item.intention || "";
