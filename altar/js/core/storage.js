@@ -91,17 +91,18 @@ function createAltarSnapshot(name = "Working Altar") {
   const objects = Array.from(altarStage.querySelectorAll(".altar-object")).map((object) => {
     const position = getStagePositionPercent(object);
 
+    console.log("Saving object:", {
+        label: object.dataset.label,
+        entityId: object.dataset.entityId,
+        instanceId: object.dataset.instanceId
+    });
+    
     return {
       imagePath: getObjectImagePath(object),
       fallbackSymbol: object.textContent || "",
       label: object.dataset.label || "object",
       type: object.dataset.type || "",
       entityId: object.dataset.entityId || "",
-      console.log("Saving object:", {
-          label: object.dataset.label,
-          entityId: object.dataset.entityId,
-          instanceId: object.dataset.instanceId
-      });
       instanceId: object.dataset.instanceId || "",
       herb: object.dataset.herb || "",
       form: object.dataset.form || "",
