@@ -4,6 +4,7 @@
    ========================================================= */
 
 const LIVING_LIBRARY_TABLE = "living_library_entries";
+const LIVING_LIBRARY_RELATIONS_TABLE = "library_relations";
 const LIVING_LIBRARY_LOCAL_MIGRATION_KEY = "saltAndSovereigntyLivingLibraryMigratedToSupabase";
 
 function cleanLivingLibraryImage(image = "") {
@@ -88,6 +89,92 @@ async function saveLivingLibraryEntityToSupabase(entityId) {
 
   if (error) {
     console.error("Living Library save failed:", error);
+  }
+}
+
+async function saveLivingLibraryRelationToSupabase(fromEntityId, relation, toEntityId, metadata = {}) {
+  const user = getLivingLibraryUser();
+
+  if (!user || typeof db === "undefined") return;
+  if (!fromEntityId || !relation || !toEntityId) return;
+
+  const { error } = await db
+    .from(LIVING_LIBRARY_RELATIONS_TABLE)
+    .upsert(
+      {
+        user_id: user.id,
+        from_entity_id: fromEntityId,
+        relation,
+        to_entity_id: toEntityId,
+        metadata,
+        updated_at: new Date().toISOString()
+      },
+      {
+        onConflict: "user_id,from_entity_id,relation,to_entity_id"
+      }
+    );
+
+  if (error) {
+    console.error("Living Library relation save failed:", error);
+  }
+}
+
+async function replaceLivingLibraryRelationsInSupabase(fromEntityId, relation, targets = []) {
+  const user = getLivingLibraryUser();
+
+  if (!user || typeof db === "undefined") return;
+  if (!fromEntityId || !relation) return;
+
+  const { error: deleteError } = await db
+    .from(LIVING_LIBRARY_RELATIONS_TABLE)
+    .delete()
+    .eq("user_id", user.id)
+    .eq("from_entity_id", fromEntityId)
+    .eq("relation", relation);
+
+  if (deleteError) {
+    console.error("Living Library relation replace failed:", deleteError);
+    return;
+  }
+
+  if (!targets.length) return;
+
+  const rows = targets.map((targetId) => ({
+    user_id: user.id,
+    from_entity_id: fromEntityId,
+    relation,
+    to_entity_id: targetId,
+    metadata: {},
+    updated_at: new Date().toISOString()
+  }));
+
+  const { error: insertError } = await db
+    .from(LIVING_LIBRARY_RELATIONS_TABLE)
+    .upsert(rows, {
+      onConflict: "user_id,from_entity_id,relation,to_entity_id"
+    });
+
+  if (insertError) {
+    console.error("Living Library relation replace insert failed:", insertError);
+  }
+}
+
+async function deleteLivingLibraryRelationFromSupabase(fromEntityId, relation, toEntityId) {
+  const user = getLivingLibraryUser();
+
+  if (!user || typeof db === "undefined") return;
+  if (!fromEntityId || !relation || !toEntityId) return;
+
+  const { error } = await db
+    .from(LIVING_LIBRARY_RELATIONS_TABLE)
+    .delete()
+    .eq("user_id", user.id)
+    .eq("from_entity_id", fromEntityId)
+    .eq("relation", relation)
+    .eq("to_entity_id", toEntityId);
+
+  if (error) {
+    console.error("Living Library relation delete failed:", error);
   }
 }
 
@@ -201,6 +288,38 @@ async function loadLivingLibraryFromSupabase() {
   localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
 }
 
+async function loadLivingLibraryRelationsFromSupabase() {
+  const user = getLivingLibraryUser();
+
+  if (!user || typeof db === "undefined" || typeof Library === "undefined") return;
+
+  const { data, error } = await db
+    .from(LIVING_LIBRARY_RELATIONS_TABLE)
+    .select("*")
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Living Library relations load failed:", error);
+    return;
+  }
+
+  const existingRelations = Library.exportLibrary?.().relations || [];
+
+  (data || []).forEach((row) => {
+    const alreadyExists = existingRelations.some((link) => {
+      return (
+        link.from === row.from_entity_id &&
+        link.relation === row.relation &&
+        link.to === row.to_entity_id
+      );
+    });
+
+    if (alreadyExists) return;
+
+    Library.connect(row.from_entity_id, row.relation, row.to_entity_id);
+  });
+}
+
 function wrapLivingLibraryMethodsForSupabase() {
   if (typeof Library === "undefined") return;
   if (Library.__supabaseWrapped) return;
@@ -211,6 +330,10 @@ function wrapLivingLibraryMethodsForSupabase() {
   const originalUpdateEntityImage = Library.updateEntityImage?.bind(Library);
   const originalUpdateEntitySection = Library.updateEntitySection?.bind(Library);
   const originalUpdateEntityType = Library.updateEntityType?.bind(Library);
+
+  const originalConnect = Library.connect?.bind(Library);
+  const originalDisconnect = Library.disconnect?.bind(Library);
+  const originalReplaceConnections = Library.replaceConnections?.bind(Library);
 
   if (originalUpdateEntity) {
     Library.updateEntity = function(entityId, updates) {
@@ -243,6 +366,42 @@ function wrapLivingLibraryMethodsForSupabase() {
       return result;
     };
   }
+
+  if (originalConnect) {
+    Library.connect = function(fromEntityId, relation, toEntityId) {
+      const result = originalConnect(fromEntityId, relation, toEntityId);
+
+      if (livingLibrarySyncReady) {
+        saveLivingLibraryRelationToSupabase(fromEntityId, relation, toEntityId);
+      }
+
+      return result;
+    };
+  }
+
+  if (originalDisconnect) {
+    Library.disconnect = function(fromEntityId, relation, toEntityId) {
+      const result = originalDisconnect(fromEntityId, relation, toEntityId);
+
+      if (livingLibrarySyncReady) {
+        deleteLivingLibraryRelationFromSupabase(fromEntityId, relation, toEntityId);
+      }
+
+      return result;
+    };
+  }
+
+  if (originalReplaceConnections) {
+    Library.replaceConnections = function(fromEntityId, relation, targets = []) {
+      const result = originalReplaceConnections(fromEntityId, relation, targets);
+
+      if (livingLibrarySyncReady) {
+        replaceLivingLibraryRelationsInSupabase(fromEntityId, relation, targets);
+      }
+
+      return result;
+    };
+  }
 }
 
 async function saveAllLivingLibraryLayoutsToSupabase() {
@@ -269,6 +428,7 @@ async function initLivingLibrarySupabaseSync() {
 
   await migrateLocalLivingLibraryToSupabaseOnce();
   await loadLivingLibraryFromSupabase();
+  await loadLivingLibraryRelationsFromSupabase();
 
   livingLibrarySyncReady = true;
 
@@ -277,3 +437,5 @@ async function initLivingLibrarySupabaseSync() {
 
 window.initLivingLibrarySupabaseSync = initLivingLibrarySupabaseSync;
 window.saveLivingLibraryEntityToSupabase = saveLivingLibraryEntityToSupabase;
+window.saveLivingLibraryRelationToSupabase = saveLivingLibraryRelationToSupabase;
+window.loadLivingLibraryRelationsFromSupabase = loadLivingLibraryRelationsFromSupabase;
