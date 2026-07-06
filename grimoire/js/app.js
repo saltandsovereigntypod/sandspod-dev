@@ -1712,9 +1712,11 @@ async function renderLibraryEntity(entityId) {
           </div>
 
           <label class="book-library-mundane-toggle">
-            <input type="checkbox" data-mundane-toggle ${document.body.classList.contains("mundane-mode") ? "checked" : ""} />
-            Mundane
-          </label>
+           <input type="checkbox" data-mundane-toggle ${document.body.classList.contains("mundane-mode") ? "checked" : ""} />
+           <span data-mundane-label>
+             ${document.body.classList.contains("mundane-mode") ? "Journal Mode" : "Magickal Mode"}
+           </span>
+         </label>
         </div>
       <header class="book-reader-header book-library-header">
 
@@ -2332,24 +2334,26 @@ document.addEventListener("input", (event) => {
   });
 });
 
-const MUNDANE_MODE_KEY = "saltAndSovereigntyMundaneMode";
-
-function setMundaneMode(isMundane) {
-  document.body.classList.toggle("mundane-mode", isMundane);
-
-  localStorage.setItem(MUNDANE_MODE_KEY, isMundane ? "true" : "false");
+function updateMundaneModeUI() {
+  const isMundane = document.body.classList.contains("mundane-mode");
 
   document.querySelectorAll("[data-mundane-toggle]").forEach((toggle) => {
     toggle.checked = isMundane;
   });
 
-  if (typeof updateMundaneModeUI === "function") {
-    updateMundaneModeUI();
-  }
-}
+  document.querySelectorAll("[data-mundane-label]").forEach((label) => {
+    label.textContent = isMundane ? "Journal Mode" : "Magickal Mode";
+  });
 
-function initMundaneMode() {
-  setMundaneMode(localStorage.getItem(MUNDANE_MODE_KEY) === "true");
+  const heading = document.querySelector(".book-library-header h1");
+  if (heading && activeLibraryEntityId && typeof Library !== "undefined") {
+    const entity = Library.getEntity(activeLibraryEntityId);
+    if (entity) {
+      heading.textContent = isMundane
+        ? formatLibraryEntityName(entity.name).replace(/\bSpell\b/gi, "Entry").replace(/\bRitual\b/gi, "Reflection")
+        : formatLibraryEntityName(entity.name);
+    }
+  }
 }
 
 document.addEventListener("click", (event) => {
