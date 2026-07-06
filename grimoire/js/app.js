@@ -2376,6 +2376,65 @@ document.addEventListener("change", (event) => {
 });
 
 /* =========================================================
+   MUNDANE MODE
+   ========================================================= */
+
+const MUNDANE_MODE_KEY = "saltAndSovereigntyMundaneMode";
+
+function updateMundaneModeUI() {
+  const isMundane = document.body.classList.contains("mundane-mode");
+
+  document.querySelectorAll("[data-mundane-toggle]").forEach((toggle) => {
+    toggle.checked = isMundane;
+  });
+
+  document.querySelectorAll("[data-mundane-label]").forEach((label) => {
+    label.textContent = isMundane ? "Journal Mode" : "Magickal Mode";
+  });
+
+  const heading = document.querySelector(".book-library-header h1");
+
+  if (heading && activeLibraryEntityId && typeof Library !== "undefined") {
+    const entity = Library.getEntity(activeLibraryEntityId);
+
+    if (entity) {
+      heading.textContent = formatLibraryEntityName(entity.name);
+    }
+  }
+}
+
+function setMundaneMode(isMundane) {
+  document.body.classList.toggle("mundane-mode", isMundane);
+
+  localStorage.setItem(MUNDANE_MODE_KEY, isMundane ? "true" : "false");
+
+  updateMundaneModeUI();
+}
+
+function initMundaneMode() {
+  setMundaneMode(localStorage.getItem(MUNDANE_MODE_KEY) === "true");
+}
+
+document.addEventListener("click", (event) => {
+  const mundaneLabel = event.target.closest(".book-library-mundane-toggle");
+  if (!mundaneLabel) return;
+
+  const checkbox = mundaneLabel.querySelector("[data-mundane-toggle]");
+  if (!checkbox) return;
+
+  event.preventDefault();
+
+  setMundaneMode(!checkbox.checked);
+});
+
+document.addEventListener("change", (event) => {
+  const mundaneToggle = event.target.closest("[data-mundane-toggle]");
+  if (!mundaneToggle) return;
+
+  setMundaneMode(mundaneToggle.checked);
+});
+
+/* =========================================================
    STARTUP
    ========================================================= */
 
