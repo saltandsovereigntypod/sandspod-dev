@@ -460,7 +460,8 @@ function placeObject(options) {
      apothecaryNotes,
      apothecaryLogToGrimoire,
      apothecaryGrimoireStatus,
-     entityId
+     entityId,
+     instanceId
    } = options;
 
   const entityName =
@@ -499,6 +500,7 @@ function placeObject(options) {
   object.dataset.label = label || "object";
   object.dataset.type = type || "";
   object.dataset.entityId = entityId || entity.id;
+  object.dataset.instanceId = instanceId || "";
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
   object.dataset.color = color || "";

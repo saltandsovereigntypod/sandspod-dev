@@ -456,6 +456,7 @@ function replaceSelectedIngredientsWithApothecaryObject(item) {
     type: "apothecary",
     form: item.type,
     entityId: item.entityId || "",
+    instanceId: item.instanceId || "",
     apothecaryItemId: item.id,
     apothecaryType: item.type,
     apothecaryIngredients: JSON.stringify(item.ingredients || []),
@@ -525,7 +526,7 @@ async function saveCreatedApothecaryItem(form, modal) {
   };
 
   item = await createOrUpdateApothecaryLibraryEntity(item);
-  
+
   if (typeof createObjectInstance === "function") {
     const instance = await createObjectInstance({
       entity_id: item.entityId || "",
@@ -584,6 +585,7 @@ function placeApothecaryItem(itemId) {
     type: "apothecary",
     form: item.type,
     entityId: item.entityId || "",
+    instanceId: item.instanceId || "",
     apothecaryItemId: item.id,
     apothecaryType: item.type,
     apothecaryIngredients: JSON.stringify(item.ingredients || []),
