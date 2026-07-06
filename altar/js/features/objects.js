@@ -459,7 +459,8 @@ function placeObject(options) {
      apothecaryIntention,
      apothecaryNotes,
      apothecaryLogToGrimoire,
-     apothecaryGrimoireStatus
+     apothecaryGrimoireStatus,
+     entityId
    } = options;
 
   const entityName =
@@ -480,7 +481,12 @@ function placeObject(options) {
     vessel ? "vessel" :
     type || "object";
 
-  const entity = Library.getOrCreateEntity({
+  const existingEntity =
+    entityId && typeof Library !== "undefined"
+      ? Library.getEntity(entityId)
+      : null;
+
+  const entity = existingEntity || Library.getOrCreateEntity({
     name: entityName,
     type: entityType,
     image: imagePath || ""
@@ -492,7 +498,7 @@ function placeObject(options) {
 
   object.dataset.label = label || "object";
   object.dataset.type = type || "";
-  object.dataset.entityId = entity.id;
+  object.dataset.entityId = entityId || entity.id;
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
   object.dataset.color = color || "";
@@ -510,8 +516,6 @@ function placeObject(options) {
   object.dataset.apothecaryNotes = apothecaryNotes || "";
   object.dataset.apothecaryLogToGrimoire = apothecaryLogToGrimoire || "false";
   object.dataset.apothecaryGrimoireStatus = apothecaryGrimoireStatus || "";
-
-  object.dataset.entityId = entity.id;
 
   const startingScale = type === "cloth"
     ? "3"

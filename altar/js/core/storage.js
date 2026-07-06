@@ -96,6 +96,7 @@ function createAltarSnapshot(name = "Working Altar") {
       fallbackSymbol: object.textContent || "",
       label: object.dataset.label || "object",
       type: object.dataset.type || "",
+      entityId: object.dataset.entityId || "",
       herb: object.dataset.herb || "",
       form: object.dataset.form || "",
       color: object.dataset.color || "",
@@ -291,6 +292,7 @@ function createSavedObject(savedObject) {
 
   object.dataset.label = savedObject.label || "object";
   object.dataset.type = savedObject.type || "";
+  object.dataset.entityId = savedObject.entityId || "";
   object.dataset.herb = savedObject.herb || "";
   object.dataset.form = savedObject.form || "";
   object.dataset.color = savedObject.color || "";
