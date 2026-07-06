@@ -97,6 +97,11 @@ function createAltarSnapshot(name = "Working Altar") {
       label: object.dataset.label || "object",
       type: object.dataset.type || "",
       entityId: object.dataset.entityId || "",
+      console.log("Saving object:", {
+          label: object.dataset.label,
+          entityId: object.dataset.entityId,
+          instanceId: object.dataset.instanceId
+      });
       instanceId: object.dataset.instanceId || "",
       herb: object.dataset.herb || "",
       form: object.dataset.form || "",
