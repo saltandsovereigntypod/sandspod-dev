@@ -3078,3 +3078,62 @@ body.library-page-open .book-toc .book-toc-section:not(.my-practice-shelf):not(.
   display: grid;
   gap: 0.45rem;
 }
+
+/* =========================================================
+   MUNDANE / JOURNAL MODE
+   ========================================================= */
+
+body.mundane-mode .book-sidebar,
+body.mundane-mode .book-toc,
+body.mundane-mode .grimoire-sidebar,
+body.mundane-mode .grimoire-menu-button,
+body.mundane-mode .traditional-library-shelf,
+body.mundane-mode [data-traditional-library-shelf],
+body.mundane-mode .book-library-layer--traditional,
+body.mundane-mode .book-library-layer--community,
+body.mundane-mode .book-library-layer--related,
+body.mundane-mode .book-reader-divider,
+body.mundane-mode .book-library-hero-image {
+  display: none !important;
+}
+
+body.mundane-mode .book-library-entity-page,
+body.mundane-mode .book-reader-page {
+  background:
+    linear-gradient(145deg, rgba(244, 236, 216, 0.08), rgba(244, 236, 216, 0.035)),
+    rgba(17, 21, 18, 0.92);
+}
+
+body.mundane-mode .book-library-header h1 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+body.mundane-mode .book-library-intro {
+  display: none;
+}
+
+body.mundane-mode .book-library-layer--myPractice .library-section-heading-row h2 {
+  font-size: 0;
+}
+
+body.mundane-mode .book-library-layer--myPractice .library-section-heading-row h2::after {
+  content: "Personal Notes";
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+
+body.mundane-mode .book-library-mundane-toggle {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.18);
+}
+
+body.mundane-mode .book-library-sticky-tools {
+  grid-template-columns: 1fr;
+}
+
+body.mundane-mode .book-library-sticky-left {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+body.mundane-mode .book-library-sticky-left .grimoire-menu-button {
+  display: none !important;
+}
