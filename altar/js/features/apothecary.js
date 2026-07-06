@@ -547,7 +547,7 @@ function placeApothecaryItem(itemId) {
     label: item.name,
     type: "apothecary",
     form: item.type,
-    placeApothecaryItem(itemId)
+    placeApothecaryItem(itemId),
     apothecaryItemId: item.id,
     apothecaryType: item.type,
     apothecaryIngredients: JSON.stringify(item.ingredients || []),
