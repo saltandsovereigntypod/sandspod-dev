@@ -609,6 +609,8 @@ function syncPlacedApothecaryObjects(item) {
     .forEach((object) => {
       object.dataset.label = item.name;
       object.dataset.entityId = item.entityId || "";
+      object.dataset.instanceId = item.instanceId || object.dataset.instanceId || "";
+      object.dataset.apothecaryType = item.type;
       object.dataset.apothecaryType = item.type;
       object.dataset.apothecaryIngredients = JSON.stringify(item.ingredients || []);
       object.dataset.apothecaryIntention = item.intention || "";
