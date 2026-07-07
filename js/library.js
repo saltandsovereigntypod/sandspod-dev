@@ -455,7 +455,7 @@ function normalizeEntityName(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
-    .String(key).replaceAll("_", " ");
+    .replaceAll("_", " ");
 }
 
 function findBestTraditionalEntityMatch(name) {
