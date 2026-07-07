@@ -104,6 +104,15 @@ function getDefaultMySettings() {
     companion_community_warnings: true,
     companion_community_notes: false,
     companion_community_sources: true,
+
+    living_state_show_status: true,
+    living_state_show_created: true,
+    living_state_show_source: true,
+    living_state_show_last_tended: true,
+    living_state_show_expiration: true,
+    living_state_show_future_tending: true,
+    living_state_show_remaining: true,
+    living_state_show_recent_activity: true,
     
   };
 }

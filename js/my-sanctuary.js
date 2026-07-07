@@ -421,6 +421,50 @@ function createMySanctuaryPanel() {
             </details>
           </fieldset>
 
+          <fieldset class="my-sanctuary-fieldset">
+            <legend>Living State Panel</legend>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_status" />
+              Show status
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_created" />
+              Show created date
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_source" />
+              Show source
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_last_tended" />
+              Show last tended
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_expiration" />
+              Show expiration reminder
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_future_tending" />
+              Show future tending
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_remaining" />
+              Show remaining amounts
+            </label>
+
+            <label class="my-sanctuary-check">
+              <input type="checkbox" name="living_state_show_recent_activity" />
+              Show recent activity
+            </label>
+          </fieldset>
+
           <button class="button button--primary" type="submit">
             Save Settings
           </button>

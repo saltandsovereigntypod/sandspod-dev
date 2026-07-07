@@ -440,6 +440,24 @@ function hideAltarCompanionPanel() {
   companionContent.innerHTML = `<p>Select an object to see its details.</p>`;
 }
 
+function getLivingStateDisplaySettings() {
+  const settings =
+    typeof getLocalMySettings === "function"
+      ? getLocalMySettings()
+      : {};
+
+  return {
+    showStatus: settings.living_state_show_status !== false,
+    showCreated: settings.living_state_show_created !== false,
+    showSource: settings.living_state_show_source !== false,
+    showLastTended: settings.living_state_show_last_tended !== false,
+    showExpiration: settings.living_state_show_expiration !== false,
+    showFutureTending: settings.living_state_show_future_tending !== false,
+    showRemaining: settings.living_state_show_remaining !== false,
+    showRecentActivity: settings.living_state_show_recent_activity !== false
+  };
+}
+
 function formatLivingStateDate(value) {
   if (!value) return "";
 
@@ -472,8 +490,11 @@ function formatLivingStateDue(value) {
 function renderLivingStateEventIcon(eventType = "") {
   const icons = {
     created: "✦",
+    tended: "🌿",
+    charged: "🌙",
+    ritual: "🕯️",
+    journal: "📖",
     fed: "🌿",
-    tended: "🕯",
     used: "✧",
     moved: "↝",
     lit: "🔥",
@@ -485,18 +506,6 @@ function renderLivingStateEventIcon(eventType = "") {
 
   return icons[eventType] || "✦";
 }
-
-function renderLivingStateRecentActivity(events = []) {
-  const latestEvent = events[0];
-
-  if (!latestEvent) {
-    return `
-      <div class="altar-info-card-section living-state-history">
-        <p><strong>Recent Activity</strong></p>
-        <p>No activity recorded yet.</p>
-      </div>
-    `;
-  }
 
 function renderLivingStateRecentActivity(events = []) {
   const latestEvent = events[0];
@@ -532,36 +541,12 @@ function renderLivingStateRecentActivity(events = []) {
   `;
 }
 
-  return `
-    <div class="altar-info-card-section living-state-history">
-      <p><strong>Living History</strong></p>
-
-      ${events
-        .map((event) => `
-          <div class="living-state-event">
-            <p>
-              <span aria-hidden="true">${renderLivingStateEventIcon(event.event_type)}</span>
-              <strong>${event.event_label || event.event_type || "Event"}</strong>
-            </p>
-
-            <p>${formatLivingStateDate(event.occurred_at)}</p>
-
-            ${
-              event.event_notes
-                ? `<p>${event.event_notes}</p>`
-                : ""
-            }
-          </div>
-        `)
-        .join("")}
-    </div>
-  `;
-}
-
 function renderLivingStateMarkup(instance, events = []) {
   if (!instance) {
     return `<p>No living state has been created for this object yet.</p>`;
   }
+
+  const displaySettings = getLivingStateDisplaySettings();
 
   return `
     <div class="altar-info-card-inner is-panel-view">
@@ -569,18 +554,33 @@ function renderLivingStateMarkup(instance, events = []) {
       <p class="altar-info-card-type">${instance.subtype || instance.object_type || "Living State"}</p>
 
       <div class="altar-info-card-section">
-        <p><strong>Status:</strong> ${instance.status || "active"}</p>
-        ${instance.started_at ? `<p><strong>Created:</strong> ${formatLivingStateDate(instance.started_at)}</p>` : ""}
-        ${instance.source ? `<p><strong>Source:</strong> ${instance.source}</p>` : ""}
         ${
-          instance.metadata?.last_tended_at
+          displaySettings.showStatus
+            ? `<p><strong>Status:</strong> ${instance.status || "active"}</p>`
+            : ""
+        }
+
+        ${
+          displaySettings.showCreated && instance.started_at
+            ? `<p><strong>Created:</strong> ${formatLivingStateDate(instance.started_at)}</p>`
+            : ""
+        }
+
+        ${
+          displaySettings.showSource && instance.source
+            ? `<p><strong>Source:</strong> ${instance.source}</p>`
+            : ""
+        }
+
+        ${
+          displaySettings.showLastTended && instance.metadata?.last_tended_at
             ? `<p><strong>Last Tended:</strong> ${formatLivingStateDate(instance.metadata.last_tended_at)}</p>`
             : ""
         }
       </div>
 
       ${
-        instance.expiration_enabled && instance.expires_at
+        displaySettings.showExpiration && instance.expiration_enabled && instance.expires_at
           ? `
             <div class="altar-info-card-section">
               <p><strong>Expiration Reminder:</strong> ${formatLivingStateDate(instance.expires_at)}</p>
@@ -591,10 +591,10 @@ function renderLivingStateMarkup(instance, events = []) {
       }
 
       ${
-        instance.tending_enabled && instance.tending_due_at
+        displaySettings.showFutureTending && instance.tending_enabled && instance.tending_due_at
           ? `
             <div class="altar-info-card-section">
-              <p><strong>Next Tending Reminder:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
+              <p><strong>Future Tending:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
               <p><strong>Reminder Date:</strong> ${formatLivingStateDate(instance.tending_due_at)}</p>
             </div>
           `
@@ -602,7 +602,9 @@ function renderLivingStateMarkup(instance, events = []) {
       }
 
       ${
-        instance.remaining_amount !== null && instance.remaining_amount !== undefined
+        displaySettings.showRemaining &&
+        instance.remaining_amount !== null &&
+        instance.remaining_amount !== undefined
           ? `
             <div class="altar-info-card-section">
               <p><strong>Remaining:</strong> ${instance.remaining_amount} ${instance.amount_unit || ""}</p>
@@ -612,7 +614,9 @@ function renderLivingStateMarkup(instance, events = []) {
       }
 
       ${
-        instance.remaining_burn_seconds !== null && instance.remaining_burn_seconds !== undefined
+        displaySettings.showRemaining &&
+        instance.remaining_burn_seconds !== null &&
+        instance.remaining_burn_seconds !== undefined
           ? `
             <div class="altar-info-card-section">
               <p><strong>Burn Time Remaining:</strong> ${Math.round(instance.remaining_burn_seconds / 60)} minutes</p>
@@ -627,7 +631,11 @@ function renderLivingStateMarkup(instance, events = []) {
         </button>
       </div>
 
-      ${renderLivingStateRecentActivity(events)}
+      ${
+        displaySettings.showRecentActivity
+          ? renderLivingStateRecentActivity(events)
+          : ""
+      }
     </div>
   `;
 }
@@ -672,6 +680,7 @@ function hideLivingStatePanel() {
   if (!altarLivingStatePanel) return;
 
   const livingStateContent = altarLivingStatePanel.querySelector("[data-living-state-content]");
+
   if (livingStateContent) {
     livingStateContent.innerHTML = `<p>Select an object with a living state.</p>`;
   }
