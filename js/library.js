@@ -496,7 +496,7 @@ function importTraditionalLibrary() {
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
     Object.entries(collection).forEach(([key, data]) => {
       const entity = getOrCreateEntity({
-        name: key.String(key).replaceAll("_", " "),
+        name: String(key).replaceAll("_", " "),
         type
       });
 
