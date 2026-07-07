@@ -3739,7 +3739,7 @@ body.altar-living-state-minimized .altar-living-state-panel {
 .custom-cabinet-item-modal {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 30000;
   display: grid;
   place-items: center;
   padding: 1rem;
