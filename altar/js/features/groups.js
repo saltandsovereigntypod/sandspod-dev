@@ -285,6 +285,26 @@ function openGroupCreationChoiceModal() {
           <strong>Create Herb Mix</strong>
           <span>Save these ingredients as a loose blend.</span>
         </button>
+
+        <button type="button" data-group-choice="incense">
+          <strong>Create Incense</strong>
+          <span>Save these ingredients as an incense blend.</span>
+        </button>
+
+        <button type="button" data-group-choice="sachet">
+          <strong>Create Sachet</strong>
+          <span>Save these ingredients as a sachet.</span>
+        </button>
+
+        <button type="button" data-group-choice="poppet">
+          <strong>Create Poppet</strong>
+          <span>Save these ingredients as a poppet.</span>
+        </button>
+
+        <button type="button" data-group-choice="spray">
+          <strong>Create Spray</strong>
+          <span>Save these ingredients as a spray, mist, or wash.</span>
+        </button>
       </div>
     </div>
   `;
@@ -309,7 +329,7 @@ function handleGroupCreationChoice(choice) {
     return;
   }
 
-  if (["spell-jar", "oil-tincture", "herb-mix"].includes(choice)) {
+  if (["spell-jar", "oil-tincture", "herb-mix", "incense", "sachet", "poppet", "spray"].includes(choice)) {
     if (typeof openCreateApothecaryModal === "function") {
       openCreateApothecaryModal(choice);
     } else {

@@ -142,6 +142,7 @@ async function createOrUpdateApothecaryLibraryEntity(item) {
       Intention: item.intention || "",
       Ingredients: ingredients,
       Notes: item.notes || "",
+      ...renderApothecaryDetailsForLibrary(item.details || {}),
       GrimoireStatus: item.logToGrimoire ? "Linked to Living Library" : "",
       CreatedFrom: "Altar Apothecary"
     },
@@ -207,6 +208,130 @@ function createIngredientSnapshot(object) {
 
 function getApothecaryType(typeId) {
   return apothecaryTypes.find((type) => type.id === typeId) || apothecaryTypes[0];
+}
+
+function getApothecaryTypeSpecificFields(typeId = "", existingItem = null) {
+  const details = existingItem?.details || {};
+
+  const fieldSets = {
+    incense: `
+      <label>
+        Incense Form
+        <select name="detail_incense_form">
+          <option value="">Choose one</option>
+          <option value="Loose incense" ${details.incense_form === "Loose incense" ? "selected" : ""}>Loose incense</option>
+          <option value="Cone" ${details.incense_form === "Cone" ? "selected" : ""}>Cone</option>
+          <option value="Stick" ${details.incense_form === "Stick" ? "selected" : ""}>Stick</option>
+          <option value="Charcoal blend" ${details.incense_form === "Charcoal blend" ? "selected" : ""}>Charcoal blend</option>
+          <option value="Other" ${details.incense_form === "Other" ? "selected" : ""}>Other</option>
+        </select>
+      </label>
+
+      <label>
+        Burn / Use Notes
+        <input type="text" name="detail_use_notes" value="${details.use_notes || ""}" placeholder="For smoke cleansing, dreamwork, offerings..." />
+      </label>
+    `,
+
+    sachet: `
+      <label>
+        Sachet Purpose
+        <input type="text" name="detail_sachet_purpose" value="${details.sachet_purpose || ""}" placeholder="Dreamwork, protection, love, travel..." />
+      </label>
+
+      <label>
+        Where will it be kept?
+        <input type="text" name="detail_kept_location" value="${details.kept_location || ""}" placeholder="Under pillow, purse, altar, doorway..." />
+      </label>
+    `,
+
+    poppet: `
+      <label>
+        Poppet Focus
+        <select name="detail_poppet_focus">
+          <option value="">Choose one</option>
+          <option value="Self" ${details.poppet_focus === "Self" ? "selected" : ""}>Self</option>
+          <option value="Someone else" ${details.poppet_focus === "Someone else" ? "selected" : ""}>Someone else</option>
+          <option value="Situation" ${details.poppet_focus === "Situation" ? "selected" : ""}>Situation</option>
+          <option value="Symbolic" ${details.poppet_focus === "Symbolic" ? "selected" : ""}>Symbolic</option>
+        </select>
+      </label>
+
+      <label>
+        Representation Notes
+        <input type="text" name="detail_representation_notes" value="${details.representation_notes || ""}" placeholder="What does this poppet represent?" />
+      </label>
+    `,
+
+    spray: `
+      <label>
+        Spray Use
+        <select name="detail_spray_use">
+          <option value="">Choose one</option>
+          <option value="Room spray" ${details.spray_use === "Room spray" ? "selected" : ""}>Room spray</option>
+          <option value="Floor wash" ${details.spray_use === "Floor wash" ? "selected" : ""}>Floor wash</option>
+          <option value="Altar mist" ${details.spray_use === "Altar mist" ? "selected" : ""}>Altar mist</option>
+          <option value="Object spray" ${details.spray_use === "Object spray" ? "selected" : ""}>Object spray</option>
+          <option value="Other" ${details.spray_use === "Other" ? "selected" : ""}>Other</option>
+        </select>
+      </label>
+
+      <label>
+        Where / how will it be used?
+        <input type="text" name="detail_use_notes" value="${details.use_notes || ""}" placeholder="Doorways, bedroom, altar cloth, ritual room..." />
+      </label>
+    `
+  };
+
+  if (!fieldSets[typeId]) return "";
+
+  return `
+    <div class="apothecary-type-specific-fields" data-apothecary-type-specific-fields>
+      <p class="eyebrow">${getApothecaryType(typeId).label} Details</p>
+      ${fieldSets[typeId]}
+    </div>
+  `;
+}
+
+function collectApothecaryTypeSpecificDetails(formData) {
+  const detailMap = {
+    incense_form: "detail_incense_form",
+    sachet_purpose: "detail_sachet_purpose",
+    kept_location: "detail_kept_location",
+    poppet_focus: "detail_poppet_focus",
+    representation_notes: "detail_representation_notes",
+    spray_use: "detail_spray_use",
+    use_notes: "detail_use_notes"
+  };
+
+  return Object.entries(detailMap).reduce((details, [key, fieldName]) => {
+    const value = String(formData.get(fieldName) || "").trim();
+
+    if (value) {
+      details[key] = value;
+    }
+
+    return details;
+  }, {});
+}
+
+function renderApothecaryDetailsForLibrary(details = {}) {
+  const labels = {
+    incense_form: "Incense Form",
+    sachet_purpose: "Sachet Purpose",
+    kept_location: "Kept Location",
+    poppet_focus: "Poppet Focus",
+    representation_notes: "Representation Notes",
+    spray_use: "Spray Use",
+    use_notes: "Use Notes"
+  };
+
+  return Object.entries(details).reduce((output, [key, value]) => {
+    if (!value) return output;
+
+    output[labels[key] || key] = value;
+    return output;
+  }, {});
 }
 
 function renderApothecaryItems() {
@@ -332,6 +457,8 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
             required
           />
         </label>
+
+        ${getApothecaryTypeSpecificFields(selectedType, existingItem)}
 
         <label>
           Intention
@@ -475,6 +602,7 @@ function createGrimoireHandoffForApothecaryItem(item) {
     typeLabel: item.typeLabel,
     intention: item.intention || "",
     notes: item.notes || "",
+    details: item.details || {},
     ingredients: item.ingredients || [],
     createdAt: item.createdAt,
     updatedAt: item.updatedAt
@@ -544,6 +672,7 @@ async function saveCreatedApothecaryItem(form, modal) {
   const name = String(formData.get("name") || "").trim();
   const intention = String(formData.get("intention") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
+  const details = collectApothecaryTypeSpecificDetails(formData);
   const logToGrimoire = formData.get("log_to_grimoire") === "on";
   const tendingEnabled = formData.get("tending_enabled") === "on";
   const tendingIntervalDays = Number(formData.get("tending_interval_days") || 30);
@@ -580,6 +709,7 @@ async function saveCreatedApothecaryItem(form, modal) {
     imagePath,
     intention,
     notes,
+    details,
     logToGrimoire,
     grimoireStatus: existingItem?.grimoireStatus || "",
     grimoireEntryId: existingItem?.grimoireEntryId || "",
@@ -610,6 +740,7 @@ async function saveCreatedApothecaryItem(form, modal) {
       metadata: {
         intention: item.intention || "",
         notes: item.notes || "",
+        details: item.details || {},
         ingredients: item.ingredients || []
       },
       tending_enabled: item.livingState.tending_enabled,
