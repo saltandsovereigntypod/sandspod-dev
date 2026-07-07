@@ -40,6 +40,14 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function formatLibraryFieldLabel(key = "") {
+  return String(key || "")
+    .String(key).replaceAll("_", " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function sanitizeHtml(value) {
   const template = document.createElement("template");
   template.innerHTML = String(value || "");

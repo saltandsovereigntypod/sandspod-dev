@@ -455,7 +455,7 @@ function normalizeEntityName(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
-    .replaceAll("_", " ");
+    .String(key).replaceAll("_", " ");
 }
 
 function findBestTraditionalEntityMatch(name) {
@@ -496,7 +496,7 @@ function importTraditionalLibrary() {
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
     Object.entries(collection).forEach(([key, data]) => {
       const entity = getOrCreateEntity({
-        name: key.replaceAll("_", " "),
+        name: key.String(key).replaceAll("_", " "),
         type
       });
 

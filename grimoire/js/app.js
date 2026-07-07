@@ -763,7 +763,7 @@ async function renderLivingLibraryShelves() {
 
 function formatLibraryEntityName(name = "") {
   return String(name)
-    .replaceAll("_", " ")
+    .String(key).replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
@@ -814,7 +814,7 @@ function getLibraryEntityIntro(entity) {
 function normalizeLibraryImageName(value = "") {
   return String(value)
     .toLowerCase()
-    .replaceAll("_", " ")
+    .String(key).replaceAll("_", " ")
     .replaceAll("-", " ")
     .replace(/\s+/g, " ")
     .trim();
