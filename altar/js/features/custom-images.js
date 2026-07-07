@@ -20,7 +20,34 @@ function getCabinetImageOverrideKey(data = {}) {
   ].join("|");
 }
 
+function waitForSaltAuthReady() {
+  return new Promise((resolve) => {
+    if (typeof currentUser !== "undefined" && currentUser) {
+      resolve(currentUser);
+      return;
+    }
+
+    document.addEventListener(
+      "saltAuthReady",
+      (event) => {
+        resolve(event.detail?.user || null);
+      },
+      { once: true }
+    );
+  });
+}
+
 async function getCurrentAssetUser() {
+  if (typeof currentUser !== "undefined" && currentUser) {
+    return currentUser;
+  }
+
+  const readyUser = await waitForSaltAuthReady();
+
+  if (readyUser) {
+    return readyUser;
+  }
+
   const {
     data: { user }
   } = await db.auth.getUser();
