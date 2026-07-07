@@ -469,7 +469,60 @@ function formatLivingStateDue(value) {
   return `In ${diffDays} day${diffDays === 1 ? "" : "s"}`;
 }
 
-function renderLivingStateMarkup(instance) {
+function renderLivingStateEventIcon(eventType = "") {
+  const icons = {
+    created: "✦",
+    fed: "🌿",
+    tended: "🕯",
+    used: "✧",
+    moved: "↝",
+    lit: "🔥",
+    extinguished: "💨",
+    retired: "☾",
+    archived: "✶",
+    replaced: "↻"
+  };
+
+  return icons[eventType] || "✦";
+}
+
+function renderLivingStateHistory(events = []) {
+  if (!events.length) {
+    return `
+      <div class="altar-info-card-section">
+        <p><strong>Living History</strong></p>
+        <p>No history recorded yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="altar-info-card-section living-state-history">
+      <p><strong>Living History</strong></p>
+
+      ${events
+        .map((event) => `
+          <div class="living-state-event">
+            <p>
+              <span aria-hidden="true">${renderLivingStateEventIcon(event.event_type)}</span>
+              <strong>${event.event_label || event.event_type || "Event"}</strong>
+            </p>
+
+            <p>${formatLivingStateDate(event.occurred_at)}</p>
+
+            ${
+              event.event_notes
+                ? `<p>${event.event_notes}</p>`
+                : ""
+            }
+          </div>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
+function renderLivingStateMarkup(instance, events = []) {
   if (!instance) {
     return `<p>No living state has been created for this object yet.</p>`;
   }
@@ -489,8 +542,8 @@ function renderLivingStateMarkup(instance) {
         instance.expiration_enabled && instance.expires_at
           ? `
             <div class="altar-info-card-section">
-              <p><strong>Expiration:</strong> ${formatLivingStateDate(instance.expires_at)}</p>
-              <p><strong>Time Left:</strong> ${formatLivingStateDue(instance.expires_at)}</p>
+              <p><strong>Expiration Reminder:</strong> ${formatLivingStateDate(instance.expires_at)}</p>
+              <p><strong>Reminder Timing:</strong> ${formatLivingStateDue(instance.expires_at)}</p>
             </div>
           `
           : ""
@@ -500,8 +553,8 @@ function renderLivingStateMarkup(instance) {
         instance.tending_enabled && instance.tending_due_at
           ? `
             <div class="altar-info-card-section">
-              <p><strong>Needs Tending:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
-              <p><strong>Tending Date:</strong> ${formatLivingStateDate(instance.tending_due_at)}</p>
+              <p><strong>Next Tending Reminder:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
+              <p><strong>Reminder Date:</strong> ${formatLivingStateDate(instance.tending_due_at)}</p>
             </div>
           `
           : ""
@@ -526,6 +579,8 @@ function renderLivingStateMarkup(instance) {
           `
           : ""
       }
+
+      ${renderLivingStateHistory(events)}
     </div>
   `;
 }
@@ -556,9 +611,14 @@ async function showLivingStatePanel(object) {
       ? await getObjectInstance(instanceId)
       : null;
 
+  const events =
+    typeof getObjectInstanceEvents === "function"
+      ? await getObjectInstanceEvents(instanceId)
+      : [];
+
   if (selectedObject !== object) return;
 
-  livingStateContent.innerHTML = renderLivingStateMarkup(instance);
+  livingStateContent.innerHTML = renderLivingStateMarkup(instance, events);
 }
 
 function hideLivingStatePanel() {
