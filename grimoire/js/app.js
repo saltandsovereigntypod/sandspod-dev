@@ -813,13 +813,12 @@ function getLibraryEntityIntro(entity) {
   return `${formatLibraryEntityName(entity.name)} is traditionally associated with ${String(uses).toLowerCase()}.`;
 }
 
-function normalizeLibraryImageName(value = "") {
-  return String(value)
+function normalizeLibraryImageName(name = "") {
+  return String(name)
+    .trim()
     .toLowerCase()
-    .String(key).replaceAll("_", " ")
-    .replaceAll("-", " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replaceAll("_", "-")
+    .replace(/\s+/g, "-");
 }
 
 function getDefaultLibraryImage(entity) {
