@@ -546,7 +546,15 @@ async function saveCreatedApothecaryItem(form, modal) {
     });
 
     if (instance?.id) {
-      item.instanceId = instance.id;
+        item.instanceId = instance.id;
+    
+        await addObjectInstanceEvent(instance.id, "created", {
+            label: "Manifestation Created",
+            notes: `Created as a ${item.typeLabel || item.type}.`,
+            metadata: {
+                source: "apothecary"
+            }
+        });
     }
   }
 
