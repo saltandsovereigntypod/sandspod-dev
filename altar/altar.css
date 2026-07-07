@@ -3220,3 +3220,171 @@ body.altar-living-state-minimized .altar-living-state-panel {
     max-height: 16rem;
   }
 }
+
+/* =========================================================
+   Living State Tend Modal
+   ========================================================= */
+
+.living-state-tend-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.74);
+  backdrop-filter: blur(8px);
+}
+
+.living-state-tend-card {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: min(780px, 90vh);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.living-state-tend-card h2 {
+  max-width: none;
+  margin-bottom: 0.5rem;
+  color: var(--gold);
+}
+
+.living-state-tend-intro {
+  max-width: 62ch;
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
+.living-state-tend-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.24);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.living-state-tend-section {
+  margin: 1rem 0;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.045);
+}
+
+.living-state-tend-section legend {
+  padding: 0 0.45rem;
+  color: var(--gold);
+  font-family: var(--serif);
+  font-size: 1.05rem;
+}
+
+.living-state-choice-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.5rem;
+  max-height: 13rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.living-state-choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.5rem;
+  align-items: center;
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 0.85rem;
+  padding: 0.55rem 0.65rem;
+  background: rgba(244, 236, 216, 0.05);
+  color: var(--cream);
+  font-size: 0.86rem;
+}
+
+.living-state-choice small {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: capitalize;
+}
+
+.living-state-method-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.45rem;
+}
+
+.living-state-method-list label,
+.living-state-tend-card label {
+  color: var(--cream);
+}
+
+.living-state-tend-card textarea,
+.living-state-tend-card input[type="number"] {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.07);
+  font: inherit;
+}
+
+.living-state-tend-card textarea {
+  resize: vertical;
+}
+
+.living-state-choice-list,
+.living-state-tend-card {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(198, 166, 100, 0.65) transparent;
+}
+
+.living-state-choice-list::-webkit-scrollbar,
+.living-state-tend-card::-webkit-scrollbar {
+  width: 8px;
+}
+
+.living-state-choice-list::-webkit-scrollbar-track,
+.living-state-tend-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.living-state-choice-list::-webkit-scrollbar-thumb,
+.living-state-tend-card::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    rgba(212, 183, 122, 0.85),
+    rgba(145, 112, 48, 0.85)
+  );
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+@media (max-width: 700px) {
+  .living-state-tend-card {
+    max-height: 88vh;
+    padding: 1.1rem;
+  }
+
+  .living-state-choice-list,
+  .living-state-method-list {
+    grid-template-columns: 1fr;
+  }
+}

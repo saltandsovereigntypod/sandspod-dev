@@ -362,6 +362,37 @@ altarActionBar.addEventListener("click", (event) => {
   }
 });
 
+/* =========================================================
+   LIVING STATE ACTIONS
+   ========================================================= */
+
+document.addEventListener("click", (event) => {
+  const tendButton = event.target.closest("[data-living-state-tend]");
+  const closeTendButton = event.target.closest("[data-living-state-tend-close]");
+  const tendModal = event.target.closest("[data-living-state-tend-modal]");
+
+  if (tendButton) {
+    event.preventDefault();
+    openLivingStateTendModal();
+  }
+
+  if (closeTendButton) {
+    event.preventDefault();
+    closeLivingStateTendModal();
+  }
+
+  if (tendModal && event.target === tendModal) {
+    closeLivingStateTendModal();
+  }
+});
+
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest("[data-living-state-tend-form]");
+  if (!form) return;
+
+  event.preventDefault();
+  await submitLivingStateTendForm(form);
+});
 
 /* =========================================================
    GLOBAL EVENTS
@@ -375,7 +406,7 @@ document.addEventListener("pointerdown", (event) => {
   const clickedActionBar = event.target.closest(".altar-action-bar");
   const clickedInfoCard = event.target.closest(".altar-info-card");
   const clickedCompanionPanel = event.target.closest(".altar-companion-panel");
-  const clickedModal = event.target.closest(".altar-cabinet-overlay, .saved-altars-modal, .altar-save-modal");
+  const clickedModal = event.target.closest(".altar-cabinet-overlay, .saved-altars-modal, .altar-save-modal, .living-state-tend-modal");
 
   if (!clickedObject && !clickedToolbar && !clickedActionBar && !clickedInfoCard && !clickedCompanionPanel && !clickedModal) {
     deselectObject();
@@ -454,6 +485,10 @@ document.addEventListener("keydown", (event) => {
     closeSavedAltarsManager();
     closeAltarCabinetOverlay();
     closeAltarApothecaryOverlay();
+
+    if (typeof closeLivingStateTendModal === "function") {
+      closeLivingStateTendModal();
+    }
   }
 });
 
@@ -569,7 +604,7 @@ document.addEventListener(
     const clickedObject = event.target.closest(".altar-object");
     const clickedToolbar = event.target.closest(".altar-toolbar");
     const clickedCompanion = event.target.closest(".altar-companion-panel");
-    const clickedCabinet = event.target.closest(".altar-cabinet-overlay");
+    const clickedCabinet = event.target.closest(".altar-cabinet-overlay, .living-state-tend-modal");
 
     if (clickedObject || clickedToolbar || clickedCompanion || clickedCabinet) return;
 

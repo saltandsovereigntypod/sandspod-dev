@@ -536,6 +536,11 @@ function renderLivingStateMarkup(instance, events = []) {
         <p><strong>Status:</strong> ${instance.status || "active"}</p>
         ${instance.started_at ? `<p><strong>Created:</strong> ${formatLivingStateDate(instance.started_at)}</p>` : ""}
         ${instance.source ? `<p><strong>Source:</strong> ${instance.source}</p>` : ""}
+        ${
+          instance.metadata?.last_tended_at
+            ? `<p><strong>Last Tended:</strong> ${formatLivingStateDate(instance.metadata.last_tended_at)}</p>`
+            : ""
+        }
       </div>
 
       ${
@@ -579,6 +584,12 @@ function renderLivingStateMarkup(instance, events = []) {
           `
           : ""
       }
+
+      <div class="altar-info-card-section altar-info-card-actions">
+        <button type="button" data-living-state-tend>
+          Tend
+        </button>
+      </div>
 
       ${renderLivingStateHistory(events)}
     </div>

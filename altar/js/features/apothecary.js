@@ -328,10 +328,49 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
           <textarea name="notes" rows="4" placeholder="What is this working for?">${existingItem?.notes || ""}</textarea>
         </label>
 
-        <label class="my-sanctuary-check">
-          <input type="checkbox" name="log_to_grimoire" ${existingItem?.logToGrimoire ? "checked" : ""} />
-          Log this to my Book of Shadows
-        </label>
+        <div class="apothecary-living-state-options">
+          <p class="eyebrow">Living State</p>
+
+          <label class="my-sanctuary-check">
+            <input
+              type="checkbox"
+              name="tending_enabled"
+              ${existingItem?.livingState?.tending_enabled !== false ? "checked" : ""}
+            />
+            Remind me to tend or feed this manifestation
+          </label>
+
+          <label>
+            Tending reminder interval
+            <input
+              type="number"
+              name="tending_interval_days"
+              min="1"
+              value="${existingItem?.livingState?.tending_interval_days || 30}"
+              placeholder="30"
+            />
+          </label>
+
+          <label class="my-sanctuary-check">
+            <input
+              type="checkbox"
+              name="expiration_enabled"
+              ${existingItem?.livingState?.expiration_enabled ? "checked" : ""}
+            />
+            Add an expiration or replacement reminder
+          </label>
+
+          <label>
+            Expiration reminder after
+            <input
+              type="number"
+              name="expiration_days"
+              min="1"
+              value="${existingItem?.livingState?.expiration_days || ""}"
+              placeholder="Optional, ex: 90"
+            />
+          </label>
+        </div>
 
         <div class="apothecary-image-choice">
           <p class="eyebrow">Image</p>
@@ -486,6 +525,10 @@ async function saveCreatedApothecaryItem(form, modal) {
   const intention = String(formData.get("intention") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
   const logToGrimoire = formData.get("log_to_grimoire") === "on";
+  const tendingEnabled = formData.get("tending_enabled") === "on";
+  const tendingIntervalDays = Number(formData.get("tending_interval_days") || 30);
+  const expirationEnabled = formData.get("expiration_enabled") === "on";
+  const expirationDays = Number(formData.get("expiration_days") || 0);
   const imageChoice = formData.get("image_choice");
   const file = formData.get("custom_image");
   const existingImage = String(formData.get("existing_image") || "");
@@ -522,6 +565,12 @@ async function saveCreatedApothecaryItem(form, modal) {
     grimoireEntryId: existingItem?.grimoireEntryId || "",
     entityId: existingItem?.entityId || "",
     instanceId: existingItem?.instanceId || "",
+    livingState: {
+      tending_enabled: tendingEnabled,
+      tending_interval_days: tendingEnabled ? tendingIntervalDays : null,
+      expiration_enabled: expirationEnabled,
+      expiration_days: expirationEnabled ? expirationDays : null
+    },
     ingredients,
     createdAt: existingItem?.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -542,7 +591,12 @@ async function saveCreatedApothecaryItem(form, modal) {
         intention: item.intention || "",
         notes: item.notes || "",
         ingredients: item.ingredients || []
-      }
+      },
+      tending_enabled: item.livingState.tending_enabled,
+      tending_interval_days: item.livingState.tending_interval_days,
+
+      expiration_enabled: item.livingState.expiration_enabled,
+      expiration_days: item.livingState.expiration_days,
     });
 
     if (instance?.id) {

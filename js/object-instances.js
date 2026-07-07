@@ -111,14 +111,27 @@ async function createObjectInstance(instance = {}) {
     status: instance.status || "active",
 
     started_at: instance.started_at || new Date().toISOString(),
-    expires_at: instance.expires_at ?? lifecycle.expires_at,
+
     expiration_enabled:
       instance.expiration_enabled ?? lifecycle.expiration_enabled,
 
-    tending_due_at: instance.tending_due_at ?? lifecycle.tending_due_at,
-    tending_enabled: instance.tending_enabled ?? lifecycle.tending_enabled,
+    expires_at:
+      instance.expiration_enabled === false
+        ? null
+        : instance.expires_at ?? lifecycle.expires_at,
+
+    tending_enabled:
+      instance.tending_enabled ?? lifecycle.tending_enabled,
+
     tending_interval_days:
-      instance.tending_interval_days ?? lifecycle.tending_interval_days,
+      instance.tending_enabled === false
+        ? null
+        : instance.tending_interval_days ?? lifecycle.tending_interval_days,
+
+    tending_due_at:
+      instance.tending_enabled === false
+        ? null
+        : instance.tending_due_at ?? lifecycle.tending_due_at,
 
     remaining_amount: instance.remaining_amount ?? null,
     amount_unit: instance.amount_unit || "",
