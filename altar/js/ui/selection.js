@@ -207,7 +207,7 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
         ${entries
           .map(([key, value]) => `
             <p>
-              <strong>${String(key).String(key).replaceAll("_", " ")}:</strong>
+              <strong>${formatLibraryFieldLabel(key)}:</strong>
               ${renderCompanionFieldValue(value)}
             </p>
           `)
