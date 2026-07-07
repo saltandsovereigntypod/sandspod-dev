@@ -260,42 +260,6 @@ if (altarCabinet) {
 
       return;
     }
-
-    const addCustomCabinetItemButton = event.target.closest("[data-add-custom-cabinet-item]");
-    const closeCustomCabinetItemButton = event.target.closest("[data-close-custom-cabinet-item]");
-    const customCabinetItemForm = event.target.closest("[data-custom-cabinet-item-form]");
-    const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
-
-    if (addCustomCabinetItemButton) {
-      event.preventDefault();
-
-      if (typeof openCustomCabinetItemModal === "function") {
-        openCustomCabinetItemModal();
-      }
-
-      return;
-    }
-
-    if (closeCustomCabinetItemButton) {
-      event.preventDefault();
-
-      if (typeof closeCustomCabinetItemModal === "function") {
-        closeCustomCabinetItemModal();
-      }
-
-      return;
-    }
-
-    if (deleteCustomCabinetItemButton) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (typeof deleteCustomCabinetItem === "function") {
-        deleteCustomCabinetItem(deleteCustomCabinetItemButton.dataset.deleteCustomCabinetItem);
-      }
-
-      return;
-    }
     
     const backgroundButton = event.target.closest("[data-background]");
 
@@ -330,6 +294,9 @@ document.addEventListener("click", (event) => {
   const closeCabinetButton = event.target.closest("[data-close-cabinet-overlay]");
   const openApothecaryButton = event.target.closest("[data-open-apothecary-overlay]");
   const closeApothecaryButton = event.target.closest("[data-close-apothecary-overlay]");
+  const addCustomCabinetItemButton = event.target.closest("[data-add-custom-cabinet-item]");
+  const closeCustomCabinetItemButton = event.target.closest("[data-close-custom-cabinet-item]");
+  const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
 
   if (openCabinetButton) {
     openAltarCabinetOverlay();
@@ -345,6 +312,37 @@ document.addEventListener("click", (event) => {
 
   if (closeApothecaryButton) {
     closeAltarApothecaryOverlay();
+  }
+
+  if (addCustomCabinetItemButton) {
+  event.preventDefault();
+
+    if (typeof openCustomCabinetItemModal === "function") {
+      openCustomCabinetItemModal();
+    }
+
+    return;
+  }
+
+  if (closeCustomCabinetItemButton) {
+    event.preventDefault();
+
+    if (typeof closeCustomCabinetItemModal === "function") {
+      closeCustomCabinetItemModal();
+    }
+
+    return;
+  }
+
+  if (deleteCustomCabinetItemButton) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (typeof deleteCustomCabinetItem === "function") {
+      deleteCustomCabinetItem(deleteCustomCabinetItemButton.dataset.deleteCustomCabinetItem);
+    }
+
+    return;
   }
 });
 
