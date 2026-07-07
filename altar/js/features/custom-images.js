@@ -61,19 +61,40 @@ function removeCustomCabinetImage(data = {}) {
   saveCustomCabinetImages(images);
 }
 
-function readCustomImageFile(file) {
-  return new Promise((resolve, reject) => {
-    if (!file) {
-      resolve("");
-      return;
-    }
+async function uploadUserAsset(file, folder = "uploads") {
+  if (!file) return "";
 
-    const reader = new FileReader();
+  const {
+    data: { user }
+  } = await db.auth.getUser();
 
-    reader.onload = () => resolve(reader.result || "");
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  if (!user) {
+    showAltarToast("Please sign in to upload images");
+    return "";
+  }
+
+  const extension = file.name.split(".").pop() || "png";
+  const fileName = `${crypto.randomUUID ? crypto.randomUUID() : Date.now()}.${extension}`;
+  const filePath = `${user.id}/${folder}/${fileName}`;
+
+  const { error } = await db.storage
+    .from("user-assets")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false
+    });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Image upload failed");
+    return "";
+  }
+
+  const { data } = db.storage
+    .from("user-assets")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl || "";
 }
 
 async function promptCustomCabinetImage(button) {
@@ -85,7 +106,7 @@ async function promptCustomCabinetImage(button) {
     const file = fileInput.files?.[0];
     if (!file) return;
 
-    const imageDataUrl = await readCustomImageFile(file);
+    const imageDataUrl = await uploadUserAsset(file, "cabinet");
 
     setCustomCabinetImage(button.dataset, imageDataUrl);
 
@@ -114,7 +135,7 @@ async function promptCustomAltarBackground() {
     const file = fileInput.files?.[0];
     if (!file) return;
 
-    const imageDataUrl = await readCustomImageFile(file);
+    const imageDataUrl = await uploadUserAsset(file, "backgrounds");
     const backgrounds = getCustomAltarBackgrounds();
 
     backgrounds.unshift({

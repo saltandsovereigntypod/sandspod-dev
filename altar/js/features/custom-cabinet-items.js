@@ -176,7 +176,7 @@ async function saveCustomCabinetItem(form) {
     return;
   }
 
-  const image = await readCustomImageFile(file);
+  const image = await uploadUserAsset(file, "custom-cabinet-items");
   const itemType = getCustomCabinetTypeForCategory(category);
 
   let entityId = selectedEntityId;
