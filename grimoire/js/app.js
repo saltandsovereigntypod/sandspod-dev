@@ -763,8 +763,10 @@ async function renderLivingLibraryShelves() {
 
 function formatLibraryEntityName(name = "") {
   return String(name)
-    .String(key).replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .replaceAll("_", " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function formatLibraryFieldName(name = "") {
