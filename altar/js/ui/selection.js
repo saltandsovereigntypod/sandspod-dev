@@ -3,6 +3,7 @@
    ========================================================= */
 
 let altarCompanionMinimized = false;
+let altarLivingStateMinimized = false;
 
 function getObjectIcon(object) {
   const type = object.dataset.type;
@@ -439,6 +440,139 @@ function hideAltarCompanionPanel() {
   companionContent.innerHTML = `<p>Select an object to see its details.</p>`;
 }
 
+function formatLivingStateDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+function formatLivingStateDue(value) {
+  if (!value) return "";
+
+  const dueDate = new Date(value);
+  const now = new Date();
+
+  if (Number.isNaN(dueDate.getTime())) return "";
+
+  const diffMs = dueDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return `${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? "" : "s"} overdue`;
+  if (diffDays === 0) return "Due today";
+  return `In ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+}
+
+function renderLivingStateMarkup(instance) {
+  if (!instance) {
+    return `<p>No living state has been created for this object yet.</p>`;
+  }
+
+  return `
+    <div class="altar-info-card-inner is-panel-view">
+      <h3>${instance.name || "Current Manifestation"}</h3>
+      <p class="altar-info-card-type">${instance.subtype || instance.object_type || "Living State"}</p>
+
+      <div class="altar-info-card-section">
+        <p><strong>Status:</strong> ${instance.status || "active"}</p>
+        ${instance.started_at ? `<p><strong>Created:</strong> ${formatLivingStateDate(instance.started_at)}</p>` : ""}
+        ${instance.source ? `<p><strong>Source:</strong> ${instance.source}</p>` : ""}
+      </div>
+
+      ${
+        instance.expiration_enabled && instance.expires_at
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Expiration:</strong> ${formatLivingStateDate(instance.expires_at)}</p>
+              <p><strong>Time Left:</strong> ${formatLivingStateDue(instance.expires_at)}</p>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        instance.tending_enabled && instance.tending_due_at
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Needs Tending:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
+              <p><strong>Tending Date:</strong> ${formatLivingStateDate(instance.tending_due_at)}</p>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        instance.remaining_amount !== null && instance.remaining_amount !== undefined
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Remaining:</strong> ${instance.remaining_amount} ${instance.amount_unit || ""}</p>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        instance.remaining_burn_seconds !== null && instance.remaining_burn_seconds !== undefined
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Burn Time Remaining:</strong> ${Math.round(instance.remaining_burn_seconds / 60)} minutes</p>
+            </div>
+          `
+          : ""
+      }
+    </div>
+  `;
+}
+
+async function showLivingStatePanel(object) {
+  if (!altarLivingStatePanel || !object) return;
+
+  const livingStateContent = altarLivingStatePanel.querySelector("[data-living-state-content]");
+  if (!livingStateContent) return;
+
+  const instanceId = object.dataset.instanceId || "";
+
+  if (!instanceId) {
+    altarLivingStatePanel.classList.remove("is-visible");
+    altarLivingStatePanel.classList.add("is-minimized");
+    return;
+  }
+
+  livingStateContent.innerHTML = `<p>Loading living state...</p>`;
+
+  if (!altarLivingStateMinimized) {
+    altarLivingStatePanel.classList.add("is-visible");
+    altarLivingStatePanel.classList.remove("is-minimized");
+  }
+
+  const instance =
+    typeof getObjectInstance === "function"
+      ? await getObjectInstance(instanceId)
+      : null;
+
+  if (selectedObject !== object) return;
+
+  livingStateContent.innerHTML = renderLivingStateMarkup(instance);
+}
+
+function hideLivingStatePanel() {
+  if (!altarLivingStatePanel) return;
+
+  const livingStateContent = altarLivingStatePanel.querySelector("[data-living-state-content]");
+  if (livingStateContent) {
+    livingStateContent.innerHTML = `<p>Select an object with a living state.</p>`;
+  }
+
+  altarLivingStatePanel.classList.remove("is-visible");
+  altarLivingStatePanel.classList.add("is-minimized");
+}
+
 function showAltarInfoCard(object) {
   if (!altarInfoCard || !object) return;
 
@@ -448,6 +582,7 @@ function showAltarInfoCard(object) {
   altarInfoCard.classList.add("is-visible");
 
   showAltarCompanionPanel(object);
+  showLivingStatePanel(object);
 }
 
 function hideAltarInfoCard() {
@@ -462,6 +597,7 @@ function hideAltarInfoCard() {
   }, 180);
 
   hideAltarCompanionPanel();
+  hideLivingStatePanel();
 }
 
 function updateToolbarNotes(object) {
@@ -524,31 +660,53 @@ function deselectObject() {
 }
 
 document.addEventListener("click", (event) => {
-  const toggleButton = event.target.closest("[data-companion-toggle], [data-companion-minimize]");
+  const companionToggleButton = event.target.closest("[data-companion-toggle], [data-companion-minimize]");
+  const livingStateToggleButton = event.target.closest("[data-living-state-minimize]");
 
-  if (!toggleButton || !altarCompanionPanel) return;
+  if (!companionToggleButton && !livingStateToggleButton) return;
 
-  altarCompanionMinimized = !altarCompanionMinimized;
+  if (companionToggleButton && altarCompanionPanel) {
+    altarCompanionMinimized = !altarCompanionMinimized;
 
-  altarCompanionPanel.classList.toggle("is-minimized", altarCompanionMinimized);
+    altarCompanionPanel.classList.toggle("is-minimized", altarCompanionMinimized);
+    document.body.classList.toggle("altar-companion-minimized", altarCompanionMinimized);
 
-  document.body.classList.toggle("altar-companion-minimized", altarCompanionMinimized);
+    if (altarLivingStatePanel) {
+      altarLivingStateMinimized = altarCompanionMinimized;
+      altarLivingStatePanel.classList.toggle("is-minimized", altarLivingStateMinimized);
+      document.body.classList.toggle("altar-living-state-minimized", altarLivingStateMinimized);
+    }
 
-  document.querySelectorAll("[data-companion-toggle], [data-companion-minimize]").forEach((button) => {
-    button.textContent = altarCompanionMinimized ? "☰" : "−";
-    button.setAttribute(
-      "aria-label",
-      altarCompanionMinimized ? "Open companion panel" : "Minimize companion panel"
-    );
-  });
+    document.querySelectorAll("[data-companion-toggle], [data-companion-minimize]").forEach((button) => {
+      button.textContent = altarCompanionMinimized ? "☰" : "−";
+      button.setAttribute(
+        "aria-label",
+        altarCompanionMinimized ? "Open panels" : "Minimize panels"
+      );
+    });
+
+    if (selectedObject && !altarCompanionMinimized) {
+      showAltarCompanionPanel(selectedObject);
+      showLivingStatePanel(selectedObject);
+    }
+
+    showAltarToast(altarCompanionMinimized ? "Panels minimized" : "Panels opened");
+  }
+
+  if (livingStateToggleButton && altarLivingStatePanel) {
+    altarLivingStateMinimized = !altarLivingStateMinimized;
+
+    altarLivingStatePanel.classList.toggle("is-minimized", altarLivingStateMinimized);
+    document.body.classList.toggle("altar-living-state-minimized", altarLivingStateMinimized);
+
+    showAltarToast(altarLivingStateMinimized ? "Living State minimized" : "Living State opened");
+  }
 
   requestAnimationFrame(() => {
     repositionAllObjectsFromPercent();
     resizeLightingCanvas();
     renderLighting();
   });
-
-  showAltarToast(altarCompanionMinimized ? "Companion minimized" : "Companion opened");
 });
 
 function openLibrarySectionEditor(entityId, section) {
