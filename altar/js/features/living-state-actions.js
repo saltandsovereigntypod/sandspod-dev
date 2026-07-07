@@ -1,6 +1,6 @@
 /* =========================================================
    LIVING STATE ACTIONS
-   Tend, record, and update object manifestations
+   Tending flows for object manifestations
    ========================================================= */
 
 function escapeLivingStateHtml(value = "") {
@@ -18,6 +18,23 @@ function addDaysFromNowForLivingState(days = 30) {
   return date.toISOString();
 }
 
+const livingStateTendMethods = [
+  { id: "oil", label: "Oil", hint: "Anointing, dressing, sealing", types: ["oil"] },
+  { id: "herbs", label: "Herbs", hint: "Loose herbs, sprigs, powders", types: ["herb"] },
+  { id: "crystals", label: "Crystals", hint: "Stones, chips, clusters", types: ["crystal"] },
+  { id: "smoke", label: "Smoke", hint: "Incense, smoke, scent", types: ["incense", "herb"] },
+  { id: "offering", label: "Offering", hint: "Food, drink, flowers, devotional gifts", types: ["offering"] },
+  { id: "moon-charge", label: "Moon Charge", hint: "Lunar exposure or ritual", types: [] },
+  { id: "sun-charge", label: "Sun Charge", hint: "Solar exposure or ritual", types: [] },
+  { id: "spoken-petition", label: "Prayer / Breath", hint: "Words, petition, song, breath", types: [] },
+  { id: "repeat-ritual", label: "Repeat Ritual", hint: "Rework or repeat the original rite", types: [] },
+  { id: "custom", label: "Custom", hint: "Anything else you want to record", types: [] }
+];
+
+function getLivingStateMethodById(methodId) {
+  return livingStateTendMethods.find((method) => method.id === methodId);
+}
+
 function getLivingStateCabinetChoices() {
   if (typeof cabinetItems === "undefined") return [];
 
@@ -29,7 +46,14 @@ function getLivingStateCabinetChoices() {
         label: `${item.name} ${form.label || ""}`.trim(),
         type: form.type || item.category || "",
         form: form.form || "",
-        entityName: form.herb || form.crystal || form.tool || form.vessel || form.deity || form.color || item.name
+        entityName:
+          form.herb ||
+          form.crystal ||
+          form.tool ||
+          form.vessel ||
+          form.deity ||
+          form.color ||
+          item.name
       }));
     });
 }
@@ -41,29 +65,164 @@ function getLivingStateApothecaryChoices() {
     source: "apothecary",
     label: item.name,
     type: item.typeLabel || item.type || "Apothecary Item",
+    form: item.type || "",
     itemId: item.id,
     entityId: item.entityId || "",
     instanceId: item.instanceId || ""
   }));
 }
 
-function renderLivingStateChoice(choice, index) {
+function getAllLivingStateTendChoices() {
+  return [
+    ...getLivingStateCabinetChoices(),
+    ...getLivingStateApothecaryChoices()
+  ];
+}
+
+function getSelectedLivingStateMethods(modal) {
+  return Array.from(modal.querySelectorAll("[data-tend-method].is-selected"))
+    .map((button) => button.dataset.tendMethod)
+    .filter(Boolean);
+}
+
+function getSelectedLivingStateChoices(modal) {
+  return Array.from(modal.querySelectorAll("[data-tend-choice].is-selected")).map((button) => ({
+    source: button.dataset.tendSource || "",
+    label: button.dataset.tendLabel || "",
+    type: button.dataset.tendType || "",
+    form: button.dataset.tendForm || "",
+    entityId: button.dataset.tendEntityId || "",
+    instanceId: button.dataset.tendInstanceId || "",
+    itemId: button.dataset.tendItemId || ""
+  }));
+}
+
+function livingStateChoiceMatchesMethods(choice, selectedMethods = []) {
+  if (!selectedMethods.length) return true;
+
+  return selectedMethods.some((methodId) => {
+    const method = getLivingStateMethodById(methodId);
+    if (!method) return false;
+
+    if (!method.types.length) return false;
+
+    return method.types.includes(choice.type) || method.types.includes(choice.form);
+  });
+}
+
+function renderLivingStateMethodCards(selectedMethods = []) {
+  return livingStateTendMethods
+    .map((method) => {
+      const selected = selectedMethods.includes(method.id);
+
+      return `
+        <button
+          type="button"
+          class="living-state-method-card ${selected ? "is-selected" : ""}"
+          data-tend-method="${escapeLivingStateHtml(method.id)}"
+          aria-pressed="${selected ? "true" : "false"}">
+          <span>${escapeLivingStateHtml(method.label)}</span>
+          <small>${escapeLivingStateHtml(method.hint)}</small>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function renderLivingStateChoiceCards(choices = [], selectedChoices = []) {
+  if (!choices.length) {
+    return `<p class="altar-info-empty">No matching supports found. You can still record this tending with notes.</p>`;
+  }
+
+  return choices
+    .map((choice) => {
+      const selected = selectedChoices.some((selectedChoice) => {
+        return (
+          selectedChoice.source === choice.source &&
+          selectedChoice.label === choice.label &&
+          selectedChoice.type === choice.type
+        );
+      });
+
+      return `
+        <button
+          type="button"
+          class="living-state-choice-card ${selected ? "is-selected" : ""}"
+          data-tend-choice
+          data-tend-source="${escapeLivingStateHtml(choice.source)}"
+          data-tend-label="${escapeLivingStateHtml(choice.label)}"
+          data-tend-type="${escapeLivingStateHtml(choice.type)}"
+          data-tend-form="${escapeLivingStateHtml(choice.form || "")}"
+          data-tend-entity-id="${escapeLivingStateHtml(choice.entityId || "")}"
+          data-tend-instance-id="${escapeLivingStateHtml(choice.instanceId || "")}"
+          data-tend-item-id="${escapeLivingStateHtml(choice.itemId || "")}"
+          aria-pressed="${selected ? "true" : "false"}">
+          <span>${escapeLivingStateHtml(choice.label)}</span>
+          <small>${escapeLivingStateHtml(choice.source)}${choice.type ? ` · ${escapeLivingStateHtml(choice.type)}` : ""}</small>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function renderLivingStateSelectedPreview(selectedMethods = [], selectedChoices = []) {
+  const methodLabels = selectedMethods
+    .map((methodId) => getLivingStateMethodById(methodId)?.label)
+    .filter(Boolean);
+
+  const choiceLabels = selectedChoices.map((choice) => choice.label).filter(Boolean);
+
+  if (!methodLabels.length && !choiceLabels.length) {
+    return `<p>Choose one or more tending methods, then add any supports you used.</p>`;
+  }
+
   return `
-    <label class="living-state-choice">
-      <input
-        type="checkbox"
-        data-tend-choice
-        data-tend-source="${escapeLivingStateHtml(choice.source)}"
-        data-tend-label="${escapeLivingStateHtml(choice.label)}"
-        data-tend-type="${escapeLivingStateHtml(choice.type)}"
-        data-tend-entity-id="${escapeLivingStateHtml(choice.entityId || "")}"
-        data-tend-instance-id="${escapeLivingStateHtml(choice.instanceId || "")}"
-        data-tend-item-id="${escapeLivingStateHtml(choice.itemId || "")}"
-      />
-      <span>${escapeLivingStateHtml(choice.label)}</span>
-      <small>${escapeLivingStateHtml(choice.source)}${choice.type ? ` · ${escapeLivingStateHtml(choice.type)}` : ""}</small>
-    </label>
+    ${methodLabels.length ? `<p><strong>Methods:</strong> ${methodLabels.join(", ")}</p>` : ""}
+    ${choiceLabels.length ? `<p><strong>Supports:</strong> ${choiceLabels.join(", ")}</p>` : ""}
   `;
+}
+
+function updateLivingStateTendModal() {
+  const modal = document.querySelector("[data-living-state-tend-modal]");
+  if (!modal) return;
+
+  const selectedMethods = getSelectedLivingStateMethods(modal);
+  const selectedChoices = getSelectedLivingStateChoices(modal);
+  const searchTerm = String(modal.querySelector("[data-tend-search]")?.value || "").toLowerCase().trim();
+
+  let choices = getAllLivingStateTendChoices();
+
+  choices = choices.filter((choice) => livingStateChoiceMatchesMethods(choice, selectedMethods));
+
+  if (searchTerm) {
+    choices = choices.filter((choice) => {
+      return [
+        choice.label,
+        choice.source,
+        choice.type,
+        choice.form
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm);
+    });
+  }
+
+  const methodsWrap = modal.querySelector("[data-tend-methods]");
+  const choicesWrap = modal.querySelector("[data-tend-choices]");
+  const previewWrap = modal.querySelector("[data-tend-preview]");
+
+  if (methodsWrap) {
+    methodsWrap.innerHTML = renderLivingStateMethodCards(selectedMethods);
+  }
+
+  if (choicesWrap) {
+    choicesWrap.innerHTML = renderLivingStateChoiceCards(choices, selectedChoices);
+  }
+
+  if (previewWrap) {
+    previewWrap.innerHTML = renderLivingStateSelectedPreview(selectedMethods, selectedChoices);
+  }
 }
 
 function openLivingStateTendModal() {
@@ -73,9 +232,6 @@ function openLivingStateTendModal() {
   }
 
   closeLivingStateTendModal();
-
-  const cabinetChoices = getLivingStateCabinetChoices();
-  const apothecaryChoices = getLivingStateApothecaryChoices();
 
   const modal = document.createElement("div");
   modal.className = "living-state-tend-modal";
@@ -91,52 +247,40 @@ function openLivingStateTendModal() {
       <h2>Tend Manifestation</h2>
 
       <p class="living-state-tend-intro">
-        Choose what tending means for this manifestation. These are records of your practice, not judgments about effectiveness.
+        Choose the way you tended this manifestation. This records your practice without judging its meaning or effectiveness.
       </p>
 
       <form data-living-state-tend-form>
         <input type="hidden" name="instance_id" value="${escapeLivingStateHtml(selectedObject.dataset.instanceId)}" />
 
-        <fieldset class="living-state-tend-section">
-          <legend>Cabinet Items</legend>
-
-          <div class="living-state-choice-list">
-            ${
-              cabinetChoices.length
-                ? cabinetChoices.map(renderLivingStateChoice).join("")
-                : `<p class="altar-info-empty">No cabinet items found.</p>`
-            }
+        <section class="living-state-tend-section">
+          <p class="living-state-step-label">1. How did you tend it?</p>
+          <div class="living-state-method-grid" data-tend-methods>
+            ${renderLivingStateMethodCards([])}
           </div>
-        </fieldset>
+        </section>
 
-        <fieldset class="living-state-tend-section">
-          <legend>Apothecary Items</legend>
+        <section class="living-state-tend-section">
+          <p class="living-state-step-label">2. What did you use?</p>
 
-          <div class="living-state-choice-list">
-            ${
-              apothecaryChoices.length
-                ? apothecaryChoices.map(renderLivingStateChoice).join("")
-                : `<p class="altar-info-empty">No apothecary items saved yet.</p>`
-            }
+          <input
+            type="search"
+            class="living-state-search"
+            data-tend-search
+            placeholder="Search herbs, oils, crystals, apothecary items..."
+          />
+
+          <div class="living-state-choice-grid" data-tend-choices>
+            ${renderLivingStateChoiceCards(getAllLivingStateTendChoices(), [])}
           </div>
-        </fieldset>
+        </section>
 
-        <fieldset class="living-state-tend-section">
-          <legend>Tending Method</legend>
-
-          <div class="living-state-method-list">
-            <label><input type="checkbox" name="tend_method" value="oil" /> Oil or anointing</label>
-            <label><input type="checkbox" name="tend_method" value="herbs" /> Herbs or botanicals</label>
-            <label><input type="checkbox" name="tend_method" value="crystals" /> Crystals or stones</label>
-            <label><input type="checkbox" name="tend_method" value="smoke" /> Incense, smoke, or scent</label>
-            <label><input type="checkbox" name="tend_method" value="offering" /> Offering</label>
-            <label><input type="checkbox" name="tend_method" value="moon-charge" /> Moon charge</label>
-            <label><input type="checkbox" name="tend_method" value="sun-charge" /> Sun charge</label>
-            <label><input type="checkbox" name="tend_method" value="spoken-petition" /> Spoken prayer, petition, or breath</label>
-            <label><input type="checkbox" name="tend_method" value="repeat-ritual" /> Repeated or reworked ritual</label>
-            <label><input type="checkbox" name="tend_method" value="custom" /> Custom tending</label>
+        <section class="living-state-tend-section">
+          <p class="living-state-step-label">3. Selected tending</p>
+          <div class="living-state-selected-preview" data-tend-preview>
+            ${renderLivingStateSelectedPreview([], [])}
           </div>
-        </fieldset>
+        </section>
 
         <label>
           Notes
@@ -147,8 +291,26 @@ function openLivingStateTendModal() {
           ></textarea>
         </label>
 
-        <fieldset class="living-state-tend-section">
-          <legend>Next Reminder</legend>
+        <section class="living-state-tend-section">
+          <p class="living-state-step-label">4. Save for later</p>
+
+          <label class="my-sanctuary-check">
+            <input type="checkbox" name="save_as_apothecary" />
+            Save these selected supports as a reusable Apothecary item
+          </label>
+
+          <label>
+            Apothecary item name
+            <input
+              type="text"
+              name="apothecary_name"
+              placeholder="Dream Sachet Tending Blend, Protection Jar Feeding Oil..."
+            />
+          </label>
+        </section>
+
+        <section class="living-state-tend-section">
+          <p class="living-state-step-label">5. Next reminder</p>
 
           <label class="my-sanctuary-check">
             <input type="checkbox" name="reset_tending_reminder" checked />
@@ -157,9 +319,14 @@ function openLivingStateTendModal() {
 
           <label>
             Remind me again in
-            <input type="number" name="next_tending_days" min="1" placeholder="Use this manifestation’s current interval" />
+            <input
+              type="number"
+              name="next_tending_days"
+              min="1"
+              placeholder="Use this manifestation’s current interval"
+            />
           </label>
-        </fieldset>
+        </section>
 
         <button class="button button--primary" type="submit">
           Save Tending
@@ -180,38 +347,95 @@ function closeLivingStateTendModal() {
   document.body.classList.remove("altar-modal-open");
 }
 
-function getSelectedLivingStateTendChoices(form) {
-  return Array.from(form.querySelectorAll("[data-tend-choice]:checked")).map((input) => ({
-    source: input.dataset.tendSource || "",
-    label: input.dataset.tendLabel || "",
-    type: input.dataset.tendType || "",
-    entityId: input.dataset.tendEntityId || "",
-    instanceId: input.dataset.tendInstanceId || "",
-    itemId: input.dataset.tendItemId || ""
-  }));
+function getSelectedLivingStateTendMethods(form) {
+  const modal = form.closest("[data-living-state-tend-modal]");
+  return modal ? getSelectedLivingStateMethods(modal) : [];
 }
 
-function getSelectedLivingStateTendMethods(form) {
-  return Array.from(form.querySelectorAll('input[name="tend_method"]:checked'))
-    .map((input) => input.value)
-    .filter(Boolean);
+function getSelectedLivingStateTendChoices(form) {
+  const modal = form.closest("[data-living-state-tend-modal]");
+  return modal ? getSelectedLivingStateChoices(modal) : [];
 }
 
 function formatLivingStateTendSummary(choices = [], methods = []) {
+  const methodLabels = methods
+    .map((methodId) => getLivingStateMethodById(methodId)?.label || methodId.replaceAll("-", " "))
+    .filter(Boolean);
+
   const choiceLabels = choices.map((choice) => choice.label).filter(Boolean);
-  const methodLabels = methods.map((method) => method.replaceAll("-", " "));
 
   const parts = [];
 
-  if (choiceLabels.length) {
-    parts.push(`Used: ${choiceLabels.join(", ")}`);
+  if (methodLabels.length) {
+    parts.push(`Methods: ${methodLabels.join(", ")}`);
   }
 
-  if (methodLabels.length) {
-    parts.push(`Method: ${methodLabels.join(", ")}`);
+  if (choiceLabels.length) {
+    parts.push(`Supports: ${choiceLabels.join(", ")}`);
   }
 
   return parts.join(". ");
+}
+
+async function createApothecaryItemFromTending(form, choices = [], methods = [], instance = null) {
+  if (!form.save_as_apothecary?.checked) return null;
+  if (!choices.length) return null;
+  if (typeof getApothecaryItems !== "function" || typeof saveApothecaryItems !== "function") return null;
+
+  const name =
+    String(form.apothecary_name?.value || "").trim() ||
+    `${instance?.name || "Manifestation"} Tending Blend`;
+
+  const now = new Date().toISOString();
+  const methodLabels = methods
+    .map((methodId) => getLivingStateMethodById(methodId)?.label || methodId)
+    .filter(Boolean);
+
+  const item = {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    name,
+    type: "tending-blend",
+    typeLabel: "Tending Blend",
+    imagePath: "../assets/altar/objects/vessels/spell-jar/spell-jar.png",
+    intention: `Tending for ${instance?.name || "manifestation"}`,
+    notes: methodLabels.length ? `Methods: ${methodLabels.join(", ")}` : "",
+    logToGrimoire: true,
+    grimoireStatus: "linked to Living Library",
+    grimoireEntryId: "",
+    entityId: "",
+    instanceId: "",
+    livingState: {
+      tending_enabled: false,
+      tending_interval_days: null,
+      expiration_enabled: false,
+      expiration_days: null
+    },
+    ingredients: choices.map((choice) => ({
+      label: choice.label,
+      type: choice.type,
+      form: choice.form,
+      entityId: choice.entityId || "",
+      libraryName: choice.label,
+      libraryType: choice.type,
+      amount: ""
+    })),
+    createdAt: now,
+    updatedAt: now
+  };
+
+  if (typeof createOrUpdateApothecaryLibraryEntity === "function") {
+    const enriched = await createOrUpdateApothecaryLibraryEntity(item);
+    Object.assign(item, enriched);
+  }
+
+  const items = getApothecaryItems();
+  saveApothecaryItems([item, ...items]);
+
+  if (typeof renderApothecaryItems === "function") {
+    renderApothecaryItems();
+  }
+
+  return item;
 }
 
 async function submitLivingStateTendForm(form) {
@@ -234,8 +458,16 @@ async function submitLivingStateTendForm(form) {
   const resetReminder = form.reset_tending_reminder.checked;
   const customNextDays = Number(form.next_tending_days.value || 0);
 
+  const savedApothecaryItem = await createApothecaryItemFromTending(form, choices, methods, instance);
+
   const summary = formatLivingStateTendSummary(choices, methods);
-  const eventNotes = [summary, notes].filter(Boolean).join("\n\n") || "Manifestation tended.";
+  const savedApothecaryNote = savedApothecaryItem
+    ? `Saved for future tending as ${savedApothecaryItem.name}.`
+    : "";
+
+  const eventNotes =
+    [summary, notes, savedApothecaryNote].filter(Boolean).join("\n\n") ||
+    "Manifestation tended.";
 
   const now = new Date().toISOString();
 
@@ -245,7 +477,8 @@ async function submitLivingStateTendForm(form) {
     metadata: {
       choices,
       methods,
-      notes
+      notes,
+      savedApothecaryItemId: savedApothecaryItem?.id || ""
     }
   });
 
@@ -262,7 +495,8 @@ async function submitLivingStateTendForm(form) {
       last_tended_at: now,
       last_tending_summary: eventNotes,
       last_tending_choices: choices,
-      last_tending_methods: methods
+      last_tending_methods: methods,
+      saved_tending_apothecary_item_id: savedApothecaryItem?.id || existingMetadata.saved_tending_apothecary_item_id || ""
     }
   };
 
@@ -281,3 +515,28 @@ async function submitLivingStateTendForm(form) {
 
   showAltarToast("Living State updated");
 }
+
+document.addEventListener("click", (event) => {
+  const methodButton = event.target.closest("[data-tend-method]");
+  const choiceButton = event.target.closest("[data-tend-choice]");
+
+  if (methodButton) {
+    event.preventDefault();
+    methodButton.classList.toggle("is-selected");
+    methodButton.setAttribute("aria-pressed", methodButton.classList.contains("is-selected") ? "true" : "false");
+    updateLivingStateTendModal();
+  }
+
+  if (choiceButton) {
+    event.preventDefault();
+    choiceButton.classList.toggle("is-selected");
+    choiceButton.setAttribute("aria-pressed", choiceButton.classList.contains("is-selected") ? "true" : "false");
+    updateLivingStateTendModal();
+  }
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target.closest("[data-tend-search]")) {
+    updateLivingStateTendModal();
+  }
+});
