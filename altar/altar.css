@@ -3100,6 +3100,48 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
 }
 
 /* =========================================================
+   Companion Scrollbars
+   ========================================================= */
+
+.altar-companion-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(198, 166, 100, 0.65) transparent;
+}
+
+.altar-companion-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.altar-companion-content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.altar-companion-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to bottom,
+    rgba(212, 183, 122, 0.85),
+    rgba(145, 112, 48, 0.85)
+  );
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.altar-companion-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    to bottom,
+    rgba(235, 208, 150, 0.95),
+    rgba(171, 131, 60, 0.95)
+  );
+  background-clip: padding-box;
+}
+
+.altar-companion-content::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* =========================================================
    Companion + Living State Panel Layout
    ========================================================= */
 
