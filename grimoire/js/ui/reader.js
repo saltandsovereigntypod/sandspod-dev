@@ -266,3 +266,28 @@ function renderReadablePageLinks() {
     </section>
   `;
 }
+
+function formatLibraryLabel(key) {
+
+    const customLabels = {
+        DisplayName: "Name",
+        BestFor: "Best For",
+        BestWith: "Pairs Well With",
+        TraditionalWarnings: "Traditional Warnings",
+        SacredAnimals: "Sacred Animals",
+        SacredPlants: "Sacred Plants",
+        CandleColors: "Candle Colors",
+        CommonMaterials: "Common Materials",
+        TraditionallyMadeFrom: "Traditionally Made From",
+        TraditionallyUsedFor: "Traditionally Used For"
+    };
+
+    if (customLabels[key]) {
+        return customLabels[key];
+    }
+
+    return key
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, l => l.toUpperCase());
+}
