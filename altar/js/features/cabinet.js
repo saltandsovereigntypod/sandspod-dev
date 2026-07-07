@@ -233,6 +233,7 @@ function getCabinetDisplayImage(item, form) {
 function renderCabinetTile(item, form, isMultiForm = false) {
   const label = isMultiForm ? `${item.name} ${form.label}` : item.name;
   const displayImage = getCabinetDisplayImage(item, form);
+
   const hasOverride =
     typeof getCustomCabinetImage === "function" &&
     Boolean(
@@ -255,6 +256,7 @@ function renderCabinetTile(item, form, isMultiForm = false) {
       class="cabinet-tile ${isMultiForm ? "cabinet-form-tile" : ""}"
       data-image="${displayImage}"
       data-label="${label}"
+      data-entity-id="${form.entityId || item.entityId || ""}"
       data-type="${form.type || ""}"
       data-herb="${form.herb || ""}"
       data-form="${form.form || ""}"
@@ -322,7 +324,12 @@ function renderCabinetItems() {
         }))
       : [];
 
-  const items = [...customBackgrounds, ...cabinetItems].filter((item) => {
+  const customCabinetItems =
+    typeof getCustomCabinetItems === "function"
+      ? getCustomCabinetItems()
+      : [];
+
+  const items = [...customBackgrounds, ...customCabinetItems, ...cabinetItems].filter((item) => {
     const matchesCategory = item.category === activeCabinetCategory;
     const searchable = [
       item.name,
@@ -339,6 +346,16 @@ function renderCabinetItems() {
     return;
   }
 
+  const addCustomItemTile =
+    activeCabinetCategory !== "backgrounds"
+      ? `
+        <button type="button" class="cabinet-tile cabinet-background-tile" data-add-custom-cabinet-item>
+          <span class="cabinet-tile-icon">＋</span>
+          <span class="cabinet-tile-name">Create Custom Item</span>
+        </button>
+      `
+      : "";
+
   const addBackgroundTile =
     activeCabinetCategory === "backgrounds"
       ? `
@@ -351,6 +368,7 @@ function renderCabinetItems() {
 
   cabinetContent.innerHTML =
     addBackgroundTile +
+    addCustomItemTile +
     items
       .map((item) => {
         if (item.background) {

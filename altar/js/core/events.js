@@ -260,6 +260,42 @@ if (altarCabinet) {
 
       return;
     }
+
+    const addCustomCabinetItemButton = event.target.closest("[data-add-custom-cabinet-item]");
+    const closeCustomCabinetItemButton = event.target.closest("[data-close-custom-cabinet-item]");
+    const customCabinetItemForm = event.target.closest("[data-custom-cabinet-item-form]");
+    const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
+
+    if (addCustomCabinetItemButton) {
+      event.preventDefault();
+
+      if (typeof openCustomCabinetItemModal === "function") {
+        openCustomCabinetItemModal();
+      }
+
+      return;
+    }
+
+    if (closeCustomCabinetItemButton) {
+      event.preventDefault();
+
+      if (typeof closeCustomCabinetItemModal === "function") {
+        closeCustomCabinetItemModal();
+      }
+
+      return;
+    }
+
+    if (deleteCustomCabinetItemButton) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (typeof deleteCustomCabinetItem === "function") {
+        deleteCustomCabinetItem(deleteCustomCabinetItemButton.dataset.deleteCustomCabinetItem);
+      }
+
+      return;
+    }
     
     const backgroundButton = event.target.closest("[data-background]");
 
@@ -283,7 +319,8 @@ if (altarCabinet) {
       crystal: itemButton.dataset.crystal || "",
       tool: itemButton.dataset.tool || "",
       vessel: itemButton.dataset.vessel || "",
-      deity: itemButton.dataset.deity || ""
+      deity: itemButton.dataset.deity || "",
+      entityId: itemButton.dataset.entityId || "",
     });
   });
 }
@@ -497,6 +534,17 @@ document.addEventListener("submit", async (event) => {
 
   if (activityForm) {
     await submitLivingStateActivityForm(activityForm);
+  }
+});
+
+document.addEventListener("submit", async (event) => {
+  const customCabinetItemForm = event.target.closest("[data-custom-cabinet-item-form]");
+  if (!customCabinetItemForm) return;
+
+  event.preventDefault();
+
+  if (typeof saveCustomCabinetItem === "function") {
+    await saveCustomCabinetItem(customCabinetItemForm);
   }
 });
 

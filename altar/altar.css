@@ -3731,3 +3731,44 @@ body.altar-living-state-minimized .altar-living-state-panel {
   font-size: 0.72rem;
   cursor: pointer;
 }
+
+/* =========================================================
+   Custom Cabinet Item Modal
+   ========================================================= */
+
+.custom-cabinet-item-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.74);
+  backdrop-filter: blur(8px);
+}
+
+.custom-cabinet-item-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(760px, 90vh);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.custom-cabinet-item-card h2 {
+  margin-bottom: 0.5rem;
+  color: var(--gold);
+}
+
+.custom-cabinet-link-options {
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.045);
+}
