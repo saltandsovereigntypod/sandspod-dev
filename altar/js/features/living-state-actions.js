@@ -244,24 +244,28 @@ function openLivingStateTendModal() {
       </button>
 
       <p class="eyebrow">Living State</p>
-      <h2>Tend Manifestation</h2>
+      <h2>Today's Tending</h2>
 
       <p class="living-state-tend-intro">
-        Choose the way you tended this manifestation. This records your practice without judging its meaning or effectiveness.
+        Choose how you would like to care for this manifestation today. There is no required way to tend. Record only what feels meaningful to your practice.
       </p>
 
       <form data-living-state-tend-form>
         <input type="hidden" name="instance_id" value="${escapeLivingStateHtml(selectedObject.dataset.instanceId)}" />
 
         <section class="living-state-tend-section">
-          <p class="living-state-step-label">1. How did you tend it?</p>
+          <p class="living-state-step-label">
+            1. How would you like to tend this manifestation?
+          </p>
           <div class="living-state-method-grid" data-tend-methods>
             ${renderLivingStateMethodCards([])}
           </div>
         </section>
 
         <section class="living-state-tend-section">
-          <p class="living-state-step-label">2. What did you use?</p>
+          <p class="living-state-step-label">
+            2. What would you like to use?
+          </p>
 
           <input
             type="search"
@@ -276,27 +280,31 @@ function openLivingStateTendModal() {
         </section>
 
         <section class="living-state-tend-section">
-          <p class="living-state-step-label">3. Selected tending</p>
+          <p class="living-state-step-label">
+            3. Your ritual so far
+          </p>
           <div class="living-state-selected-preview" data-tend-preview>
             ${renderLivingStateSelectedPreview([], [])}
           </div>
         </section>
 
         <label>
-          Notes
+          Reflections
           <textarea
             name="notes"
             rows="4"
-            placeholder="What did you do? What did you notice? What do you want to remember?"
+            placeholder="Record any thoughts, feelings, sensations, signs, or observations you'd like to remember."
           ></textarea>
         </label>
 
         <section class="living-state-tend-section">
-          <p class="living-state-step-label">4. Save for later</p>
+          <p class="living-state-step-label">
+            4. Create a reusable blend
+          </p>
 
           <label class="my-sanctuary-check">
             <input type="checkbox" name="save_as_apothecary" />
-            Save these selected supports as a reusable Apothecary item
+            Create this combination as a reusable Apothecary item.
           </label>
 
           <label>
@@ -310,15 +318,17 @@ function openLivingStateTendModal() {
         </section>
 
         <section class="living-state-tend-section">
-          <p class="living-state-step-label">5. Next reminder</p>
+          <p class="living-state-step-label">
+            5. Future tending
+          </p>
 
           <label class="my-sanctuary-check">
             <input type="checkbox" name="reset_tending_reminder" checked />
-            Set the next tending reminder from today
+            Begin the next tending cycle today.
           </label>
 
           <label>
-            Remind me again in
+            Suggest another tending reminder in
             <input
               type="number"
               name="next_tending_days"

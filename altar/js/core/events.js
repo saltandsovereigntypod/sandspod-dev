@@ -368,12 +368,30 @@ altarActionBar.addEventListener("click", (event) => {
 
 document.addEventListener("click", (event) => {
   const tendButton = event.target.closest("[data-living-state-tend]");
+  const chargeButton = event.target.closest("[data-living-state-charge]");
+  const ritualButton = event.target.closest("[data-living-state-ritual]");
+  const journalButton = event.target.closest("[data-living-state-journal]");
   const closeTendButton = event.target.closest("[data-living-state-tend-close]");
   const tendModal = event.target.closest("[data-living-state-tend-modal]");
 
   if (tendButton) {
     event.preventDefault();
     openLivingStateTendModal();
+  }
+  
+    if (chargeButton) {
+    event.preventDefault();
+    showAltarToast("Charge flow is coming next");
+  }
+
+  if (ritualButton) {
+    event.preventDefault();
+    showAltarToast("Ritual flow is coming next");
+  }
+
+  if (journalButton) {
+    event.preventDefault();
+    showAltarToast("Journal flow is coming next");
   }
 
   if (closeTendButton) {

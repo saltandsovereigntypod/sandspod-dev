@@ -486,15 +486,51 @@ function renderLivingStateEventIcon(eventType = "") {
   return icons[eventType] || "✦";
 }
 
-function renderLivingStateHistory(events = []) {
-  if (!events.length) {
+function renderLivingStateRecentActivity(events = []) {
+  const latestEvent = events[0];
+
+  if (!latestEvent) {
     return `
-      <div class="altar-info-card-section">
-        <p><strong>Living History</strong></p>
-        <p>No history recorded yet.</p>
+      <div class="altar-info-card-section living-state-history">
+        <p><strong>Recent Activity</strong></p>
+        <p>No activity recorded yet.</p>
       </div>
     `;
   }
+
+function renderLivingStateRecentActivity(events = []) {
+  const latestEvent = events[0];
+
+  if (!latestEvent) {
+    return `
+      <div class="altar-info-card-section living-state-history">
+        <p><strong>Recent Activity</strong></p>
+        <p>No activity recorded yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="altar-info-card-section living-state-history">
+      <p><strong>Recent Activity</strong></p>
+
+      <div class="living-state-event">
+        <p>
+          <span aria-hidden="true">${renderLivingStateEventIcon(latestEvent.event_type)}</span>
+          <strong>${latestEvent.event_label || latestEvent.event_type || "Event"}</strong>
+        </p>
+
+        <p>${formatLivingStateDate(latestEvent.occurred_at)}</p>
+
+        ${
+          latestEvent.event_notes
+            ? `<p>${latestEvent.event_notes}</p>`
+            : ""
+        }
+      </div>
+    </div>
+  `;
+}
 
   return `
     <div class="altar-info-card-section living-state-history">
@@ -585,13 +621,25 @@ function renderLivingStateMarkup(instance, events = []) {
           : ""
       }
 
-      <div class="altar-info-card-section altar-info-card-actions">
+      <div class="altar-info-card-section altar-info-card-actions living-state-action-row">
         <button type="button" data-living-state-tend>
-          Tend
+          🌿 Tend
+        </button>
+
+        <button type="button" data-living-state-charge>
+          🌙 Charge
+        </button>
+
+        <button type="button" data-living-state-ritual>
+          🕯️ Ritual
+        </button>
+
+        <button type="button" data-living-state-journal>
+          📖 Journal
         </button>
       </div>
 
-      ${renderLivingStateHistory(events)}
+      ${renderLivingStateRecentActivity(events)}
     </div>
   `;
 }

@@ -3533,3 +3533,25 @@ body.altar-living-state-minimized .altar-living-state-panel {
     min-height: auto;
   }
 }
+
+/* =========================================================
+   Living State Action Row
+   ========================================================= */
+
+.living-state-action-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+}
+
+.living-state-action-row button {
+  justify-content: center;
+  padding-inline: 0.5rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 700px) {
+  .living-state-action-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
