@@ -367,31 +367,50 @@ altarActionBar.addEventListener("click", (event) => {
    ========================================================= */
 
 document.addEventListener("click", (event) => {
+  const practiceButton = event.target.closest("[data-living-state-practice]");
+  const practiceCloseButton = event.target.closest("[data-living-state-practice-close]");
+  const practiceModal = event.target.closest("[data-living-state-practice-modal]");
+  const activityChoice = event.target.closest("[data-living-state-activity-choice]");
+
   const tendButton = event.target.closest("[data-living-state-tend]");
-  const chargeButton = event.target.closest("[data-living-state-charge]");
-  const ritualButton = event.target.closest("[data-living-state-ritual]");
-  const journalButton = event.target.closest("[data-living-state-journal]");
   const closeTendButton = event.target.closest("[data-living-state-tend-close]");
   const tendModal = event.target.closest("[data-living-state-tend-modal]");
+
+  const closeActivityButton = event.target.closest("[data-living-state-activity-close]");
+  const activityModal = event.target.closest("[data-living-state-activity-modal]");
+
+  if (practiceButton) {
+    event.preventDefault();
+    openLivingStatePracticeMenu();
+  }
+
+  if (practiceCloseButton) {
+    event.preventDefault();
+    closeLivingStatePracticeMenu();
+  }
+
+  if (practiceModal && event.target === practiceModal) {
+    closeLivingStatePracticeMenu();
+  }
+
+  if (activityChoice) {
+    event.preventDefault();
+
+    const activityType = activityChoice.dataset.livingStateActivityChoice;
+
+    closeLivingStatePracticeMenu();
+
+    if (activityType === "tend") {
+      openLivingStateTendModal();
+      return;
+    }
+
+    openLivingStateActivityModal(activityType);
+  }
 
   if (tendButton) {
     event.preventDefault();
     openLivingStateTendModal();
-  }
-
-  if (chargeButton) {
-    event.preventDefault();
-    openLivingStateActivityModal("charge");
-  }
-
-  if (ritualButton) {
-    event.preventDefault();
-    openLivingStateActivityModal("ritual");
-  }
-
-  if (journalButton) {
-    event.preventDefault();
-    openLivingStateActivityModal("journal");
   }
 
   if (closeTendButton) {
@@ -401,6 +420,15 @@ document.addEventListener("click", (event) => {
 
   if (tendModal && event.target === tendModal) {
     closeLivingStateTendModal();
+  }
+
+  if (closeActivityButton) {
+    event.preventDefault();
+    closeLivingStateActivityModal();
+  }
+
+  if (activityModal && event.target === activityModal) {
+    closeLivingStateActivityModal();
   }
 });
 
@@ -520,6 +548,11 @@ document.addEventListener("keydown", (event) => {
     if (typeof closeLivingStateActivityModal === "function") {
       closeLivingStateActivityModal();
     }
+
+    if (typeof closeLivingStatePracticeMenu === "function") {
+      closeLivingStatePracticeMenu();
+    }
+
   }
 });
 

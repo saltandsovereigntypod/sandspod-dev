@@ -3601,3 +3601,95 @@ body.altar-living-state-minimized .altar-living-state-panel {
   font: inherit;
   resize: vertical;
 }
+
+/* =========================================================
+   Living State Practice Menu
+   ========================================================= */
+
+.living-state-practice-button {
+  width: 100%;
+  justify-content: center;
+  padding: 0.7rem 0.85rem;
+}
+
+.living-state-practice-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.74);
+  backdrop-filter: blur(8px);
+}
+
+.living-state-practice-card {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: min(760px, 90vh);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.living-state-practice-card h2 {
+  max-width: none;
+  margin-bottom: 0.5rem;
+  color: var(--gold);
+}
+
+.living-state-practice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.living-state-practice-card-button {
+  min-height: 6rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.12), transparent 70%),
+    rgba(244, 236, 216, 0.045);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.living-state-practice-card-button span {
+  display: block;
+  color: var(--cream);
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.living-state-practice-card-button small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.living-state-practice-card-button:hover,
+.living-state-practice-card-button:focus-visible {
+  border-color: var(--gold);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.22), transparent 70%),
+    rgba(244, 236, 216, 0.075);
+}
+
+@media (max-width: 700px) {
+  .living-state-practice-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -31,6 +31,41 @@ const livingStateTendMethods = [
   { id: "custom", label: "Custom", hint: "Anything else you want to record", types: [] }
 ];
 
+const livingStatePracticeActivities = [
+  {
+    id: "tend",
+    label: "Tend",
+    icon: "🌿",
+    description: "Care for this manifestation with herbs, oils, offerings, prayer, or other supports.",
+    action: "tend",
+    appliesTo: ["all"]
+  },
+  {
+    id: "charge",
+    label: "Charge",
+    icon: "🌙",
+    description: "Record moon, sun, storm, smoke, crystal, deity, or custom charging.",
+    action: "charge",
+    appliesTo: ["all"]
+  },
+  {
+    id: "ritual",
+    label: "Perform Ritual",
+    icon: "🕯️",
+    description: "Record a ritual connected to this manifestation.",
+    action: "ritual",
+    appliesTo: ["all"]
+  },
+  {
+    id: "journal",
+    label: "Journal",
+    icon: "📖",
+    description: "Record an observation, dream, sign, feeling, result, or message.",
+    action: "journal",
+    appliesTo: ["all"]
+  }
+];
+
 function getLivingStateMethodById(methodId) {
   return livingStateTendMethods.find((method) => method.id === methodId);
 }
@@ -223,6 +258,59 @@ function updateLivingStateTendModal() {
   if (previewWrap) {
     previewWrap.innerHTML = renderLivingStateSelectedPreview(selectedMethods, selectedChoices);
   }
+}
+
+function openLivingStatePracticeMenu() {
+  if (!selectedObject?.dataset.instanceId) {
+    showAltarToast("Select a manifestation first");
+    return;
+  }
+
+  closeLivingStatePracticeMenu();
+
+  const modal = document.createElement("div");
+  modal.className = "living-state-practice-modal";
+  modal.setAttribute("data-living-state-practice-modal", "");
+
+  modal.innerHTML = `
+    <div class="living-state-practice-card" role="dialog" aria-modal="true" aria-label="Today's Practice">
+      <button class="living-state-tend-close" type="button" data-living-state-practice-close aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">Living State</p>
+      <h2>Today's Practice</h2>
+
+      <p class="living-state-tend-intro">
+        What would you like to do with this manifestation today?
+      </p>
+
+      <div class="living-state-practice-grid">
+        ${livingStatePracticeActivities
+          .map((activity) => `
+            <button
+              type="button"
+              class="living-state-practice-card-button"
+              data-living-state-activity-choice="${escapeLivingStateHtml(activity.action)}">
+              <span>${activity.icon} ${escapeLivingStateHtml(activity.label)}</span>
+              <small>${escapeLivingStateHtml(activity.description)}</small>
+            </button>
+          `)
+          .join("")}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeLivingStatePracticeMenu() {
+  const modal = document.querySelector("[data-living-state-practice-modal]");
+  if (!modal) return;
+
+  modal.remove();
+  document.body.classList.remove("altar-modal-open");
 }
 
 function openLivingStateTendModal() {

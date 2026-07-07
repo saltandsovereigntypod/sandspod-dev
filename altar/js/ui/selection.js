@@ -621,21 +621,9 @@ function renderLivingStateMarkup(instance, events = []) {
           : ""
       }
 
-      <div class="altar-info-card-section altar-info-card-actions living-state-action-row">
-        <button type="button" data-living-state-tend>
-          🌿 Tend
-        </button>
-
-        <button type="button" data-living-state-charge>
-          🌙 Charge
-        </button>
-
-        <button type="button" data-living-state-ritual>
-          🕯️ Ritual
-        </button>
-
-        <button type="button" data-living-state-journal>
-          📖 Journal
+      <div class="altar-info-card-section altar-info-card-actions">
+        <button type="button" class="living-state-practice-button" data-living-state-practice>
+          ✨ Begin Today's Practice
         </button>
       </div>
 
