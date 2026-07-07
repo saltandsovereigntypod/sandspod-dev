@@ -212,7 +212,73 @@ async function getObjectInstancesByEntity(entityId) {
   return data || [];
 }
 
+/* =========================================================
+   OBJECT INSTANCE EVENTS
+   ========================================================= */
+
+const OBJECT_INSTANCE_EVENTS_TABLE = "object_instance_events";
+
+async function addObjectInstanceEvent(instanceId, eventType, options = {}) {
+  const user = getObjectInstanceUser();
+
+  if (!user || typeof db === "undefined" || !instanceId) return null;
+
+  const instance = await getObjectInstance(instanceId);
+
+  if (!instance) return null;
+
+  const row = {
+    user_id: user.id,
+    instance_id: instanceId,
+    entity_id: instance.entity_id || null,
+
+    event_type: eventType,
+    event_label: options.label || eventType,
+    event_notes: options.notes || "",
+
+    occurred_at: options.occurred_at || new Date().toISOString(),
+
+    metadata: options.metadata || {}
+  };
+
+  const { data, error } = await db
+    .from(OBJECT_INSTANCE_EVENTS_TABLE)
+    .insert(row)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Object instance event failed:", error);
+    return null;
+  }
+
+  return data;
+}
+
+async function getObjectInstanceEvents(instanceId) {
+  const user = getObjectInstanceUser();
+
+  if (!user || typeof db === "undefined" || !instanceId) return [];
+
+  const { data, error } = await db
+    .from(OBJECT_INSTANCE_EVENTS_TABLE)
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("instance_id", instanceId)
+    .order("occurred_at", { ascending: false });
+
+  if (error) {
+    console.error("Object instance events failed:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 window.createObjectInstance = createObjectInstance;
 window.updateObjectInstance = updateObjectInstance;
 window.getObjectInstance = getObjectInstance;
 window.getObjectInstancesByEntity = getObjectInstancesByEntity;
+
+window.addObjectInstanceEvent = addObjectInstanceEvent;
+window.getObjectInstanceEvents = getObjectInstanceEvents;
