@@ -90,6 +90,28 @@ altarCompanionPanel.innerHTML = `
   </div>
 `;
 
+const altarLivingStatePanel = document.createElement("aside");
+altarLivingStatePanel.className = "altar-companion-panel altar-living-state-panel is-visible";
+altarLivingStatePanel.setAttribute("aria-live", "polite");
+altarLivingStatePanel.innerHTML = `
+  <div class="altar-companion-inner">
+    <div class="altar-companion-header">
+      <div>
+        <p class="eyebrow">Living State</p>
+        <h2>Current Manifestation</h2>
+      </div>
+
+      <div class="altar-companion-actions">
+        <button type="button" data-living-state-minimize aria-label="Minimize living state panel">−</button>
+      </div>
+    </div>
+
+    <div class="altar-companion-content" data-living-state-content>
+      <p>Select an object with a living state.</p>
+    </div>
+  </div>
+`;
+
 const mobileCabinetToggle = document.createElement("button");
 mobileCabinetToggle.type = "button";
 mobileCabinetToggle.className = "altar-mobile-cabinet-toggle";
@@ -116,6 +138,7 @@ if (altarStage) {
 
   if (altarWorkspace && altarStageWrap) {
     altarWorkspace.insertBefore(altarCompanionPanel, altarStageWrap);
+    altarWorkspace.insertBefore(altarLivingStatePanel, altarStageWrap);
   }
 
   const lightingCanvas = document.createElement("canvas");
