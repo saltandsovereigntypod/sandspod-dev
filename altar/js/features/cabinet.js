@@ -44,121 +44,71 @@ const cabinetItems = [
     ]
   })),
 
-  {
+    ...[
+    ["basil", "Basil", ["protection", "prosperity", "love", "courage", "cleansing"]],
+    ["bay", "Bay", ["wishes", "protection", "victory", "divination", "success"], "bay-leaf", "bay"],
+    ["cedar", "Cedar", ["protection", "purification", "blessing", "grounding", "ancestors"]],
+    ["chamomile", "Chamomile", ["calm", "sleep", "luck", "money", "healing"]],
+    ["cinnamon", "Cinnamon", ["prosperity", "passion", "speed", "success", "protection"]],
+    ["clove", "Clove", ["protection", "prosperity", "friendship", "banishing"]],
+    ["frankincense", "Frankincense", ["purification", "consecration", "spirituality", "protection"]],
+    ["jasmine", "Jasmine", ["love", "dreams", "intuition", "lunar", "sensuality"]],
+    ["lavender", "Lavender", ["peace", "sleep", "love", "healing", "purification"]],
+    ["lemon_balm", "Lemon Balm", ["calm", "healing", "love", "happiness"], "lemon-balm"],
+    ["mint", "Mint", ["prosperity", "clarity", "healing", "communication"]],
+    ["mugwort", "Mugwort", ["dreams", "divination", "intuition", "thresholds"]],
+    ["myrrh", "Myrrh", ["protection", "purification", "healing", "spirit work"]],
+    ["nettle", "Nettle", ["protection", "boundaries", "courage", "uncrossing"]],
+    ["patchouli", "Patchouli", ["prosperity", "grounding", "attraction", "stability"]],
+    ["rose", "Rose", ["love", "compassion", "beauty", "healing", "grief"]],
+    ["rosemary", "Rosemary", ["protection", "purification", "remembrance", "healing"]],
+    ["sage", "Sage", ["cleansing", "wisdom", "protection", "purification"]],
+    ["thyme", "Thyme", ["courage", "healing", "purification", "sleep"]],
+    ["yarrow", "Yarrow", ["protection", "love", "boundaries", "divination"]]
+  ].map(([id, name, keywords, folder = id.replaceAll("_", "-"), fileBase = folder]) => ({
     category: "herbs",
-    name: "Rosemary",
+    name,
     icon: "🌿",
-    keywords: ["protection", "cleansing", "memory"],
+    keywords,
     forms: [
-      { label: "Sprig", image: "../assets/altar/objects/herbs/rosemary/rosemary-sprig.png", type: "herb", herb: "rosemary", form: "sprig" },
-      { label: "Loose", image: "../assets/altar/objects/herbs/rosemary/rosemary-loose.png", type: "herb", herb: "rosemary", form: "loose" },
-      { label: "Oil", image: "../assets/altar/objects/herbs/rosemary/rosemary-oil.png", type: "oil", herb: "rosemary", form: "oil" }
+      { label: "Sprig", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-sprig.png`, type: "herb", herb: id, form: "sprig" },
+      { label: "Loose", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-loose.png`, type: "herb", herb: id, form: "loose" },
+      { label: "Oil", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-oil.png`, type: "oil", herb: id, form: "oil" }
     ]
-  },
-  {
-    category: "herbs",
-    name: "Lavender",
-    icon: "🌿",
-    keywords: ["peace", "sleep", "calming"],
-    forms: [
-      { label: "Sprig", image: "../assets/altar/objects/herbs/lavender/lavender-sprig.png", type: "herb", herb: "lavender", form: "sprig" },
-      { label: "Loose", image: "../assets/altar/objects/herbs/lavender/lavender-loose.png", type: "herb", herb: "lavender", form: "loose" },
-      { label: "Oil", image: "../assets/altar/objects/herbs/lavender/lavender-oil.png", type: "oil", herb: "lavender", form: "oil" }
-    ]
-  },
-  {
-    category: "herbs",
-    name: "Mugwort",
-    icon: "🌿",
-    keywords: ["dreams", "intuition", "thresholds"],
-    forms: [
-      { label: "Sprig", image: "../assets/altar/objects/herbs/mugwort/mugwort-sprig.png", type: "herb", herb: "mugwort", form: "sprig" },
-      { label: "Loose", image: "../assets/altar/objects/herbs/mugwort/mugwort-loose.png", type: "herb", herb: "mugwort", form: "loose" },
-      { label: "Oil", image: "../assets/altar/objects/herbs/mugwort/mugwort-oil.png", type: "oil", herb: "mugwort", form: "oil" }
-    ]
-  },
-  {
-    category: "herbs",
-    name: "Bay Leaf",
-    icon: "🌿",
-    keywords: ["wishes", "protection", "manifestation"],
-    forms: [
-      { label: "Sprig", image: "../assets/altar/objects/herbs/bay-leaf/bay-sprig.png", type: "herb", herb: "bay leaf", form: "sprig" },
-      { label: "Loose", image: "../assets/altar/objects/herbs/bay-leaf/bay-loose.png", type: "herb", herb: "bay leaf", form: "loose" },
-      { label: "Oil", image: "../assets/altar/objects/herbs/bay-leaf/bay-oil.png", type: "oil", herb: "bay leaf", form: "oil" }
-    ]
-  },
-  {
-    category: "herbs",
-    name: "Cinnamon",
-    icon: "🌿",
-    keywords: ["prosperity", "speed", "success"],
-    forms: [
-      { label: "Sprig", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-sprig.png", type: "herb", herb: "cinnamon", form: "sprig" },
-      { label: "Loose", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-loose.png", type: "herb", herb: "cinnamon", form: "loose" },
-      { label: "Oil", image: "../assets/altar/objects/herbs/cinnamon/cinnamon-oil.png", type: "oil", herb: "cinnamon", form: "oil" }
-    ]
-  },
+  })),
 
-   {
-      category: "herbs",
-      name: "Basil",
-      icon: "🌿",
-      keywords: ["courage", "cleansing", "prosperity"],
-      forms: [
-        { label: "Sprig", image: "../assets/altar/objects/herbs/basil/basil-sprig.png", type: "herb", herb: "basil", form: "sprig" },
-        { label: "Loose", image: "../assets/altar/objects/herbs/basil/basil-loose.png", type: "herb", herb: "basil", form: "loose" },
-        { label: "Oil", image: "../assets/altar/objects/herbs/basil/basil-oil.png", type: "oil", herb: "basil", form: "oil" }
-      ]
-    },
-
-   {
-      category: "herbs",
-      name: "Cedar",
-      icon: "🌿",
-      keywords: ["purification", "blessing", "grounding"],
-      forms: [
-        { label: "Sprig", image: "../assets/altar/objects/herbs/cedar/cedar-sprig.png", type: "herb", herb: "cedar", form: "sprig" },
-        { label: "Loose", image: "../assets/altar/objects/herbs/cedar/cedar-loose.png", type: "herb", herb: "cedar", form: "loose" },
-        { label: "Oil", image: "../assets/altar/objects/herbs/cedar/cedar-oil.png", type: "oil", herb: "cedar", form: "oil" }
-      ]
-    },
-
-   {
-      category: "herbs",
-      name: "Chamomile",
-      icon: "🌿",
-      keywords: ["purification", "blessing", "grounding"],
-      forms: [
-        { label: "Sprig", image: "../assets/altar/objects/herbs/chamomile/chamomile-sprig.png", type: "herb", herb: "chamomile", form: "sprig" },
-        { label: "Loose", image: "../assets/altar/objects/herbs/chamomile/chamomile-loose.png", type: "herb", herb: "chamomile", form: "loose" },
-        { label: "Oil", image: "../assets/altar/objects/herbs/chamomile/chamomile-oil.png", type: "oil", herb: "chamomile", form: "oil" }
-      ]
-    },
-
-  {
+  ...[
+    ["amethyst", "Amethyst", ["intuition", "dreams", "meditation", "protection"]],
+    ["black_tourmaline", "Black Tourmaline", ["protection", "grounding", "shielding", "warding"]],
+    ["carnelian", "Carnelian", ["creativity", "courage", "vitality", "confidence"]],
+    ["citrine", "Citrine", ["prosperity", "abundance", "success", "joy"]],
+    ["clear_quartz", "Clear Quartz", ["amplification", "clarity", "healing", "cleansing"], "clear-quartz"],
+    ["fluorite", "Fluorite", ["focus", "clarity", "study", "organization"]],
+    ["garnet", "Garnet", ["strength", "passion", "devotion", "grounding"]],
+    ["green_aventurine", "Green Aventurine", ["luck", "prosperity", "growth", "opportunity"], "green-aventurine"],
+    ["hematite", "Hematite", ["grounding", "stability", "protection", "focus"]],
+    ["labradorite", "Labradorite", ["transformation", "intuition", "magic", "protection"]],
+    ["lapis_lazuli", "Lapis Lazuli", ["truth", "wisdom", "communication", "insight"], "lapis-lazuli"],
+    ["malachite", "Malachite", ["transformation", "protection", "healing", "growth"]],
+    ["moonstone", "Moonstone", ["intuition", "dreams", "cycles", "lunar"]],
+    ["moss_agate", "Moss Agate", ["nature", "abundance", "growth", "grounding"], "moss-agate"],
+    ["obsidian", "Obsidian", ["protection", "banishing", "grounding", "shadow work"]],
+    ["pyrite", "Pyrite", ["prosperity", "confidence", "abundance", "success"]],
+    ["rose_quartz", "Rose Quartz", ["love", "compassion", "self-love", "healing"], "rose-quartz"],
+    ["selenite", "Selenite", ["cleansing", "charging", "peace", "clarity"]],
+    ["smoky_quartz", "Smoky Quartz", ["grounding", "stability", "protection", "transmutation"], "smoky-quartz"],
+    ["tiger_eye", "Tiger Eye", ["confidence", "courage", "focus", "protection"], "tiger-eye"]
+  ].map(([id, name, keywords, folder = id.replaceAll("_", "-")]) => ({
     category: "crystals",
-    name: "Amethyst",
+    name,
     icon: "💎",
-    keywords: ["intuition", "dreams", "calm"],
+    keywords,
     forms: [
-      { label: "Point", image: "../assets/altar/objects/crystals/amethyst/amethyst-point.png", type: "crystal", crystal: "amethyst", form: "point" },
-      { label: "Chips", image: "../assets/altar/objects/crystals/amethyst/amethyst-chips.png", type: "crystal", crystal: "amethyst", form: "chips" },
-      { label: "Cluster", image: "../assets/altar/objects/crystals/amethyst/amethyst-cluster.png", type: "crystal", crystal: "amethyst", form: "cluster" }
+      { label: "Point", image: `../assets/altar/objects/crystals/${folder}/${folder}-point.png`, type: "crystal", crystal: id, form: "point" },
+      { label: "Chips", image: `../assets/altar/objects/crystals/${folder}/${folder}-chips.png`, type: "crystal", crystal: id, form: "chips" },
+      { label: "Cluster", image: `../assets/altar/objects/crystals/${folder}/${folder}-cluster.png`, type: "crystal", crystal: id, form: "cluster" }
     ]
-  },
-
-  {
-    category: "crystals",
-    name: "Clear Quartz",
-    icon: "💎",
-    keywords: ["amplification", "clarity", "intention"],
-    forms: [
-      { label: "Point", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-point.png", type: "crystal", crystal: "clear-quartz", form: "point" },
-      { label: "Chips", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-chips.png", type: "crystal", crystal: "clear-quartz", form: "chips" },
-      { label: "Cluster", image: "../assets/altar/objects/crystals/clear-quartz/clear-quartz-cluster.png", type: "crystal", crystal: "clear-quartz", form: "cluster" }
-    ]
-  },
+  })),
 
   {
     category: "tools",
