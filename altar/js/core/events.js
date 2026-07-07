@@ -378,20 +378,20 @@ document.addEventListener("click", (event) => {
     event.preventDefault();
     openLivingStateTendModal();
   }
-  
-    if (chargeButton) {
+
+  if (chargeButton) {
     event.preventDefault();
-    showAltarToast("Charge flow is coming next");
+    openLivingStateActivityModal("charge");
   }
 
   if (ritualButton) {
     event.preventDefault();
-    showAltarToast("Ritual flow is coming next");
+    openLivingStateActivityModal("ritual");
   }
 
   if (journalButton) {
     event.preventDefault();
-    showAltarToast("Journal flow is coming next");
+    openLivingStateActivityModal("journal");
   }
 
   if (closeTendButton) {
@@ -405,11 +405,20 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", async (event) => {
-  const form = event.target.closest("[data-living-state-tend-form]");
-  if (!form) return;
+  const tendForm = event.target.closest("[data-living-state-tend-form]");
+  const activityForm = event.target.closest("[data-living-state-activity-form]");
+
+  if (!tendForm && !activityForm) return;
 
   event.preventDefault();
-  await submitLivingStateTendForm(form);
+
+  if (tendForm) {
+    await submitLivingStateTendForm(tendForm);
+  }
+
+  if (activityForm) {
+    await submitLivingStateActivityForm(activityForm);
+  }
 });
 
 /* =========================================================
@@ -506,6 +515,10 @@ document.addEventListener("keydown", (event) => {
 
     if (typeof closeLivingStateTendModal === "function") {
       closeLivingStateTendModal();
+    }
+
+    if (typeof closeLivingStateActivityModal === "function") {
+      closeLivingStateActivityModal();
     }
   }
 });

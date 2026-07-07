@@ -526,9 +526,191 @@ async function submitLivingStateTendForm(form) {
   showAltarToast("Living State updated");
 }
 
+/* =========================================================
+   QUICK ACTIVITY MODAL
+   Charge, Ritual, Journal
+   ========================================================= */
+
+const livingStateActivityTypes = {
+  charge: {
+    title: "Today's Charge",
+    label: "Manifestation Charged",
+    eventType: "charged",
+    intro: "Record how you would like to charge this manifestation today.",
+    optionsLabel: "How would you like to charge it?",
+    options: [
+      "Moon charge",
+      "Sun charge",
+      "Storm charge",
+      "Smoke charge",
+      "Crystal charge",
+      "Deity altar",
+      "Crossroads",
+      "Seasonal energy",
+      "Custom"
+    ],
+    placeholder: "Record anything you want to remember about this charge."
+  },
+
+  ritual: {
+    title: "Today's Ritual",
+    label: "Ritual Recorded",
+    eventType: "ritual",
+    intro: "Record a ritual connected to this manifestation.",
+    optionsLabel: "What kind of ritual is this?",
+    options: [
+      "Repeat original ritual",
+      "Protection",
+      "Cleansing",
+      "Devotional",
+      "Dreamwork",
+      "Moon ritual",
+      "Offering ritual",
+      "Custom"
+    ],
+    placeholder: "Record what happened, what you used, or what you want to remember."
+  },
+
+  journal: {
+    title: "Today's Journal",
+    label: "Journal Entry",
+    eventType: "journal",
+    intro: "Record an observation, reflection, dream, sign, or experience connected to this manifestation.",
+    optionsLabel: "What kind of entry is this?",
+    options: [
+      "Observation",
+      "Dream",
+      "Sign",
+      "Feeling",
+      "Result",
+      "Question",
+      "Message",
+      "Custom"
+    ],
+    placeholder: "Write your reflection here."
+  }
+};
+
+function openLivingStateActivityModal(activityType = "journal") {
+  if (!selectedObject?.dataset.instanceId) {
+    showAltarToast("Select a manifestation first");
+    return;
+  }
+
+  closeLivingStateActivityModal();
+
+  const config = livingStateActivityTypes[activityType] || livingStateActivityTypes.journal;
+
+  const modal = document.createElement("div");
+  modal.className = "living-state-activity-modal";
+  modal.setAttribute("data-living-state-activity-modal", "");
+
+  modal.innerHTML = `
+    <div class="living-state-activity-card" role="dialog" aria-modal="true" aria-label="${escapeLivingStateHtml(config.title)}">
+      <button class="living-state-tend-close" type="button" data-living-state-activity-close aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">Living State</p>
+      <h2>${escapeLivingStateHtml(config.title)}</h2>
+
+      <p class="living-state-tend-intro">
+        ${escapeLivingStateHtml(config.intro)}
+      </p>
+
+      <form data-living-state-activity-form data-activity-type="${escapeLivingStateHtml(activityType)}">
+        <input type="hidden" name="instance_id" value="${escapeLivingStateHtml(selectedObject.dataset.instanceId)}" />
+
+        <section class="living-state-tend-section">
+          <p class="living-state-step-label">${escapeLivingStateHtml(config.optionsLabel)}</p>
+
+          <div class="living-state-method-grid">
+            ${config.options
+              .map((option) => `
+                <button
+                  type="button"
+                  class="living-state-method-card"
+                  data-activity-option="${escapeLivingStateHtml(option)}"
+                  aria-pressed="false">
+                  <span>${escapeLivingStateHtml(option)}</span>
+                </button>
+              `)
+              .join("")}
+          </div>
+        </section>
+
+        <label>
+          Reflections
+          <textarea
+            name="notes"
+            rows="5"
+            placeholder="${escapeLivingStateHtml(config.placeholder)}"
+          ></textarea>
+        </label>
+
+        <button class="button button--primary" type="submit">
+          Save ${escapeLivingStateHtml(config.title)}
+        </button>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeLivingStateActivityModal() {
+  const modal = document.querySelector("[data-living-state-activity-modal]");
+  if (!modal) return;
+
+  modal.remove();
+  document.body.classList.remove("altar-modal-open");
+}
+
+function getSelectedLivingStateActivityOptions(form) {
+  return Array.from(form.querySelectorAll("[data-activity-option].is-selected"))
+    .map((button) => button.dataset.activityOption)
+    .filter(Boolean);
+}
+
+async function submitLivingStateActivityForm(form) {
+  const instanceId = form.instance_id.value || "";
+  const activityType = form.dataset.activityType || "journal";
+  const config = livingStateActivityTypes[activityType] || livingStateActivityTypes.journal;
+
+  if (!instanceId) return;
+
+  const options = getSelectedLivingStateActivityOptions(form);
+  const notes = String(form.notes.value || "").trim();
+
+  const eventNotes = [
+    options.length ? `Type: ${options.join(", ")}` : "",
+    notes
+  ].filter(Boolean).join("\n\n") || config.title;
+
+  await addObjectInstanceEvent(instanceId, config.eventType, {
+    label: config.label,
+    notes: eventNotes,
+    metadata: {
+      activityType,
+      options,
+      notes
+    }
+  });
+
+  closeLivingStateActivityModal();
+
+  if (selectedObject?.dataset.instanceId === instanceId && typeof showLivingStatePanel === "function") {
+    await showLivingStatePanel(selectedObject);
+  }
+
+  showAltarToast(`${config.title} saved`);
+}
+
 document.addEventListener("click", (event) => {
   const methodButton = event.target.closest("[data-tend-method]");
   const choiceButton = event.target.closest("[data-tend-choice]");
+  const activityOptionButton = event.target.closest("[data-activity-option]");
 
   if (methodButton) {
     event.preventDefault();
@@ -542,6 +724,15 @@ document.addEventListener("click", (event) => {
     choiceButton.classList.toggle("is-selected");
     choiceButton.setAttribute("aria-pressed", choiceButton.classList.contains("is-selected") ? "true" : "false");
     updateLivingStateTendModal();
+  }
+
+    if (activityOptionButton) {
+    event.preventDefault();
+    activityOptionButton.classList.toggle("is-selected");
+    activityOptionButton.setAttribute(
+      "aria-pressed",
+      activityOptionButton.classList.contains("is-selected") ? "true" : "false"
+    );
   }
 });
 
