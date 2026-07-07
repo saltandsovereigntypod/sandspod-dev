@@ -3388,3 +3388,148 @@ body.altar-living-state-minimized .altar-living-state-panel {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   Living State Tending Flow Polish
+   ========================================================= */
+
+.living-state-tend-card {
+  width: min(1040px, 100%);
+}
+
+.living-state-tend-section {
+  position: relative;
+}
+
+.living-state-step-label {
+  margin: 0 0 0.85rem;
+  color: var(--gold);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+}
+
+.living-state-method-grid,
+.living-state-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.living-state-method-card,
+.living-state-choice-card {
+  min-height: 5.25rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 1rem;
+  padding: 0.85rem 0.95rem;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.1), transparent 70%),
+    rgba(244, 236, 216, 0.045);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.living-state-method-card span,
+.living-state-choice-card span {
+  display: block;
+  color: var(--cream);
+  font-family: var(--serif);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.living-state-method-card small,
+.living-state-choice-card small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-transform: capitalize;
+}
+
+.living-state-method-card:hover,
+.living-state-method-card:focus-visible,
+.living-state-choice-card:hover,
+.living-state-choice-card:focus-visible {
+  border-color: rgba(198, 166, 100, 0.75);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.2), transparent 70%),
+    rgba(244, 236, 216, 0.075);
+}
+
+.living-state-method-card.is-selected,
+.living-state-choice-card.is-selected {
+  border-color: var(--gold);
+  background:
+    radial-gradient(circle at top left, rgba(198, 166, 100, 0.28), transparent 75%),
+    rgba(185, 160, 93, 0.12);
+  box-shadow: 0 0 0 1px rgba(198, 166, 100, 0.35);
+}
+
+.living-state-method-card.is-selected::before,
+.living-state-choice-card.is-selected::before {
+  content: "✓ ";
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.living-state-search {
+  width: 100%;
+  margin-bottom: 0.85rem;
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.07);
+  font: inherit;
+}
+
+.living-state-choice-grid {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.living-state-selected-preview {
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.045);
+}
+
+.living-state-selected-preview p {
+  margin: 0.25rem 0;
+}
+
+.living-state-event {
+  margin-top: 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.16);
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+  background: rgba(244, 236, 216, 0.035);
+}
+
+.living-state-event p {
+  margin: 0.25rem 0;
+}
+
+.living-state-history {
+  padding-bottom: 0.25rem;
+}
+
+@media (max-width: 700px) {
+  .living-state-method-grid,
+  .living-state-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .living-state-method-card,
+  .living-state-choice-card {
+    min-height: auto;
+  }
+}
