@@ -148,7 +148,12 @@ function openAltarCabinetOverlay() {
     overlay.classList.add("is-visible");
   });
 
-  renderCabinet();
+  Promise.all([
+    typeof loadCustomUserAssets === "function" ? loadCustomUserAssets() : Promise.resolve(),
+    typeof loadCustomCabinetItems === "function" ? loadCustomCabinetItems() : Promise.resolve()
+  ]).then(() => {
+    renderCabinet();
+  });
 }
 
 function closeAltarCabinetOverlay() {

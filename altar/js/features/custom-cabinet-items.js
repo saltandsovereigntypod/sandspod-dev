@@ -1,20 +1,56 @@
 /* =========================================================
    CUSTOM CABINET ITEMS
-   User-created cabinet shortcuts linked to Living Library
+   Supabase-backed cabinet shortcuts linked to Living Library
    ========================================================= */
 
-const CUSTOM_CABINET_ITEMS_KEY = "saltAndSovereigntyCustomCabinetItems";
+let customCabinetItemsCache = [];
 
-function getCustomCabinetItems() {
-  try {
-    return JSON.parse(localStorage.getItem(CUSTOM_CABINET_ITEMS_KEY)) || [];
-  } catch {
-    return [];
-  }
+async function getCustomCabinetItems() {
+  return customCabinetItemsCache;
 }
 
-function saveCustomCabinetItems(items) {
-  localStorage.setItem(CUSTOM_CABINET_ITEMS_KEY, JSON.stringify(items));
+async function loadCustomCabinetItems() {
+  const user = await getCurrentAssetUser();
+
+  if (!user) {
+    customCabinetItemsCache = [];
+    return [];
+  }
+
+  const { data, error } = await db
+    .from("custom_cabinet_items")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    customCabinetItemsCache = [];
+    return [];
+  }
+
+  customCabinetItemsCache = (data || []).map((row) => ({
+    id: row.id,
+    category: row.category,
+    name: row.name,
+    icon: row.icon || "✦",
+    keywords: row.keywords || [],
+    entityId: row.entity_id || "",
+    customCabinetItemId: row.id,
+    forms: [
+      {
+        label: "Place",
+        image: row.image_url,
+        type: row.item_type,
+        form: row.form_label || "standard",
+        custom: true,
+        entityId: row.entity_id || ""
+      }
+    ],
+    createdAt: row.created_at
+  }));
+
+  return customCabinetItemsCache;
 }
 
 function getAllLivingLibraryEntitiesForCustomCabinet() {
@@ -49,21 +85,13 @@ async function openCustomCabinetItemModal() {
       <p class="eyebrow">Cabinet</p>
       <h2>Create Custom Cabinet Item</h2>
 
-      <p>
-        Add a personal object to your cabinet and connect it to the Living Library.
-      </p>
-
       <form data-custom-cabinet-item-form>
         <label>
           Cabinet Category
           <select name="category" required>
             ${cabinetCategories
               .filter((category) => category.id !== "backgrounds")
-              .map((category) => `
-                <option value="${category.id}">
-                  ${category.label}
-                </option>
-              `)
+              .map((category) => `<option value="${category.id}">${category.label}</option>`)
               .join("")}
           </select>
         </label>
@@ -158,6 +186,13 @@ function getCustomCabinetTypeForCategory(category = "") {
 }
 
 async function saveCustomCabinetItem(form) {
+  const user = await getCurrentAssetUser();
+
+  if (!user) {
+    showAltarToast("Please sign in to save custom cabinet items");
+    return;
+  }
+
   const formData = new FormData(form);
   const category = String(formData.get("category") || "").trim();
   const name = String(formData.get("name") || "").trim();
@@ -176,9 +211,10 @@ async function saveCustomCabinetItem(form) {
     return;
   }
 
-  const image = await uploadUserAsset(file, "custom-cabinet-items");
-  const itemType = getCustomCabinetTypeForCategory(category);
+  const imageUrl = await uploadUserAsset(file, "custom-cabinet-items");
+  if (!imageUrl) return;
 
+  const itemType = getCustomCabinetTypeForCategory(category);
   let entityId = selectedEntityId;
 
   if (libraryMode === "new") {
@@ -218,29 +254,29 @@ async function saveCustomCabinetItem(form) {
     return;
   }
 
-  const customItems = getCustomCabinetItems();
-
-  customItems.unshift({
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+  const { error } = await db.from("custom_cabinet_items").insert({
+    user_id: user.id,
     category,
     name,
     icon: "✦",
     keywords,
-    entityId,
-    forms: [
-      {
-        label: "Place",
-        image,
-        type: itemType,
-        form: formLabel,
-        custom: true,
-        entityId
-      }
-    ],
-    createdAt: new Date().toISOString()
+    entity_id: entityId,
+    image_url: imageUrl,
+    item_type: itemType,
+    form_label: formLabel,
+    metadata: {
+      libraryMode
+    }
   });
 
-  saveCustomCabinetItems(customItems);
+  if (error) {
+    console.error(error);
+    showAltarToast("Custom cabinet item could not be saved");
+    return;
+  }
+
+  await loadCustomCabinetItems();
+
   closeCustomCabinetItemModal();
 
   activeCabinetCategory = category;
@@ -249,12 +285,26 @@ async function saveCustomCabinetItem(form) {
   showAltarToast(`${name} added to Cabinet`);
 }
 
-function deleteCustomCabinetItem(itemId) {
+async function deleteCustomCabinetItem(itemId) {
+  const user = await getCurrentAssetUser();
+  if (!user || !itemId) return;
+
   const confirmed = window.confirm("Delete this custom cabinet item? This will not delete the Living Library entry.");
   if (!confirmed) return;
 
-  const items = getCustomCabinetItems().filter((item) => item.id !== itemId);
-  saveCustomCabinetItems(items);
+  const { error } = await db
+    .from("custom_cabinet_items")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("id", itemId);
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Custom cabinet item could not be deleted");
+    return;
+  }
+
+  await loadCustomCabinetItems();
   renderCabinetItems();
   showAltarToast("Custom cabinet item deleted");
 }

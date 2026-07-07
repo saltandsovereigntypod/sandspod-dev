@@ -313,20 +313,13 @@ function renderCabinetItems() {
   const search = cabinetSearchTerm.toLowerCase();
 
   const customBackgrounds =
-    activeCabinetCategory === "backgrounds" && typeof getCustomAltarBackgrounds === "function"
-      ? getCustomAltarBackgrounds().map((background) => ({
-          category: "backgrounds",
-          name: background.name,
-          icon: background.icon || "🖼️",
-          keywords: background.keywords || ["custom", "uploaded"],
-          background: background.background,
-          customBackgroundId: background.id
-        }))
+    activeCabinetCategory === "backgrounds" && typeof customAltarBackgroundsCache !== "undefined"
+      ? customAltarBackgroundsCache
       : [];
 
   const customCabinetItems =
-    typeof getCustomCabinetItems === "function"
-      ? getCustomCabinetItems()
+    typeof customCabinetItemsCache !== "undefined"
+      ? customCabinetItemsCache
       : [];
 
   const items = [...customBackgrounds, ...customCabinetItems, ...cabinetItems].filter((item) => {
@@ -378,7 +371,24 @@ function renderCabinetItems() {
         const forms = item.forms || [];
 
         if (forms.length === 1) {
-          return renderCabinetTile(item, forms[0], false);
+          return `
+            <div class="cabinet-custom-wrap">
+              ${renderCabinetTile(item, forms[0], false)}
+
+              ${
+                item.customCabinetItemId
+                  ? `
+                    <button
+                      type="button"
+                      class="cabinet-mini-action"
+                      data-delete-custom-cabinet-item="${item.customCabinetItemId}">
+                      Delete
+                    </button>
+                  `
+                  : ""
+              }
+            </div>
+          `;
         }
 
         return `

@@ -1,34 +1,10 @@
 /* =========================================================
    CUSTOM CABINET IMAGES + BACKGROUNDS
-   Local-first user image overrides
+   Supabase-backed user asset records
    ========================================================= */
 
-const CUSTOM_CABINET_IMAGES_KEY = "saltAndSovereigntyCustomCabinetImages";
-const CUSTOM_ALTAR_BACKGROUNDS_KEY = "saltAndSovereigntyCustomAltarBackgrounds";
-
-function getCustomCabinetImages() {
-  try {
-    return JSON.parse(localStorage.getItem(CUSTOM_CABINET_IMAGES_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function saveCustomCabinetImages(images) {
-  localStorage.setItem(CUSTOM_CABINET_IMAGES_KEY, JSON.stringify(images));
-}
-
-function getCustomAltarBackgrounds() {
-  try {
-    return JSON.parse(localStorage.getItem(CUSTOM_ALTAR_BACKGROUNDS_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCustomAltarBackgrounds(backgrounds) {
-  localStorage.setItem(CUSTOM_ALTAR_BACKGROUNDS_KEY, JSON.stringify(backgrounds));
-}
+let customCabinetImageOverridesCache = {};
+let customAltarBackgroundsCache = [];
 
 function getCabinetImageOverrideKey(data = {}) {
   return [
@@ -44,29 +20,18 @@ function getCabinetImageOverrideKey(data = {}) {
   ].join("|");
 }
 
-function getCustomCabinetImage(data = {}) {
-  const images = getCustomCabinetImages();
-  return images[getCabinetImageOverrideKey(data)] || "";
-}
+async function getCurrentAssetUser() {
+  const {
+    data: { user }
+  } = await db.auth.getUser();
 
-function setCustomCabinetImage(data = {}, imageDataUrl = "") {
-  const images = getCustomCabinetImages();
-  images[getCabinetImageOverrideKey(data)] = imageDataUrl;
-  saveCustomCabinetImages(images);
-}
-
-function removeCustomCabinetImage(data = {}) {
-  const images = getCustomCabinetImages();
-  delete images[getCabinetImageOverrideKey(data)];
-  saveCustomCabinetImages(images);
+  return user || null;
 }
 
 async function uploadUserAsset(file, folder = "uploads") {
   if (!file) return "";
 
-  const {
-    data: { user }
-  } = await db.auth.getUser();
+  const user = await getCurrentAssetUser();
 
   if (!user) {
     showAltarToast("Please sign in to upload images");
@@ -90,11 +55,137 @@ async function uploadUserAsset(file, folder = "uploads") {
     return "";
   }
 
-  const { data } = db.storage
-    .from("user-assets")
-    .getPublicUrl(filePath);
-
+  const { data } = db.storage.from("user-assets").getPublicUrl(filePath);
   return data.publicUrl || "";
+}
+
+async function loadCustomCabinetImages() {
+  const user = await getCurrentAssetUser();
+
+  if (!user) {
+    customCabinetImageOverridesCache = {};
+    return {};
+  }
+
+  const { data, error } = await db
+    .from("custom_cabinet_image_overrides")
+    .select("*")
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error(error);
+    customCabinetImageOverridesCache = {};
+    return {};
+  }
+
+  customCabinetImageOverridesCache = (data || {}).reduce((output, row) => {
+    output[row.override_key] = row.image_url;
+    return output;
+  }, {});
+
+  return customCabinetImageOverridesCache;
+}
+
+function getCustomCabinetImages() {
+  return customCabinetImageOverridesCache;
+}
+
+function getCustomCabinetImage(data = {}) {
+  return customCabinetImageOverridesCache[getCabinetImageOverrideKey(data)] || "";
+}
+
+async function setCustomCabinetImage(data = {}, imageUrl = "") {
+  const user = await getCurrentAssetUser();
+
+  if (!user || !imageUrl) {
+    showAltarToast("Please sign in to save custom images");
+    return;
+  }
+
+  const overrideKey = getCabinetImageOverrideKey(data);
+
+  const { error } = await db
+    .from("custom_cabinet_image_overrides")
+    .upsert(
+      {
+        user_id: user.id,
+        override_key: overrideKey,
+        image_url: imageUrl,
+        metadata: {
+          label: data.label || "",
+          type: data.type || "",
+          form: data.form || ""
+        },
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "user_id,override_key" }
+    );
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Custom image could not be saved");
+    return;
+  }
+
+  customCabinetImageOverridesCache[overrideKey] = imageUrl;
+}
+
+async function removeCustomCabinetImage(data = {}) {
+  const user = await getCurrentAssetUser();
+  if (!user) return;
+
+  const overrideKey = getCabinetImageOverrideKey(data);
+
+  const { error } = await db
+    .from("custom_cabinet_image_overrides")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("override_key", overrideKey);
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Custom image could not be removed");
+    return;
+  }
+
+  delete customCabinetImageOverridesCache[overrideKey];
+}
+
+async function getCustomAltarBackgrounds() {
+  return customAltarBackgroundsCache;
+}
+
+async function loadCustomAltarBackgrounds() {
+  const user = await getCurrentAssetUser();
+
+  if (!user) {
+    customAltarBackgroundsCache = [];
+    return [];
+  }
+
+  const { data, error } = await db
+    .from("custom_altar_backgrounds")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    customAltarBackgroundsCache = [];
+    return [];
+  }
+
+  customAltarBackgroundsCache = (data || []).map((row) => ({
+    id: row.id,
+    category: "backgrounds",
+    name: row.name,
+    icon: row.icon || "🖼️",
+    keywords: row.keywords || ["custom", "uploaded", "background"],
+    background: row.image_url,
+    customBackgroundId: row.id
+  }));
+
+  return customAltarBackgroundsCache;
 }
 
 async function promptCustomCabinetImage(button) {
@@ -106,9 +197,10 @@ async function promptCustomCabinetImage(button) {
     const file = fileInput.files?.[0];
     if (!file) return;
 
-    const imageDataUrl = await uploadUserAsset(file, "cabinet");
+    const imageUrl = await uploadUserAsset(file, "cabinet");
+    if (!imageUrl) return;
 
-    setCustomCabinetImage(button.dataset, imageDataUrl);
+    await setCustomCabinetImage(button.dataset, imageUrl);
 
     renderCabinetItems();
     showAltarToast("Custom cabinet image saved");
@@ -117,8 +209,8 @@ async function promptCustomCabinetImage(button) {
   fileInput.click();
 }
 
-function restoreDefaultCabinetImage(button) {
-  removeCustomCabinetImage(button.dataset);
+async function restoreDefaultCabinetImage(button) {
+  await removeCustomCabinetImage(button.dataset);
   renderCabinetItems();
   showAltarToast("Default image restored");
 }
@@ -126,6 +218,13 @@ function restoreDefaultCabinetImage(button) {
 async function promptCustomAltarBackground() {
   const name = window.prompt("Name this altar background:", "My Custom Altar");
   if (!name || !name.trim()) return;
+
+  const user = await getCurrentAssetUser();
+
+  if (!user) {
+    showAltarToast("Please sign in to upload backgrounds");
+    return;
+  }
 
   const fileInput = document.createElement("input");
   fileInput.type = "file";
@@ -135,19 +234,24 @@ async function promptCustomAltarBackground() {
     const file = fileInput.files?.[0];
     if (!file) return;
 
-    const imageDataUrl = await uploadUserAsset(file, "backgrounds");
-    const backgrounds = getCustomAltarBackgrounds();
+    const imageUrl = await uploadUserAsset(file, "backgrounds");
+    if (!imageUrl) return;
 
-    backgrounds.unshift({
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    const { error } = await db.from("custom_altar_backgrounds").insert({
+      user_id: user.id,
       name: name.trim(),
       icon: "🖼️",
       keywords: ["custom", "uploaded", "background"],
-      background: imageDataUrl,
-      createdAt: new Date().toISOString()
+      image_url: imageUrl
     });
 
-    saveCustomAltarBackgrounds(backgrounds);
+    if (error) {
+      console.error(error);
+      showAltarToast("Custom background could not be saved");
+      return;
+    }
+
+    await loadCustomAltarBackgrounds();
 
     activeCabinetCategory = "backgrounds";
     renderCabinet();
@@ -157,12 +261,31 @@ async function promptCustomAltarBackground() {
   fileInput.click();
 }
 
-function deleteCustomAltarBackground(backgroundId) {
-  const backgrounds = getCustomAltarBackgrounds().filter((background) => {
-    return background.id !== backgroundId;
-  });
+async function deleteCustomAltarBackground(backgroundId) {
+  const user = await getCurrentAssetUser();
+  if (!user || !backgroundId) return;
 
-  saveCustomAltarBackgrounds(backgrounds);
+  const confirmed = window.confirm("Delete this custom background?");
+  if (!confirmed) return;
+
+  const { error } = await db
+    .from("custom_altar_backgrounds")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("id", backgroundId);
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Custom background could not be deleted");
+    return;
+  }
+
+  await loadCustomAltarBackgrounds();
   renderCabinetItems();
   showAltarToast("Custom background deleted");
+}
+
+async function loadCustomUserAssets() {
+  await loadCustomCabinetImages();
+  await loadCustomAltarBackgrounds();
 }
