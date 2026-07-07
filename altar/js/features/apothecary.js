@@ -10,17 +10,37 @@ const apothecaryTypes = [
   {
     id: "spell-jar",
     label: "Spell Jar",
-    presetImage: "../assets/altar/objects/vessels/spell-jar/spell-jar.png"
+    presetImage: "../assets/altar/objects/apothecary/spell-jar-two/spell-jar-two.png"
   },
   {
     id: "oil-tincture",
     label: "Oil / Tincture",
-    presetImage: "../assets/altar/objects/herbs/rosemary/rosemary-oil.png"
+    presetImage: "../assets/altar/objects/apothecary/oil-tincture/oil-tincture.png"
   },
   {
     id: "herb-mix",
     label: "Herb Mix",
-    presetImage: "../assets/altar/objects/herbs/rosemary/rosemary-loose.png"
+    presetImage: "../assets/altar/objects/herbs/herb-mix/herb-mix.png"
+  },
+  {
+    id: "incense",
+    label: "Incense",
+    presetImage: "../assets/altar/objects/herbs/incense/incense.png"
+  },
+  {
+    id: "sachet",
+    label: "Sachet",
+    presetImage: "../assets/altar/objects/apothecary/sachet/sachet.png"
+  },
+  {
+    id: "poppet",
+    label: "Poppet",
+    presetImage: "../assets/altar/objects/apothecary/poppet/poppet.png"
+  },
+  {
+    id: "spray",
+    label: "Spray",
+    presetImage: "../assets/altar/objects/apothecary/spray/spray.png"
   }
 ];
 

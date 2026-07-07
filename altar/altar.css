@@ -3693,3 +3693,41 @@ body.altar-living-state-minimized .altar-living-state-panel {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   Custom Cabinet Images
+   ========================================================= */
+
+.cabinet-custom-wrap {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.cabinet-custom-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--gold);
+}
+
+.cabinet-custom-actions span {
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15rem;
+}
+
+.cabinet-mini-action {
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  color: var(--gold);
+  background: rgba(244, 236, 216, 0.05);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}

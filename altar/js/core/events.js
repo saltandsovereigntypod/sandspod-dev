@@ -210,6 +210,57 @@ if (cabinetSearch) {
 
 if (altarCabinet) {
   altarCabinet.addEventListener("click", (event) => {
+    
+    const uploadCabinetImageButton = event.target.closest("[data-upload-cabinet-image]");
+    const restoreCabinetImageButton = event.target.closest("[data-restore-cabinet-image]");
+    const addCustomBackgroundButton = event.target.closest("[data-add-custom-background]");
+    const deleteCustomBackgroundButton = event.target.closest("[data-delete-custom-background]");
+
+    if (uploadCabinetImageButton) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const tile = uploadCabinetImageButton.closest("[data-image]");
+      if (tile && typeof promptCustomCabinetImage === "function") {
+        promptCustomCabinetImage(tile);
+      }
+
+      return;
+    }
+
+    if (restoreCabinetImageButton) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const tile = restoreCabinetImageButton.closest("[data-image]");
+      if (tile && typeof restoreDefaultCabinetImage === "function") {
+        restoreDefaultCabinetImage(tile);
+      }
+
+      return;
+    }
+
+    if (addCustomBackgroundButton) {
+      event.preventDefault();
+
+      if (typeof promptCustomAltarBackground === "function") {
+        promptCustomAltarBackground();
+      }
+
+      return;
+    }
+
+    if (deleteCustomBackgroundButton) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (typeof deleteCustomAltarBackground === "function") {
+        deleteCustomAltarBackground(deleteCustomBackgroundButton.dataset.deleteCustomBackground);
+      }
+
+      return;
+    }
+    
     const backgroundButton = event.target.closest("[data-background]");
 
     if (backgroundButton) {

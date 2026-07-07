@@ -39,12 +39,13 @@ const cabinetItems = [
         label: "Place",
         image: `../assets/altar/objects/candles/${color}-candle.${color === "white" || color === "black" ? "PNG" : "png"}`,
         type: "candle",
-        color
+        color,
+        form: "standard"
       }
     ]
   })),
 
-    ...[
+  ...[
     ["basil", "Basil", ["protection", "prosperity", "love", "courage", "cleansing"]],
     ["bay", "Bay", ["wishes", "protection", "victory", "divination", "success"], "bay-leaf", "bay"],
     ["cedar", "Cedar", ["protection", "purification", "blessing", "grounding", "ancestors"]],
@@ -73,7 +74,8 @@ const cabinetItems = [
     forms: [
       { label: "Sprig", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-sprig.png`, type: "herb", herb: id, form: "sprig" },
       { label: "Loose", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-loose.png`, type: "herb", herb: id, form: "loose" },
-      { label: "Oil", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-oil.png`, type: "oil", herb: id, form: "oil" }
+      { label: "Oil", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-oil.png`, type: "oil", herb: id, form: "oil" },
+      { label: "Incense", image: "../assets/altar/objects/herbs/incense/incense.png", type: "herb", herb: id, form: "incense" }
     ]
   })),
 
@@ -138,7 +140,6 @@ const cabinetItems = [
     keywords: ["protection", "banishing", "warding"],
     forms: [{ label: "Place", image: "../assets/altar/objects/tools/black-salt/black-salt.png", type: "tool", tool: "black-salt", form: "pile" }]
   },
-  
   {
     category: "tools",
     name: "Salt Circle",
@@ -146,7 +147,6 @@ const cabinetItems = [
     keywords: ["protection", "banishing", "warding"],
     forms: [{ label: "Place", image: "../assets/altar/objects/tools/salt-circle/2E77AAEA-4775-4EB3-9EEF-659AB1218A61.png", type: "tool", tool: "salt-circle", form: "pile" }]
   },
-
   {
     category: "deities",
     name: "Hekate Statue",
@@ -154,15 +154,13 @@ const cabinetItems = [
     keywords: ["crossroads", "torches", "keys"],
     forms: [{ label: "Place", image: "../assets/altar/objects/tools/deities/hekate/hekate-statue.png", type: "deity", deity: "hekate", form: "statue" }]
   },
-
-   {
+  {
     category: "deities",
     name: "Lilith Statue",
     icon: "🗝️",
-    keywords: [ ],
-    forms: [{ label: "Place", image: "../assets/altar/objects/tools/deities/lilith/lilith-statue.png", type: "deity", deity: "hekate", form: "statue" }]
+    keywords: [],
+    forms: [{ label: "Place", image: "../assets/altar/objects/tools/deities/lilith/lilith-statue.png", type: "deity", deity: "lilith", form: "statue" }]
   },
-
   {
     category: "vessels",
     name: "Cauldron",
@@ -192,6 +190,7 @@ function changeAltarBackground(button) {
   altarStage.dataset.backgroundName = backgroundName;
 
   showAltarToast(`${backgroundName} selected`);
+  saveWorkingAltarDraft();
 }
 
 function renderCabinetTabs() {
@@ -210,12 +209,120 @@ function renderCabinetTabs() {
     .join("");
 }
 
+function getCabinetDisplayImage(item, form) {
+  const label = form.label === "Place" ? item.name : `${item.name} ${form.label}`;
+
+  const overrideImage =
+    typeof getCustomCabinetImage === "function"
+      ? getCustomCabinetImage({
+          label,
+          type: form.type || "",
+          herb: form.herb || "",
+          form: form.form || "",
+          color: form.color || "",
+          crystal: form.crystal || "",
+          tool: form.tool || "",
+          vessel: form.vessel || "",
+          deity: form.deity || ""
+        })
+      : "";
+
+  return overrideImage || form.image || "";
+}
+
+function renderCabinetTile(item, form, isMultiForm = false) {
+  const label = isMultiForm ? `${item.name} ${form.label}` : item.name;
+  const displayImage = getCabinetDisplayImage(item, form);
+  const hasOverride =
+    typeof getCustomCabinetImage === "function" &&
+    Boolean(
+      getCustomCabinetImage({
+        label,
+        type: form.type || "",
+        herb: form.herb || "",
+        form: form.form || "",
+        color: form.color || "",
+        crystal: form.crystal || "",
+        tool: form.tool || "",
+        vessel: form.vessel || "",
+        deity: form.deity || ""
+      })
+    );
+
+  return `
+    <button
+      type="button"
+      class="cabinet-tile ${isMultiForm ? "cabinet-form-tile" : ""}"
+      data-image="${displayImage}"
+      data-label="${label}"
+      data-type="${form.type || ""}"
+      data-herb="${form.herb || ""}"
+      data-form="${form.form || ""}"
+      data-color="${form.color || ""}"
+      data-crystal="${form.crystal || ""}"
+      data-tool="${form.tool || ""}"
+      data-vessel="${form.vessel || ""}"
+      data-deity="${form.deity || ""}">
+      <span class="cabinet-tile-image-wrap">
+        <img src="${displayImage}" alt="" class="cabinet-tile-image" loading="lazy" />
+      </span>
+
+      <span class="cabinet-tile-name">${isMultiForm ? form.label : item.name}</span>
+
+      <span class="cabinet-custom-actions">
+        <span data-upload-cabinet-image>${hasOverride ? "Change" : "Upload"}</span>
+        ${hasOverride ? `<span data-restore-cabinet-image>Restore</span>` : ""}
+      </span>
+    </button>
+  `;
+}
+
+function renderCabinetBackgroundTile(item) {
+  return `
+    <div class="cabinet-custom-wrap">
+      <button
+        type="button"
+        class="cabinet-tile cabinet-background-tile"
+        data-background="${item.background}"
+        data-background-name="${item.name}">
+        <span class="cabinet-tile-icon">${item.icon || "✦"}</span>
+        <span class="cabinet-tile-name">${item.name}</span>
+      </button>
+
+      ${
+        item.customBackgroundId
+          ? `
+            <button
+              type="button"
+              class="cabinet-mini-action"
+              data-delete-custom-background="${item.customBackgroundId}">
+              Delete
+            </button>
+          `
+          : ""
+      }
+    </div>
+  `;
+}
+
 function renderCabinetItems() {
   if (!cabinetContent) return;
 
   const search = cabinetSearchTerm.toLowerCase();
 
-  const items = cabinetItems.filter((item) => {
+  const customBackgrounds =
+    activeCabinetCategory === "backgrounds" && typeof getCustomAltarBackgrounds === "function"
+      ? getCustomAltarBackgrounds().map((background) => ({
+          category: "backgrounds",
+          name: background.name,
+          icon: background.icon || "🖼️",
+          keywords: background.keywords || ["custom", "uploaded"],
+          background: background.background,
+          customBackgroundId: background.id
+        }))
+      : [];
+
+  const items = [...customBackgrounds, ...cabinetItems].filter((item) => {
     const matchesCategory = item.category === activeCabinetCategory;
     const searchable = [
       item.name,
@@ -227,88 +334,49 @@ function renderCabinetItems() {
     return matchesCategory && searchable.includes(search);
   });
 
-  if (items.length === 0) {
+  if (items.length === 0 && activeCabinetCategory !== "backgrounds") {
     cabinetContent.innerHTML = `<p class="cabinet-empty">No cabinet items found.</p>`;
     return;
   }
 
-  cabinetContent.innerHTML = items
-    .map((item) => {
-      if (item.background) {
+  const addBackgroundTile =
+    activeCabinetCategory === "backgrounds"
+      ? `
+        <button type="button" class="cabinet-tile cabinet-background-tile" data-add-custom-background>
+          <span class="cabinet-tile-icon">＋</span>
+          <span class="cabinet-tile-name">Upload Background</span>
+        </button>
+      `
+      : "";
+
+  cabinetContent.innerHTML =
+    addBackgroundTile +
+    items
+      .map((item) => {
+        if (item.background) {
+          return renderCabinetBackgroundTile(item);
+        }
+
+        const forms = item.forms || [];
+
+        if (forms.length === 1) {
+          return renderCabinetTile(item, forms[0], false);
+        }
+
         return `
-          <button
-            type="button"
-            class="cabinet-tile cabinet-background-tile"
-            data-background="${item.background}"
-            data-background-name="${item.name}">
-            <span class="cabinet-tile-icon">${item.icon || "✦"}</span>
-            <span class="cabinet-tile-name">${item.name}</span>
-          </button>
+          <article class="cabinet-multi-tile">
+            <div class="cabinet-multi-heading">
+              <span>${item.icon || "✦"}</span>
+              <strong>${item.name}</strong>
+            </div>
+
+            <div class="cabinet-form-grid">
+              ${forms.map((form) => renderCabinetTile(item, form, true)).join("")}
+            </div>
+          </article>
         `;
-      }
-
-      const forms = item.forms || [];
-
-      if (forms.length === 1) {
-        const form = forms[0];
-
-        return `
-          <button
-            type="button"
-            class="cabinet-tile"
-            data-image="${form.image || ""}"
-            data-label="${item.name}"
-            data-type="${form.type || ""}"
-            data-herb="${form.herb || ""}"
-            data-form="${form.form || ""}"
-            data-color="${form.color || ""}"
-            data-crystal="${form.crystal || ""}"
-            data-tool="${form.tool || ""}"
-            data-vessel="${form.vessel || ""}"
-            data-deity="${form.deity || ""}">
-            <span class="cabinet-tile-image-wrap">
-              <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
-            </span>
-            <span class="cabinet-tile-name">${item.name}</span>
-          </button>
-        `;
-      }
-
-      return `
-        <article class="cabinet-multi-tile">
-          <div class="cabinet-multi-heading">
-            <span>${item.icon || "✦"}</span>
-            <strong>${item.name}</strong>
-          </div>
-
-          <div class="cabinet-form-grid">
-            ${forms
-              .map((form) => `
-                <button
-                  type="button"
-                  class="cabinet-tile cabinet-form-tile"
-                  data-image="${form.image || ""}"
-                  data-label="${item.name} ${form.label}"
-                  data-type="${form.type || ""}"
-                  data-herb="${form.herb || ""}"
-                  data-form="${form.form || ""}"
-                  data-color="${form.color || ""}"
-                  data-crystal="${form.crystal || ""}"
-                  data-tool="${form.tool || ""}"
-                  data-vessel="${form.vessel || ""}"
-                  data-deity="${form.deity || ""}">
-                  <span class="cabinet-tile-image-wrap">
-                    <img src="${form.image || ""}" alt="" class="cabinet-tile-image" loading="lazy" />
-                  </span>
-                  <span class="cabinet-tile-name">${form.label}</span>
-                </button>
-              `)
-              .join("")}
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+      })
+      .join("");
 }
 
 function renderCabinet() {
