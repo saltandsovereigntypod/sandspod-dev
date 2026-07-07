@@ -1794,625 +1794,643 @@ const TraditionalLibrary = {
 
     deity: {
         aphrodite: {
+            DisplayName: "Aphrodite",
+            Category: "Deity",
+
             Pantheon: "Greek",
-
             Domains: "Love, beauty, desire, pleasure, relationships, self-worth",
-
             SacredSymbols: "Dove, seashell, mirror, rose, apple",
-
             SacredAnimals: "Doves, swans, sparrows",
-
             SacredPlants: "Rose, myrtle, apple, cinnamon",
-
             CandleColors: "Pink, red, green",
-
             Crystals: "Rose quartz, emerald, garnet, moonstone",
-
             Herbs: "Rose, cinnamon, lavender, patchouli",
-
             Offerings: "Honey, wine, roses, perfumes, jewelry, apples, chocolate",
-
             TraditionalWarnings: "Traditions honoring Aphrodite vary between ancient Greek religion and modern devotional practice.",
 
-            tags: [
-            "love",
-            "beauty",
-            "relationships",
-            "self-love",
-            "desire",
-            "venus"
-            ]
+            Overview: "Aphrodite is the Greek goddess of love, beauty, desire, pleasure, attraction, and relational power. In modern witchcraft and devotional practice, she is often approached for self-love, romantic love, sensuality, confidence, beauty, healing shame around desire, and reconnecting with the body. Aphrodite is not only a goddess of romance. She also represents magnetism, embodiment, worthiness, softness, and the power of being fully alive in one’s own skin.",
+
+            TraditionalMeaning: "Traditionally, Aphrodite is associated with love, beauty, sexuality, fertility, the sea, flowers, adornment, and the irresistible force of desire. Her myths can be tender, playful, complicated, and disruptive, reflecting the many ways love and desire shape human life. In magical practice, she is often invoked for attraction, emotional healing, pleasure, confidence, and the restoration of self-worth.",
+
+            DevotionalApproach: "Devotion to Aphrodite often centers on beauty, pleasure, softness, self-respect, and honoring the body. This can include tending an altar with flowers, lighting pink or red candles, wearing perfume, creating art, caring for the skin, speaking kindly to oneself, or making choices that affirm love rather than shame. Devotion to Aphrodite does not have to be sexual or romantic. It can be deeply personal, healing, and self-restorative.",
+
+            OfferingNotes: "Traditional and modern offerings may include roses, honey, wine, apples, seashells, perfume, jewelry, chocolate, poetry, music, and acts of self-care. Offerings should be given with respect and not as a transaction. A simple offering of clean water, a rose, or a heartfelt prayer can be meaningful.",
+
+            AltarIdeas: "An Aphrodite altar may include pink, red, green, or white candles, rose quartz, seashells, rose petals, mirrors, perfume bottles, apples, pearls, copper, ocean imagery, and symbols of beauty or love. The altar can feel soft, sensual, elegant, romantic, or emotionally healing depending on the practitioner’s relationship with her.",
+
+            CulturalContext: "Aphrodite comes from ancient Greek religion, but modern devotion often blends historical references, personal gnosis, witchcraft, and contemporary spiritual practice. Her worship was not limited to gentle romance. Ancient cults and myths show her as powerful, complex, and capable of influencing desire, fertility, war, sovereignty, and social bonds.",
+
+            BeginnerTip: "Start with self-love before attraction magic. Light a pink candle, offer rose petals or water, and ask Aphrodite to help you treat yourself as someone worthy of tenderness.",
+
+            tags: ["love", "beauty", "relationships", "self-love", "desire", "venus"]
         },
 
         apollo: {
+            DisplayName: "Apollo",
+            Category: "Deity",
+
             Pantheon: "Greek",
-
             Domains: "Healing, music, prophecy, poetry, truth, the sun",
-
             SacredSymbols: "Lyre, laurel wreath, bow, sun",
-
             SacredAnimals: "Raven, swan, wolf, dolphin",
-
             SacredPlants: "Bay laurel, sunflower",
-
             CandleColors: "Yellow, gold, white",
-
             Crystals: "Sunstone, citrine, clear quartz, tiger eye",
-
             Herbs: "Bay, rosemary, frankincense",
-
             Offerings: "Music, poetry, honey, wine, olive oil, bay leaves",
-
             TraditionalWarnings: "Apollo is traditionally associated with both healing and plague, reflecting balance rather than purely benevolent power.",
 
-            tags: [
-            "healing",
-            "music",
-            "truth",
-            "prophecy",
-            "sun",
-            "knowledge"
-            ]
+            Overview: "Apollo is the Greek god of healing, prophecy, music, poetry, truth, light, order, and the sun. In modern practice, he is often approached for clarity, creative inspiration, healing support, discipline, artistic expression, divination, and the courage to face truth. Apollo’s energy is often described as bright, precise, illuminating, and demanding of honesty.",
+
+            TraditionalMeaning: "Traditionally, Apollo is connected with the Delphic oracle, sacred music, poetic inspiration, medicine, archery, purification, and radiant divine order. He is a god of both healing and harm, capable of bringing disease as well as remedy. This duality makes him a deity of responsibility, truth, and the consequences of imbalance.",
+
+            DevotionalApproach: "Devotion to Apollo can include music, singing, poetry, study, disciplined creativity, divination, physical care, sunlight rituals, and acts of truth-telling. He may be honored through learning an instrument, writing honestly, practicing a healing art, tending physical health, or dedicating time to creative discipline.",
+
+            OfferingNotes: "Offerings may include bay leaves, honey, wine, olive oil, incense, music, poetry, sunlight, clean water, and acts of artistic devotion. Playing or writing music can be a meaningful offering. So can studying, practicing, or speaking truth where avoidance has taken root.",
+
+            AltarIdeas: "An Apollo altar may include yellow, gold, or white candles, bay leaves, citrine, clear quartz, sun imagery, a small lyre or instrument symbol, poetry, medical symbols, or divination tools. The altar often feels bright, clean, ordered, and intentional.",
+
+            CulturalContext: "Apollo comes from ancient Greek religion and was widely honored across the Greek world. Modern devotional approaches may draw from mythology, reconstructionist practice, Hellenic polytheism, witchcraft, or personal spiritual experience. His solar associations are strong in modern practice, though ancient associations are more complex than simply being a sun god.",
+
+            BeginnerTip: "If you are working with Apollo, bring him something practiced, not perfect. A song, poem, study session, or honest journal entry can be a stronger offering than something polished but empty.",
+
+            tags: ["healing", "music", "truth", "prophecy", "sun", "knowledge"]
         },
 
         artemis: {
+            DisplayName: "Artemis",
+            Category: "Deity",
+
             Pantheon: "Greek",
-
             Domains: "The wilderness, hunting, the moon, independence, childbirth, wild animals",
-
             SacredSymbols: "Bow, crescent moon, stag, torch",
-
             SacredAnimals: "Deer, bear, hunting dogs",
-
             SacredPlants: "Cypress, mugwort",
-
             CandleColors: "White, silver, green",
-
             Crystals: "Moonstone, labradorite, clear quartz, moss agate",
-
             Herbs: "Mugwort, rosemary, yarrow",
-
             Offerings: "Fresh water, flowers, honey, handmade crafts, arrows, incense",
-
             TraditionalWarnings: "Ancient traditions often emphasize respect for nature and personal integrity when honoring Artemis.",
 
-            tags: [
-            "moon",
-            "nature",
-            "wildlife",
-            "independence",
-            "protection",
-            "hunt"
-            ]
+            Overview: "Artemis is the Greek goddess of the wilderness, wild animals, hunting, independence, childbirth, young people, and the moon in many modern associations. She is often approached for protection, autonomy, courage, nature connection, bodily sovereignty, and the preservation of wildness. Artemis is especially meaningful to practitioners who value independence, boundaries, and sacred solitude.",
+
+            TraditionalMeaning: "Traditionally, Artemis is connected with the hunt, wild places, animals, chastity, transition, protection of children, and the fierce defense of her own freedom. She is not simply gentle moonlight. She is wild, precise, protective, and unwilling to be possessed.",
+
+            DevotionalApproach: "Devotion to Artemis may include spending time in nature, protecting animals, supporting children or vulnerable people, practicing archery or outdoor skills, honoring bodily autonomy, and creating rituals around independence and protection. She may be approached as a guardian of boundaries and wild spaces.",
+
+            OfferingNotes: "Offerings may include fresh water, honey, flowers, incense, handmade crafts, images of deer or bears, moonlit prayers, acts of environmental care, or donations to animal protection causes. Ethical action can be an especially meaningful offering.",
+
+            AltarIdeas: "An Artemis altar may include silver, white, or green candles, moonstone, moss agate, antlers or deer imagery, a bow symbol, wildflowers, cypress, mugwort, and natural objects gathered respectfully. The altar may feel wild, clean, moonlit, and untamed.",
+
+            CulturalContext: "Artemis comes from ancient Greek religion and has many local forms and cults. Modern witchcraft often emphasizes her lunar and independence associations, while ancient worship also focused heavily on hunting, childbirth, protection of youth, and wild nature.",
+
+            BeginnerTip: "Approach Artemis through respect for your own boundaries. A simple devotion could be a walk outside, fresh water on the altar, and a promise not to abandon yourself.",
+
+            tags: ["moon", "nature", "wildlife", "independence", "protection", "hunt"]
         },
 
         bastet: {
+            DisplayName: "Bastet",
+            Category: "Deity",
+
             Pantheon: "Egyptian",
-
             Domains: "Home, cats, protection, pleasure, fertility, joy",
-
             SacredSymbols: "Cat, sistrum, basket",
-
             SacredAnimals: "Cats, lions",
-
             SacredPlants: "Papyrus, lotus",
-
             CandleColors: "Green, gold, white",
-
             Crystals: "Tiger eye, carnelian, amber, citrine",
-
             Herbs: "Catnip, rosemary, cinnamon",
-
             Offerings: "Milk, perfume, flowers, music, bread, honey",
-
             TraditionalWarnings: "Modern offerings involving milk are symbolic and not universally practiced in reconstructed Egyptian traditions.",
 
-            tags: [
-            "cats",
-            "home",
-            "joy",
-            "fertility",
-            "protection",
-            "family"
-            ]
+            Overview: "Bastet is an Egyptian goddess associated with cats, protection, home, joy, fertility, music, pleasure, and household blessing. In modern practice, she is often approached as a guardian of the home, a protector of cats, a deity of sensual joy, and a warm but fierce presence who defends what is beloved.",
+
+            TraditionalMeaning: "Traditionally, Bastet has both gentle and fierce aspects. She is strongly linked with cats, but her earlier associations also connect her with lioness power and protective force. She represents joy, domestic blessing, music, fertility, perfume, and the protective power of pleasure and home.",
+
+            DevotionalApproach: "Devotion to Bastet can include caring for cats, protecting the home, making space for joy, playing music, wearing perfume, dancing, tending beauty, and creating a peaceful household. She may be honored through acts of protection and acts of delight.",
+
+            OfferingNotes: "Offerings may include fresh water, bread, honey, perfume, flowers, music, dance, cat-safe offerings, or donations to cat shelters. Milk is common in modern symbolism, but it is not always appropriate for actual cats and is not universal across traditions.",
+
+            AltarIdeas: "A Bastet altar may include cat imagery, gold or green candles, tiger eye, carnelian, perfume bottles, bells, music symbols, flowers, and offerings of water or bread. It may feel warm, graceful, sensual, protective, and joyful.",
+
+            CulturalContext: "Bastet comes from ancient Egyptian religion. Modern devotional work may draw from Kemetic reconstruction, witchcraft, personal devotion, and popular symbolism. Because ancient Egyptian religious practice has specific cultural and ritual context, it is worth approaching her with respect rather than treating her only as a cat aesthetic.",
+
+            BeginnerTip: "A beautiful way to honor Bastet is to care for the living cats in your life, including play, protection, comfort, and respect for their boundaries.",
+
+            tags: ["cats", "home", "joy", "fertility", "protection", "family"]
         },
 
         brigid: {
+            DisplayName: "Brigid",
+            Category: "Deity",
+
             Pantheon: "Celtic",
-
             Domains: "Healing, poetry, inspiration, smithcraft, sacred fire",
-
             SacredSymbols: "Brigid's Cross, flame, well",
-
             SacredAnimals: "Cow, sheep, swan",
-
             SacredPlants: "Oak, rowan, snowdrop",
-
             CandleColors: "White, red, gold",
-
             Crystals: "Carnelian, clear quartz, sunstone",
-
             Herbs: "Rosemary, chamomile, bay",
-
             Offerings: "Milk, butter, bread, poetry, handmade crafts, fresh water",
-
             TraditionalWarnings: "Brigid is honored in both pre-Christian and Christian traditions, each with distinct customs.",
 
-            tags: [
-            "healing",
-            "fire",
-            "poetry",
-            "craftsmanship",
-            "inspiration",
-            "imbolc"
-            ]
+            Overview: "Brigid is a beloved Celtic goddess associated with healing, poetry, inspiration, smithcraft, sacred fire, hearth, wells, protection, and renewal. She is also honored as Saint Brigid in Christian traditions, making her a deeply layered figure across religious history. In modern witchcraft, she is often approached for creativity, healing, household blessing, courage, and sacred inspiration.",
+
+            TraditionalMeaning: "Brigid’s traditional associations include flame, healing waters, poetry, craftsmanship, fertility, protection, and the return of light. She is strongly connected with Imbolc, inspiration, the hearth, and the sacred transformation of raw material into beauty or usefulness.",
+
+            DevotionalApproach: "Devotion to Brigid may include tending a flame, writing poetry, making crafts, caring for the sick, blessing the home, visiting wells or water sources, and honoring the seasonal shift toward spring. She is often approached through practical devotion, making, healing, and tending.",
+
+            OfferingNotes: "Offerings may include milk, butter, bread, fresh water, poetry, candles, handmade crafts, woven crosses, flowers, or acts of healing and service. A poem written sincerely can be a powerful offering.",
+
+            AltarIdeas: "A Brigid altar may include white, red, or gold candles, a Brigid’s Cross, a bowl of water, poetry, tools of craft, wool, flowers, carnelian, clear quartz, and symbols of flame or wells. The altar often feels warm, clean, healing, and hearth-centered.",
+
+            CulturalContext: "Brigid exists in both pre-Christian Celtic and Christian devotional contexts. Modern practitioners may approach her as a goddess, saint, ancestor of tradition, or syncretic figure. It is important to recognize that different communities honor her in different ways.",
+
+            BeginnerTip: "Light one candle and write four honest lines of poetry. Brigid does not require perfection. She responds beautifully to sincere making.",
+
+            tags: ["healing", "fire", "poetry", "craftsmanship", "inspiration", "imbolc"]
         },
 
         cernunnos: {
+            DisplayName: "Cernunnos",
+            Category: "Deity",
+
             Pantheon: "Celtic",
-
             Domains: "Nature, wild animals, fertility, prosperity, the hunt, balance",
-
             SacredSymbols: "Antlers, torc, serpent, oak tree",
-
             SacredAnimals: "Stag, bull, serpent, wolf",
-
             SacredPlants: "Oak, ivy, mistletoe",
-
             CandleColors: "Green, brown, gold",
-
             Crystals: "Moss agate, green aventurine, smoky quartz, tiger eye",
-
             Herbs: "Oak, patchouli, cedar, thyme",
-
             Offerings: "Acorns, apples, nuts, bread, ale, fresh spring water",
-
             TraditionalWarnings: "Little survives from ancient Celtic practice. Many modern correspondences are reconstructed from historical evidence and contemporary traditions.",
 
-            tags: [
-            "nature",
-            "forest",
-            "animals",
-            "fertility",
-            "prosperity",
-            "balance"
-            ]
+            Overview: "Cernunnos is a horned figure commonly associated in modern paganism with wild nature, animals, fertility, prosperity, the forest, and the balance between human and animal life. He is often approached as a lord of the wild, a guardian of nature, and a deity of embodied, earthly abundance.",
+
+            TraditionalMeaning: "The historical evidence for Cernunnos is limited, but imagery often shows an antlered figure with animals, a torc, and sometimes a serpent. Modern traditions have built on these symbols to connect him with wildness, fertility, prosperity, the hunt, and the sacred relationship between humans and the natural world.",
+
+            DevotionalApproach: "Devotion to Cernunnos may include spending time in forests, caring for animals, honoring seasonal cycles, practicing ecological responsibility, grounding into the body, and respecting the land. He is often approached through quiet presence in nature rather than elaborate ritual.",
+
+            OfferingNotes: "Offerings may include acorns, apples, nuts, bread, ale, fresh water, herbs, ethically gathered natural objects, or acts of environmental care. Leaving offerings outdoors should be done responsibly so they do not harm wildlife or the land.",
+
+            AltarIdeas: "A Cernunnos altar may include antlers, oak leaves, moss agate, green aventurine, smoky quartz, brown or green candles, animal imagery, acorns, seeds, and forest symbols. The altar may feel earthy, wild, grounded, and alive.",
+
+            CulturalContext: "Cernunnos is known primarily through limited ancient inscriptions and imagery, so much of his modern identity comes from reconstruction, interpretation, and contemporary pagan practice. It is best to present his correspondences as traditional-modern rather than fully documented ancient doctrine.",
+
+            BeginnerTip: "Honor Cernunnos by going outside without asking for anything. Listen, observe, and let the land be more than scenery.",
+
+            tags: ["nature", "forest", "animals", "fertility", "prosperity", "balance"]
         },
 
         cerridwen: {
+            DisplayName: "Cerridwen",
+            Category: "Deity",
+
             Pantheon: "Welsh",
-
             Domains: "Wisdom, inspiration, transformation, rebirth, poetry, magic",
-
             SacredSymbols: "Cauldron, white sow, moon",
-
             SacredAnimals: "White sow, hawk",
-
             SacredPlants: "Mugwort, vervain, willow",
-
             CandleColors: "Silver, purple, white",
-
             Crystals: "Amethyst, moonstone, labradorite, clear quartz",
-
             Herbs: "Mugwort, rosemary, lavender",
-
             Offerings: "Poetry, milk, oats, bread, herbal tea, spring water",
-
             TraditionalWarnings: "Most modern magical associations come from Welsh mythology rather than evidence of historical worship.",
 
-            tags: [
-            "wisdom",
-            "transformation",
-            "rebirth",
-            "cauldron",
-            "magic",
-            "inspiration"
-            ]
+            Overview: "Cerridwen is a Welsh figure associated in modern witchcraft with the cauldron, transformation, inspiration, wisdom, poetry, magic, and rebirth. She is often approached as a goddess of deep change, creative initiation, and the difficult process of becoming wise.",
+
+            TraditionalMeaning: "Cerridwen is best known from Welsh myth involving her cauldron of inspiration and the transformation story connected with Taliesin. In modern practice, the cauldron becomes a symbol of brewing, transformation, death and rebirth, poetic inspiration, and the mystery of change.",
+
+            DevotionalApproach: "Devotion to Cerridwen may include writing poetry, working with a cauldron, studying myth, embracing transformation, practicing divination, and honoring the creative process even when it is uncomfortable. She is often approached during times of identity change or spiritual initiation.",
+
+            OfferingNotes: "Offerings may include poetry, oats, bread, milk, herbal tea, spring water, mugwort, incense, or creative work. A poem, chant, or written truth can be especially fitting.",
+
+            AltarIdeas: "A Cerridwen altar may include a cauldron, silver or purple candles, mugwort, amethyst, moonstone, labradorite, water, poetry, and symbols of the moon or sow. The altar may feel mysterious, lunar, creative, and transformational.",
+
+            CulturalContext: "Cerridwen is rooted in Welsh mythology, but clear evidence of ancient worship is limited. Many modern associations come from contemporary witchcraft, Druidry, and poetic interpretation. This does not make them invalid, but it is important to distinguish mythology from documented cult practice.",
+
+            BeginnerTip: "Work with Cerridwen when you are ready to be changed by what you learn. Her cauldron is not just inspiration, it is transformation.",
+
+            tags: ["wisdom", "transformation", "rebirth", "cauldron", "magic", "inspiration"]
         },
 
         durga: {
+            DisplayName: "Durga",
+            Category: "Deity",
+
             Pantheon: "Hindu",
-
             Domains: "Protection, courage, righteous action, strength, motherhood, victory over evil",
-
             SacredSymbols: "Trident, lion, lotus, weapons",
-
             SacredAnimals: "Lion, tiger",
-
             SacredPlants: "Lotus, neem",
-
             CandleColors: "Red, gold, white",
-
             Crystals: "Carnelian, garnet, tiger eye, ruby",
-
             Herbs: "Turmeric, cinnamon, basil",
-
             Offerings: "Fresh fruit, sweets, flowers, incense, coconuts, rice",
-
             TraditionalWarnings: "Durga is a living deity in Hindu religious practice. Traditional worship follows customs that may differ significantly from modern witchcraft.",
 
-            tags: [
-            "protection",
-            "strength",
-            "courage",
-            "justice",
-            "mother",
-            "victory"
-            ]
+            Overview: "Durga is a powerful Hindu goddess associated with protection, courage, righteous action, motherhood, strength, and victory over evil. She is often depicted riding a lion or tiger and carrying weapons, representing divine power that confronts chaos and protects the world. In modern spiritual contexts, she may be approached for courage, protection, and the strength to face what is harmful.",
+
+            TraditionalMeaning: "Durga is not merely a symbolic archetype. She is a living and actively worshipped deity within Hindu traditions. Her myths often emphasize the defeat of destructive forces, the protection of cosmic order, and the power of the divine feminine as fierce, compassionate, and sovereign.",
+
+            DevotionalApproach: "Devotion to Durga traditionally may involve mantra, prayer, ritual purity, offerings, festivals such as Navaratri, and culturally specific forms of worship. Practitioners outside Hindu traditions should approach her with humility, respect, and willingness to learn from Hindu sources rather than flattening her into a generic warrior goddess.",
+
+            OfferingNotes: "Offerings may include flowers, fruit, sweets, rice, coconuts, incense, lamps, and devotional song. If honoring Durga, it is wise to learn from Hindu devotional context and avoid casual or aesthetic use detached from respect.",
+
+            AltarIdeas: "A Durga altar may include red, gold, or white candles, flowers, fruit, incense, images of Durga, lion or tiger symbolism, carnelian, garnet, and offerings placed cleanly and respectfully. The altar should feel intentional and reverent rather than decorative alone.",
+
+            CulturalContext: "Durga belongs to living Hindu religious traditions with established practices, festivals, theology, and devotional forms. Any witchcraft-based use should be framed carefully and respectfully, especially for practitioners outside that culture or religion.",
+
+            BeginnerTip: "If you feel called to Durga, begin by learning about her from Hindu sources. Respect comes before correspondence.",
+
+            tags: ["protection", "strength", "courage", "justice", "mother", "victory"]
         },
 
         freyja: {
+            DisplayName: "Freyja",
+            Category: "Deity",
+
             Pantheon: "Norse",
-
             Domains: "Love, beauty, magic, fertility, war, wealth",
-
             SacredSymbols: "Brísingamen necklace, falcon cloak, chariot",
-
             SacredAnimals: "Cats, falcons, boars",
-
             SacredPlants: "Primrose, flax",
-
             CandleColors: "Pink, green, gold",
-
             Crystals: "Rose quartz, amber, moonstone, citrine",
-
             Herbs: "Rose, lavender, chamomile",
-
             Offerings: "Honey, mead, flowers, jewelry, bread, berries",
-
             TraditionalWarnings: "Modern Norse Pagan traditions vary widely, and historical sources describing Freyja are limited.",
 
-            tags: [
-            "love",
-            "magic",
-            "fertility",
-            "wealth",
-            "beauty",
-            "seidr"
-            ]
+            Overview: "Freyja is a Norse goddess associated with love, beauty, sexuality, fertility, magic, wealth, war, death, and sovereignty. She is complex and powerful, combining sensuality with battle, desire with magic, and beauty with independence. In modern practice, she is often approached for self-worth, love, seidr, abundance, courage, and personal sovereignty.",
+
+            TraditionalMeaning: "Traditionally, Freyja is connected with the Vanir, fertility, love, magic, the necklace Brísingamen, cats, falcons, boars, and the receiving of some of the battle-dead. She is not only a love goddess. She is also a magical, wealthy, independent, and formidable figure.",
+
+            DevotionalApproach: "Devotion to Freyja may include offerings of beauty, acts of self-worth, magical study, honoring desire, working with cats or falcon imagery, practicing divination, and claiming personal sovereignty. She may be approached with warmth, admiration, honesty, and respect for her complexity.",
+
+            OfferingNotes: "Offerings may include honey, mead, flowers, berries, jewelry, amber, bread, perfume, poetry, or acts of pleasure and self-honor. Because she is associated with wealth and beauty, offerings chosen with care may feel especially appropriate.",
+
+            AltarIdeas: "A Freyja altar may include pink, green, or gold candles, rose quartz, amber, citrine, cat imagery, falcon feathers or symbols, flowers, jewelry, and symbols of sensuality, magic, or sovereignty. The altar may feel lush, warm, beautiful, and powerful.",
+
+            CulturalContext: "Freyja comes from Norse mythology and is honored in many forms of modern Heathenry, Norse Paganism, and witchcraft. Surviving sources are limited and filtered through later manuscripts, so modern devotional practice often includes reconstruction and personal experience.",
+
+            BeginnerTip: "Do not reduce Freyja to romance. She is love, yes, but also magic, wealth, battle, grief, pleasure, and power.",
+
+            tags: ["love", "magic", "fertility", "wealth", "beauty", "seidr"]
         },
 
         ganesha: {
+            DisplayName: "Ganesha",
+            Category: "Deity",
+
             Pantheon: "Hindu",
-
             Domains: "New beginnings, wisdom, learning, prosperity, removing obstacles",
-
             SacredSymbols: "Elephant head, mouse, broken tusk, modak",
-
             SacredAnimals: "Elephant, mouse",
-
             SacredPlants: "Durva grass, lotus",
-
             CandleColors: "Yellow, orange, gold",
-
             Crystals: "Citrine, clear quartz, yellow calcite, carnelian",
-
             Herbs: "Turmeric, basil, sandalwood",
-
             Offerings: "Modak sweets, fruit, coconuts, incense, flowers",
-
             TraditionalWarnings: "Ganesha is widely worshipped in Hinduism. Traditional devotional practices should be approached with cultural respect.",
 
-            tags: [
-            "beginnings",
-            "wisdom",
-            "learning",
-            "prosperity",
-            "obstacles",
-            "success"
-            ]
+            Overview: "Ganesha is a beloved Hindu deity associated with wisdom, learning, new beginnings, prosperity, and the removal of obstacles. He is often invoked before major undertakings, travel, study, business, ritual, and life transitions. In modern spiritual practice, many people approach Ganesha when they need help beginning well or clearing the path ahead.",
+
+            TraditionalMeaning: "Ganesha is a living deity in Hindu traditions, not simply a symbol of luck. His elephant head, broken tusk, mouse vehicle, and sweets all carry layers of religious meaning. He is associated with intelligence, humility, discernment, abundance, and the ability to navigate obstacles wisely.",
+
+            DevotionalApproach: "Traditional devotion to Ganesha may include mantra, prayer, offerings, festival observance, and ritual forms rooted in Hindu practice. Practitioners outside Hindu traditions should approach him respectfully and learn from Hindu sources rather than treating him as a generic good luck charm.",
+
+            OfferingNotes: "Offerings may include modak sweets, fruit, coconuts, flowers, incense, rice, and clean water. When possible, learn which offerings are traditional and appropriate rather than improvising without context.",
+
+            AltarIdeas: "A Ganesha altar may include yellow, orange, or gold candles, flowers, fruit, incense, citrine, clear quartz, written goals, study materials, and an image or murti treated respectfully. The altar should be clean, intentional, and approached with reverence.",
+
+            CulturalContext: "Ganesha is widely and actively worshipped within Hinduism. His presence in witchcraft or eclectic spirituality should be framed with care, especially by practitioners outside the religion. Respectful learning matters more than collecting correspondences.",
+
+            BeginnerTip: "If you are drawn to Ganesha, begin with respect, learning, and a clear intention. Ask for wisdom with obstacles, not just their instant removal.",
+
+            tags: ["beginnings", "wisdom", "learning", "prosperity", "obstacles", "success"]
         },
 
         hekate: {
+            DisplayName: "Hekate",
+            Category: "Deity",
+
             Pantheon: "Greek",
-
             Domains: "Magic, witchcraft, crossroads, liminal spaces, spirits, protection",
-
             SacredSymbols: "Keys, torches, crossroads, wheel, dagger",
-
             SacredAnimals: "Black dogs, snakes, polecats",
-
             SacredPlants: "Mugwort, garlic, cypress, yew",
-
             CandleColors: "Black, purple, silver",
-
             Crystals: "Obsidian, labradorite, smoky quartz, moonstone",
-
             Herbs: "Mugwort, rosemary, lavender, garlic",
-
             Offerings: "Garlic, eggs, honey, wine, bread, incense, olive oil",
-
             TraditionalWarnings: "Ancient, reconstructed, and modern Hekatean traditions differ considerably. Practices surrounding Deipnon and offerings vary between traditions.",
 
-            tags: [
-            "witchcraft",
-            "magic",
-            "crossroads",
-            "spirits",
-            "protection",
-            "liminal",
-            "night",
-            "necromancy"
-            ]
+            Overview: "Hekate is a Greek goddess associated with magic, witchcraft, crossroads, liminal spaces, spirits, protection, night, and thresholds. In modern witchcraft, she is one of the most widely honored deities connected with magical practice, shadow work, spirit work, and personal transformation. She is often approached as a guide through transitions, a guardian at the crossroads, and a torch-bearing presence in dark or uncertain places.",
+
+            TraditionalMeaning: "Traditionally, Hekate is connected with crossroads, torches, keys, spirits, boundaries, household protection, and liminal places. Ancient sources show her as complex and powerful, not limited to witchcraft alone. She appears in protective, chthonic, lunar, civic, and household contexts, and modern Hekatean practice often expands these associations into devotion, magic, sovereignty, and spiritual initiation.",
+
+            DevotionalApproach: "Devotion to Hekate may include crossroads prayers, Deipnon observance, lighting torches or candles, keeping keys on the altar, studying magic, tending boundaries, honoring the dead, and working through thresholds with courage. Many devotees approach her with respect, honesty, and consistency rather than performance or fear.",
+
+            OfferingNotes: "Offerings may include garlic, eggs, honey, wine, bread, incense, olive oil, keys, candles, and acts of service or protection. Deipnon traditions often include offerings at a threshold or crossroads, though modern practitioners adapt this in many ways depending on safety, location, and tradition.",
+
+            AltarIdeas: "A Hekate altar may include black, purple, or silver candles, keys, torches, obsidian, labradorite, moonstone, mugwort, rosemary, garlic, dog imagery, crossroads symbols, and a bowl for offerings. The altar may feel liminal, protective, dark, luminous, and deeply intentional.",
+
+            CulturalContext: "Hekate comes from ancient Greek and broader Mediterranean religious contexts, and modern Hekatean practice includes reconstructionist, devotional, witchcraft, occult, and personal approaches. Her traditions vary widely, so it is helpful to avoid claiming that one modern method is the only authentic way to honor her.",
+
+            BeginnerTip: "Start simply. Light a candle, offer clean water or incense, and ask Hekate to help you see the threshold you are standing at clearly.",
+
+            tags: ["witchcraft", "magic", "crossroads", "spirits", "protection", "liminal", "night", "necromancy"]
         },
 
         hermes: {
+            DisplayName: "Hermes",
+            Category: "Deity",
+
             Pantheon: "Greek",
-
             Domains: "Travel, communication, commerce, luck, messages, boundaries",
-
             SacredSymbols: "Caduceus, winged sandals, purse, rooster",
-
             SacredAnimals: "Rooster, tortoise, ram",
-
             SacredPlants: "Lavender, fennel",
-
             CandleColors: "Yellow, orange, gold",
-
             Crystals: "Citrine, tiger eye, fluorite, clear quartz",
-
             Herbs: "Mint, basil, rosemary",
-
             Offerings: "Coins, olive oil, bread, honey, wine, written prayers",
-
             TraditionalWarnings: "Hermes is traditionally associated with boundaries and travel between worlds, not solely commerce or luck.",
 
-            tags: [
-            "travel",
-            "communication",
-            "luck",
-            "commerce",
-            "boundaries",
-            "messages"
-            ]
+            Overview: "Hermes is the Greek god of travel, communication, messages, trade, luck, boundaries, language, cunning, and movement between worlds. He is a guide, messenger, trickster, and psychopomp, meaning he can guide souls and move across thresholds. In modern practice, Hermes is often approached for communication, travel protection, business, writing, divination, luck, and navigating change.",
+
+            TraditionalMeaning: "Traditionally, Hermes is associated with roads, travelers, merchants, thieves, messengers, heralds, boundaries, and transitions. His presence at thresholds makes him both practical and mystical. He governs movement, exchange, cleverness, and the ability to cross from one state or place into another.",
+
+            DevotionalApproach: "Devotion to Hermes may include writing, speaking honestly, studying language, traveling with awareness, leaving offerings at crossroads or thresholds, carrying coins, practicing divination, or honoring him before business or communication. He often appreciates wit, movement, cleverness, and directness.",
+
+            OfferingNotes: "Offerings may include coins, olive oil, bread, honey, wine, coffee, travel tokens, written prayers, jokes, messages, or acts of generosity to travelers. Because Hermes is associated with exchange, offerings can feel conversational and active.",
+
+            AltarIdeas: "A Hermes altar may include yellow, orange, or gold candles, coins, dice, keys, pens, letters, maps, wing imagery, citrine, fluorite, tiger eye, mint, and symbols of roads or messages. The altar may feel lively, clever, mobile, and bright.",
+
+            CulturalContext: "Hermes comes from ancient Greek religion and appears in many roles across myth and cult practice. Modern practitioners often emphasize communication, luck, travel, and trickster wisdom, but his psychopomp and boundary-crossing roles are equally important.",
+
+            BeginnerTip: "Ask Hermes for help before a difficult conversation, then do your part by speaking clearly and listening well.",
+
+            tags: ["travel", "communication", "luck", "commerce", "boundaries", "messages"]
         },
 
         isis: {
+            DisplayName: "Isis",
+            Category: "Deity",
+
             Pantheon: "Egyptian",
-
             Domains: "Magic, healing, motherhood, protection, wisdom",
-
             SacredSymbols: "Throne, ankh, wings, tyet knot",
-
-            SacredAnimals: "Kite (bird), cow, scorpion",
-
+            SacredAnimals: "Kite bird, cow, scorpion",
             SacredPlants: "Lotus, papyrus",
-
             CandleColors: "Blue, white, gold",
-
             Crystals: "Lapis lazuli, moonstone, clear quartz, turquoise",
-
             Herbs: "Myrrh, frankincense, rosemary",
-
             Offerings: "Milk, bread, beer, wine, incense, flowers",
-
             TraditionalWarnings: "Modern magical associations often blend Egyptian religion with later Western esoteric traditions.",
 
-            tags: [
-            "magic",
-            "motherhood",
-            "healing",
-            "wisdom",
-            "protection",
-            "divine feminine"
-            ]
+            Overview: "Isis is an Egyptian goddess associated with magic, healing, protection, motherhood, wisdom, kingship, and restoration. She is one of the most enduring and widely recognized goddesses of the ancient world, honored in Egypt and beyond. In modern practice, she is often approached for magical wisdom, healing, maternal protection, spiritual authority, and the power to restore what has been broken.",
+
+            TraditionalMeaning: "Traditionally, Isis is deeply connected with magic, mourning, resurrection, protection, divine motherhood, and royal power. Her role in the Osiris myth links her with grief, devotion, sacred speech, and the ability to gather scattered pieces into wholeness. She is a goddess of powerful, skillful magic, not passive nurturing alone.",
+
+            DevotionalApproach: "Devotion to Isis may include prayer, incense, offerings of water or bread, protective rituals, study of Egyptian religion, acts of healing, and honoring the power of sacred words. She may be approached as a teacher of magic, a protector, and a restorer of life and meaning.",
+
+            OfferingNotes: "Offerings may include fresh water, bread, milk, beer, wine, incense, myrrh, frankincense, flowers, and devotional prayers. Offerings should be clean and intentional. When possible, learning from Egyptian and Kemetic sources can deepen respect.",
+
+            AltarIdeas: "An Isis altar may include blue, white, or gold candles, ankh symbols, wings, lapis lazuli, moonstone, myrrh, frankincense, lotus imagery, a bowl of water, and symbols of protection or restoration. The altar may feel regal, protective, healing, and sacred.",
+
+            CulturalContext: "Isis comes from ancient Egyptian religion and later became important in broader Mediterranean religious life. Modern magical practice sometimes blends her with Western occult symbolism, so it is useful to distinguish ancient Egyptian context from later esoteric interpretation.",
+
+            BeginnerTip: "When working with Isis, focus on reverence and skill. She is a goddess of powerful magic, careful words, and devoted restoration.",
+
+            tags: ["magic", "motherhood", "healing", "wisdom", "protection", "divine feminine"]
         },
 
         lilith: {
+            DisplayName: "Lilith",
+            Category: "Deity",
+
             Pantheon: "Jewish Folklore and Western Occult Tradition",
-
             Domains: "Independence, personal sovereignty, shadow work, sexuality, autonomy",
-
             SacredSymbols: "Owl, serpent, crescent moon",
-
             SacredAnimals: "Owl, snake",
-
             SacredPlants: "Night-blooming flowers, mugwort",
-
             CandleColors: "Black, red, purple",
-
             Crystals: "Obsidian, garnet, labradorite, black tourmaline",
-
             Herbs: "Mugwort, patchouli, rose",
-
             Offerings: "Red wine, dark chocolate, roses, incense, pomegranates",
-
             TraditionalWarnings: "Lilith's role differs dramatically across Jewish folklore, medieval texts, and modern occult traditions. Not all traditions regard her as a deity.",
 
-            tags: [
-            "independence",
-            "shadow work",
-            "empowerment",
-            "freedom",
-            "autonomy",
-            "night"
-            ]
+            Overview: "Lilith is a complex figure whose meaning changes dramatically depending on the source. In Jewish folklore and medieval texts, she is often portrayed as a dangerous or demonic figure. In modern occultism and feminist spirituality, she is frequently reimagined as a symbol of independence, sexual autonomy, shadow work, refusal, and personal sovereignty. Because these interpretations differ so widely, Lilith should be approached with nuance.",
+
+            TraditionalMeaning: "Traditionally, Lilith is not simply a goddess of empowerment. Her older appearances are often connected with danger, night, sexuality, childbirth fears, and protective folklore. Modern traditions have transformed her into a figure of autonomy, rage, taboo, erotic power, and liberation from control. Both layers matter when presenting her respectfully.",
+
+            DevotionalApproach: "Modern devotion to Lilith often centers on autonomy, shadow work, reclaiming the body, confronting shame, and refusing domination. Practitioners may work with her through journaling, dark moon rituals, boundary work, mirror work, sexuality healing, or rituals of self-possession. This work can be intense and should be approached with emotional honesty.",
+
+            OfferingNotes: "Offerings in modern practice may include red wine, dark chocolate, roses, pomegranates, incense, black or red candles, poetry, or acts of self-liberation. Because Lilith is not universally treated as a deity, offerings are highly tradition-specific and often personal.",
+
+            AltarIdeas: "A Lilith altar may include black, red, or purple candles, obsidian, garnet, labradorite, roses, pomegranate imagery, owls, serpents, mirrors, and symbols of autonomy. The altar may feel dark, sensual, fierce, and self-possessed.",
+
+            CulturalContext: "Lilith is rooted in Jewish folklore and later occult interpretation. Modern uses can be empowering for some practitioners, but they may also flatten or remove her from Jewish textual and cultural context. It is important to avoid presenting one modern version of Lilith as the whole tradition.",
+
+            BeginnerTip: "If you work with Lilith, begin with research and shadow honesty. Ask what you are reclaiming, and what you might be projecting onto her.",
+
+            tags: ["independence", "shadow work", "empowerment", "freedom", "autonomy", "night"]
         },
 
         loki: {
+            DisplayName: "Loki",
+            Category: "Deity",
+
             Pantheon: "Norse",
-
             Domains: "Change, transformation, cleverness, fire, chaos, innovation",
-
             SacredSymbols: "Knots, flames, nets",
-
             SacredAnimals: "Fox, salmon, spider",
-
             SacredPlants: "Birch, mistletoe",
-
             CandleColors: "Orange, red, black",
-
             Crystals: "Carnelian, labradorite, tiger eye, obsidian",
-
             Herbs: "Cinnamon, peppermint, basil",
-
             Offerings: "Coffee, spicy foods, whiskey, candy, handmade crafts",
-
             TraditionalWarnings: "Historical sources describing Loki are limited and interpretations vary widely among modern Norse Pagan traditions.",
 
-            tags: [
-            "transformation",
-            "change",
-            "chaos",
-            "creativity",
-            "fire",
-            "trickster"
-            ]
-        }, 
+            Overview: "Loki is a Norse figure associated with change, cleverness, trickery, disruption, transformation, chaos, and uncomfortable truth. In modern practice, he is often approached by those navigating identity shifts, shadow work, humor, taboo, or necessary upheaval. Loki is not simple to categorize. He can be helper, troublemaker, catalyst, boundary-breaker, and revealer of hidden problems.",
+
+            TraditionalMeaning: "Traditionally, Loki appears in Norse myth as a complicated figure whose actions create both solutions and disasters. He is connected with shapeshifting, cunning, mischief, consequences, and the unraveling of false stability. Modern practitioners often understand him as a force of transformation and necessary disruption.",
+
+            DevotionalApproach: "Devotion to Loki may include honesty, humor, creative problem-solving, accepting change, confronting hypocrisy, and working with the parts of life that do not fit neat categories. Offerings and devotional styles vary widely, and many modern devotees emphasize direct relationship over rigid formality.",
+
+            OfferingNotes: "Modern offerings may include coffee, spicy foods, candy, alcohol, handmade crafts, jokes, written reflections, or acts of bold honesty. Historical offering evidence is limited, so many offerings come from contemporary devotional practice rather than documented ancient tradition.",
+
+            AltarIdeas: "A Loki altar may include orange, red, or black candles, carnelian, labradorite, obsidian, cinnamon, fox imagery, knots, flames, masks, or handmade objects. The altar may feel playful, chaotic, sharp, creative, and alive.",
+
+            CulturalContext: "Loki comes from Norse mythology, but modern devotional approaches vary significantly. Some Heathen traditions are cautious about honoring Loki, while others actively venerate him. It is best to acknowledge that his role is debated and highly tradition-dependent.",
+
+            BeginnerTip: "Do not ask Loki for change unless you are willing for things to actually change. Be specific, be honest, and keep your sense of humor nearby.",
+
+            tags: ["transformation", "change", "chaos", "creativity", "fire", "trickster"]
+        },
 
         morrigan: {
+            DisplayName: "The Morrigan",
+            Category: "Deity",
+
             Pantheon: "Celtic",
-
             Domains: "War, sovereignty, prophecy, death, fate, transformation",
-
             SacredSymbols: "Crow, raven, battlefield, spear",
-
             SacredAnimals: "Crows, ravens, wolves, cattle",
-
             SacredPlants: "Yew, rowan, mugwort",
-
             CandleColors: "Black, red, purple",
-
             Crystals: "Obsidian, garnet, smoky quartz, bloodstone",
-
             Herbs: "Mugwort, nettle, rosemary, yarrow",
-
             Offerings: "Red wine, blackberries, bread, incense, poetry, acts of courage",
-
             TraditionalWarnings: "The Morrigan is complex and sometimes appears as a singular goddess, a title, or a group of figures depending on the source and tradition.",
 
-            tags: [
-            "sovereignty",
-            "war",
-            "prophecy",
-            "fate",
-            "death",
-            "transformation"
-            ]
+            Overview: "The Morrigan is a complex Irish figure associated with sovereignty, war, prophecy, fate, death, transformation, and the power of the battlefield. In modern practice, she is often approached for courage, sovereignty, shadow work, protection, truth, and the strength to face conflict or transformation. She is not a soft or simple goddess, but she can be deeply empowering.",
+
+            TraditionalMeaning: "Traditionally, the Morrigan is connected with battle, kingship, prophecy, ravens or crows, death omens, and sovereignty. She appears in Irish myth in complex forms, sometimes as one figure and sometimes in relation to multiple goddesses. Her presence often marks power, consequence, and the demand to stand fully in one’s fate.",
+
+            DevotionalApproach: "Devotion to the Morrigan may include sovereignty work, ancestor work, martial discipline, truth-telling, activism, protection, shadow work, and acts of courage. Many devotees approach her through commitment and action rather than aesthetic alone. She is often honored by doing the hard thing that aligns with truth.",
+
+            OfferingNotes: "Offerings may include red wine, blackberries, bread, incense, poetry, iron symbols, battlefield or warrior imagery, and acts of courage or justice. Some practitioners also offer training, discipline, or direct action as living devotion.",
+
+            AltarIdeas: "A Morrigan altar may include black, red, or purple candles, raven or crow symbols, obsidian, garnet, bloodstone, nettle, mugwort, iron, a blade symbol, and offerings of dark fruit or wine. The altar may feel fierce, prophetic, ancestral, and sovereign.",
+
+            CulturalContext: "The Morrigan comes from Irish mythology, and her identity is complex. Modern witchcraft often emphasizes sovereignty and battle goddess themes, but surviving sources require careful interpretation. It is respectful to avoid oversimplifying her into only empowerment or only war.",
+
+            BeginnerTip: "Approach the Morrigan with honesty. Do not posture. Ask where you need courage, then be prepared to act.",
+
+            tags: ["sovereignty", "war", "prophecy", "fate", "death", "transformation"]
         },
 
         odin: {
+            DisplayName: "Odin",
+            Category: "Deity",
+
             Pantheon: "Norse",
-
             Domains: "Wisdom, poetry, magic, war, death, runes, prophecy",
-
             SacredSymbols: "Runes, spear, ravens, wolves, one eye",
-
             SacredAnimals: "Ravens, wolves, horses",
-
             SacredPlants: "Yew, ash, mugwort",
-
             CandleColors: "Black, purple, blue",
-
             Crystals: "Amethyst, obsidian, lapis lazuli, smoky quartz",
-
             Herbs: "Mugwort, sage, rosemary",
-
             Offerings: "Mead, wine, poetry, tobacco, bread, acts of study or sacrifice",
-
             TraditionalWarnings: "Odin is often associated with ordeal, sacrifice, and ecstatic magic. Modern devotional approaches vary widely.",
 
-            tags: [
-            "wisdom",
-            "runes",
-            "magic",
-            "prophecy",
-            "poetry",
-            "death"
-            ]
+            Overview: "Odin is a Norse god associated with wisdom, war, death, poetry, prophecy, runes, magic, kingship, and ecstatic knowledge. He is a seeker of wisdom who sacrifices for knowledge and moves between worlds. In modern practice, he is often approached for runes, poetry, magical study, ancestral work, discipline, and difficult wisdom.",
+
+            TraditionalMeaning: "Traditionally, Odin is connected with ravens, wolves, the spear Gungnir, the runes, the gallows, the dead, battle, poetic inspiration, and the pursuit of hidden knowledge. He is not simply a wise grandfather figure. His wisdom is costly, strange, ecstatic, and sometimes dangerous.",
+
+            DevotionalApproach: "Devotion to Odin may include study, rune work, poetry, offerings of mead or wine, ancestor work, disciplined magical practice, and the pursuit of wisdom through sacrifice or ordeal. Some practitioners approach him cautiously because his lessons may involve challenge, loss, or uncomfortable truth.",
+
+            OfferingNotes: "Offerings may include mead, wine, poetry, tobacco, bread, incense, runic study, and acts of disciplined learning. In modern practice, time spent studying, writing, or practicing divination can be an offering in itself.",
+
+            AltarIdeas: "An Odin altar may include black, purple, or blue candles, runes, raven imagery, wolf imagery, a spear symbol, amethyst, obsidian, lapis lazuli, mugwort, poetry, and ancestral symbols. The altar may feel solemn, wise, intense, and otherworldly.",
+
+            CulturalContext: "Odin comes from Norse mythology and is honored in modern Heathen and Norse Pagan traditions in many different ways. Surviving sources are limited and shaped by later recording, so devotional approaches often combine reconstruction, scholarship, and personal experience.",
+
+            BeginnerTip: "If you ask Odin for wisdom, understand that wisdom may arrive through discipline, discomfort, or sacrifice. Be clear about what you are asking to learn.",
+
+            tags: ["wisdom", "runes", "magic", "prophecy", "poetry", "death"]
         },
 
         persephone: {
+            DisplayName: "Persephone",
+            Category: "Deity",
+
             Pantheon: "Greek",
-
             Domains: "The underworld, spring, transformation, death, rebirth, thresholds",
-
             SacredSymbols: "Pomegranate, flowers, torch, crown",
-
             SacredAnimals: "Bats, deer, serpents",
-
             SacredPlants: "Pomegranate, narcissus, mint",
-
             CandleColors: "Black, white, green",
-
             Crystals: "Garnet, obsidian, moonstone, rose quartz",
-
             Herbs: "Mint, rose, lavender, mugwort",
-
             Offerings: "Pomegranate, flowers, honey, wine, spring water, dark chocolate",
-
             TraditionalWarnings: "Persephone’s traditions include both spring renewal and underworld sovereignty, so modern associations can vary by season and context.",
 
-            tags: [
-            "underworld",
-            "spring",
-            "rebirth",
-            "transformation",
-            "thresholds",
-            "sovereignty"
-            ]
+            Overview: "Persephone is the Greek goddess associated with spring, flowers, the underworld, death, rebirth, transformation, and threshold states. She is both Kore, the maiden of spring, and Queen of the Underworld. In modern practice, she is often approached for grief, seasonal change, personal transformation, trauma recovery, sovereignty, and the ability to move between light and darkness.",
+
+            TraditionalMeaning: "Traditionally, Persephone is central to myths of descent and return, especially in connection with Demeter and the Eleusinian Mysteries. She represents not only innocence or springtime, but also underworld authority, cyclical transformation, and the mysteries of life, death, and return.",
+
+            DevotionalApproach: "Devotion to Persephone may include seasonal rituals, underworld meditation, grief work, flower offerings, pomegranate symbolism, shadow work, and honoring personal cycles of descent and renewal. She may be approached gently or regally depending on whether the focus is spring, grief, or underworld sovereignty.",
+
+            OfferingNotes: "Offerings may include pomegranate, flowers, honey, wine, spring water, dark chocolate, mint, candles, or poetry. Seasonal offerings can shift, with flowers and fresh water in spring, and darker fruits, wine, or underworld symbols in autumn and winter.",
+
+            AltarIdeas: "A Persephone altar may include black, white, or green candles, pomegranate imagery, flowers, garnet, obsidian, moonstone, rose quartz, mint, rose, bones or underworld symbols, and seasonal decorations. The altar may change throughout the year.",
+
+            CulturalContext: "Persephone comes from ancient Greek religion and mystery traditions. Modern interpretations often emphasize personal transformation and underworld sovereignty, but ancient contexts include agricultural cycles, death mysteries, and ritual secrecy that cannot be fully reconstructed.",
+
+            BeginnerTip: "Persephone is a powerful companion for life transitions. Ask what part of you is descending, and what part is preparing to return changed.",
+
+            tags: ["underworld", "spring", "rebirth", "transformation", "thresholds", "sovereignty"]
         },
 
         thor: {
+            DisplayName: "Thor",
+            Category: "Deity",
+
             Pantheon: "Norse",
-
             Domains: "Protection, strength, storms, fertility, courage, sacred defense",
-
             SacredSymbols: "Hammer, lightning, oak tree, belt of strength",
-
             SacredAnimals: "Goats, bulls",
-
             SacredPlants: "Oak, rowan, nettle",
-
             CandleColors: "Red, brown, gold",
-
             Crystals: "Hematite, tiger eye, garnet, smoky quartz",
-
             Herbs: "Nettle, rosemary, thyme",
-
             Offerings: "Mead, beer, bread, hearty food, acts of protection, physical effort",
-
             TraditionalWarnings: "Thor is often honored as a protective deity, but traditions differ between historical sources and modern Heathen practice.",
 
-            tags: [
-            "protection",
-            "strength",
-            "storms",
-            "courage",
-            "defense",
-            "fertility"
-            ]
+            Overview: "Thor is a Norse god associated with thunder, storms, strength, protection, fertility, courage, and sacred defense. He is often understood as a protector of humanity and a force against chaos. In modern practice, he is approached for strength, resilience, household protection, courage, and practical support.",
+
+            TraditionalMeaning: "Traditionally, Thor is connected with the hammer Mjolnir, thunder, lightning, oak, goats, strength, blessing, and protection. He is a defender, but also a deity of fertility, weather, and sacred power. His hammer is both weapon and blessing tool.",
+
+            DevotionalApproach: "Devotion to Thor may include acts of protection, physical effort, caring for the household, honoring storms, lifting weights, doing difficult chores, feeding others, or standing up for people who need defense. His devotion can be practical, embodied, and direct.",
+
+            OfferingNotes: "Offerings may include mead, beer, bread, hearty food, oats, physical labor, protective acts, or words spoken during storms. In modern practice, practical service can be a meaningful offering.",
+
+            AltarIdeas: "A Thor altar may include red, brown, or gold candles, hammer symbols, oak leaves, hematite, tiger eye, garnet, smoky quartz, nettle, rosemary, and storm imagery. The altar may feel strong, protective, earthy, and active.",
+
+            CulturalContext: "Thor comes from Norse mythology and is honored in many modern Heathen and Norse Pagan traditions. His role is often more protective and community-centered than purely aggressive, though modern interpretations vary.",
+
+            BeginnerTip: "Thor is a good deity to approach through action. Fix something, protect someone, move your body, or do the hard practical task.",
+
+            tags: ["protection", "strength", "storms", "courage", "defense", "fertility"]
         },
 
         anubis: {
+            DisplayName: "Anubis",
+            Category: "Deity",
+
             Pantheon: "Egyptian",
-
             Domains: "Death, embalming, protection, the dead, funerary rites, safe passage",
-
             SacredSymbols: "Jackal, scales, mummy wrappings, ankh",
-
             SacredAnimals: "Jackals, dogs",
-
             SacredPlants: "Myrrh, lotus, cypress",
-
             CandleColors: "Black, gold, white",
-
             Crystals: "Obsidian, smoky quartz, onyx, lapis lazuli",
-
             Herbs: "Myrrh, frankincense, rosemary",
-
             Offerings: "Fresh water, bread, incense, myrrh, black cloth, acts of remembrance",
-
             TraditionalWarnings: "Anubis is rooted in ancient Egyptian religion. Modern magical practice may differ from reconstructionist devotional customs.",
 
-            tags: [
-            "death",
-            "protection",
-            "ancestors",
-            "safe passage",
-            "funerary",
-            "underworld"
-            ]
+            Overview: "Anubis is an Egyptian god associated with death, embalming, funerary rites, protection of the dead, safe passage, and the sacred care of transition. In modern practice, he is often approached for ancestor work, grief, protection, end-of-life symbolism, spirit work, and guidance through thresholds involving death or change.",
+
+            TraditionalMeaning: "Traditionally, Anubis is connected with mummification, tomb protection, funerary rites, the weighing of the heart, jackals, and the care of the dead. He is not merely a death figure. He is a guardian, guide, and sacred attendant who protects the vulnerable during transition.",
+
+            DevotionalApproach: "Devotion to Anubis may include ancestor remembrance, lighting candles for the dead, tending graves or memorials, studying Egyptian funerary traditions, offering water, and practicing respectful grief rituals. His energy is often experienced as quiet, protective, solemn, and steady.",
+
+            OfferingNotes: "Offerings may include fresh water, bread, incense, myrrh, black cloth, candles, prayers for the dead, and acts of remembrance. When doing ancestor work, offerings should be respectful and grounded rather than sensationalized.",
+
+            AltarIdeas: "An Anubis altar may include black, gold, or white candles, jackal or dog imagery, obsidian, smoky quartz, lapis lazuli, myrrh, frankincense, ankh symbols, memorial objects, and a clean bowl of water. The altar may feel quiet, protective, solemn, and sacred.",
+
+            CulturalContext: "Anubis comes from ancient Egyptian religion and funerary practice. Modern devotional or magical approaches may draw from Kemetic reconstruction, witchcraft, grief work, or personal spiritual experience. Respect for the dead and for Egyptian religious context is essential.",
+
+            BeginnerTip: "Begin with remembrance. Light a candle, offer water, and speak the names of the dead with respect.",
+
+            tags: ["death", "protection", "ancestors", "safe passage", "funerary", "underworld"]
         }
     },
 

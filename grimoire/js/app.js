@@ -1088,6 +1088,13 @@ function groupTraditionalFields(traditional = {}, layout = {}) {
   `;
 }
 
+function formatLibraryLabel(key) {
+  return key
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 async function shouldShowTraditionalLibrary() {
   if (typeof getMySettings !== "function") return false;
 
