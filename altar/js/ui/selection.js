@@ -242,6 +242,12 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
 
       <div data-library-connected-to="${entity.id}"></div>
       <div data-library-activity-timeline="${entity.id}"></div>
+
+      <div class="altar-info-card-section altar-info-card-actions">
+        <button type="button" data-open-living-history="${entity.id}">
+          View Full Living History
+        </button>
+      </div>
     </div>
   `;
 }
@@ -250,6 +256,40 @@ function formatLibraryRelationLabel(relation = "") {
   return String(relation || "")
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getReadableRelationLabel(connection, currentEntityId) {
+  const isOutgoing = connection.from === currentEntityId;
+  const relation = connection.relation;
+
+  const outgoingLabels = {
+    contains: "Contains",
+    pairs_with: "Pairs With",
+    substitutes: "Substitutes",
+    substitute_for: "Substitute For",
+    used_in: "Used In",
+    associated_with: "Associated With",
+    offered_to: "Offered To",
+    ruled_by: "Ruled By",
+    related_to: "Related To"
+  };
+
+  const incomingLabels = {
+    contains: "Used In",
+    ingredient_in: "Used In",
+    pairs_with: "Pairs With",
+    substitutes: "Substituted By",
+    substitute_for: "Substitute For",
+    used_in: "Contains",
+    associated_with: "Associated With",
+    offered_to: "Receives Offering From",
+    ruled_by: "Rules",
+    related_to: "Related To"
+  };
+
+  return isOutgoing
+    ? outgoingLabels[relation] || formatLibraryRelationLabel(relation)
+    : incomingLabels[relation] || formatLibraryRelationLabel(relation);
 }
 
 function renderConnectedEntityList(entityId) {
@@ -269,49 +309,41 @@ function renderConnectedEntityList(entityId) {
     `;
   }
 
+  const seen = new Set();
+
   const rows = connections
     .map((connection) => {
-      const isOutgoing = connection.from === entityId;
-      const isIncoming = connection.to === entityId;
-
-      let otherId = "";
-      let label = "";
-
-      if (isOutgoing) {
-        otherId = connection.to;
-        label = formatLibraryRelationLabel(connection.relation);
-      }
-
-      if (isIncoming) {
-        otherId = connection.from;
-
-        if (connection.relation === "ingredient_in") {
-          label = "Used In";
-        } else {
-          label = formatLibraryRelationLabel(connection.relation);
-        }
-      }
-
-      if (!otherId) return "";
-
+      const otherId = connection.from === entityId ? connection.to : connection.from;
       const otherEntity = Library.getEntity(otherId);
+
       if (!otherEntity) return "";
+
+      const label = getReadableRelationLabel(connection, entityId);
+      const uniqueKey = `${label}|${otherId}`;
+
+      if (seen.has(uniqueKey)) return "";
+      seen.add(uniqueKey);
 
       return `
         <p>
           <strong>${label}:</strong>
-          ${otherEntity.name || "Untitled"} (${otherEntity.type || "entry"})
+          <button
+            type="button"
+            class="living-library-inline-link"
+            data-open-library-entity="${otherEntity.id}">
+            ${otherEntity.name || "Untitled"}
+          </button>
+          <span class="altar-info-muted">(${otherEntity.type || "entry"})</span>
         </p>
       `;
     })
-    .filter(Boolean);
-
-  const uniqueRows = [...new Set(rows)];
+    .filter(Boolean)
+    .join("");
 
   return `
     <div class="altar-info-card-section">
       <p><strong>Connected To</strong></p>
-      ${uniqueRows.join("") || `<p class="altar-info-empty">No connections recorded yet.</p>`}
+      ${rows || `<p class="altar-info-empty">No connections recorded yet.</p>`}
     </div>
   `;
 }
@@ -378,6 +410,76 @@ async function hydrateCompanionLibraryExtras(entityId) {
 
     timelineTarget.innerHTML = renderEntityActivityTimeline(events);
   }
+}
+
+function showLibraryEntityInCompanion(entityId) {
+  if (!altarCompanionPanel || !entityId || typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  const companionContent = altarCompanionPanel.querySelector("[data-companion-content]");
+  if (!entity || !companionContent) return;
+
+  companionContent.innerHTML = renderCompanionLibraryEntity(
+    entity,
+    getCompanionDisplaySettings()
+  );
+
+  hydrateCompanionLibraryExtras(entity.id);
+}
+
+function openLivingHistoryModal(entityId) {
+  if (!entityId || typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  closeLivingHistoryModal();
+
+  const modal = document.createElement("div");
+  modal.className = "living-history-modal";
+  modal.setAttribute("data-living-history-modal", "");
+  modal.dataset.entityId = entityId;
+
+  modal.innerHTML = `
+    <div class="living-history-card" role="dialog" aria-modal="true">
+      <button type="button" class="altar-cabinet-close" data-close-living-history aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">Living Library</p>
+      <h2>${entity.name || "Living History"}</h2>
+      <p class="altar-info-card-type">${entity.type || "entry"}</p>
+
+      <div data-living-history-content>
+        <p>Loading history...</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add("altar-modal-open");
+
+  hydrateLivingHistoryModal(entityId);
+}
+
+function closeLivingHistoryModal() {
+  const modal = document.querySelector("[data-living-history-modal]");
+  if (!modal) return;
+
+  modal.remove();
+  document.body.classList.remove("altar-modal-open");
+}
+
+async function hydrateLivingHistoryModal(entityId) {
+  const content = document.querySelector("[data-living-history-content]");
+  if (!content) return;
+
+  const events =
+    typeof getObjectInstanceEventsByEntity === "function"
+      ? await getObjectInstanceEventsByEntity(entityId)
+      : [];
+
+  content.innerHTML = renderEntityActivityTimeline(events);
 }
 
 function buildObjectInfoMarkup(object, mode = "compact") {

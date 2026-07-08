@@ -309,6 +309,9 @@ document.addEventListener("click", (event) => {
   const editCustomCabinetItemButton = event.target.closest("[data-edit-custom-cabinet-item]");
   const closeCustomCabinetItemButton = event.target.closest("[data-close-custom-cabinet-item]");
   const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
+  const openLibraryEntityButton = event.target.closest("[data-open-library-entity]");
+  const openLivingHistoryButton = event.target.closest("[data-open-living-history]");
+  const closeLivingHistoryButton = event.target.closest("[data-close-living-history]");
 
   if (openCabinetButton) {
     openAltarCabinetOverlay();
@@ -382,6 +385,36 @@ document.addEventListener("click", (event) => {
 
     if (typeof deleteCustomCabinetItem === "function") {
       deleteCustomCabinetItem(deleteCustomCabinetItemButton.dataset.deleteCustomCabinetItem);
+    }
+
+    return;
+  }
+
+  if (openLibraryEntityButton) {
+    event.preventDefault();
+
+    if (typeof showLibraryEntityInCompanion === "function") {
+      showLibraryEntityInCompanion(openLibraryEntityButton.dataset.openLibraryEntity);
+    }
+
+    return;
+  }
+
+  if (openLivingHistoryButton) {
+    event.preventDefault();
+
+    if (typeof openLivingHistoryModal === "function") {
+      openLivingHistoryModal(openLivingHistoryButton.dataset.openLivingHistory);
+    }
+
+    return;
+  }
+
+  if (closeLivingHistoryButton) {
+    event.preventDefault();
+
+    if (typeof closeLivingHistoryModal === "function") {
+      closeLivingHistoryModal();
     }
 
     return;

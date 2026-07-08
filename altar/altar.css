@@ -3793,3 +3793,68 @@ body.altar-living-state-minimized .altar-living-state-panel {
   opacity: 0.72;
   font-style: italic;
 }
+
+/* =========================================================
+   Living Library Links + History Modal
+   ========================================================= */
+
+.living-library-inline-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.altar-info-muted {
+  opacity: 0.72;
+}
+
+.living-history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 35000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(5, 4, 3, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.living-history-card {
+  position: relative;
+  width: min(780px, 100%);
+  max-height: min(760px, 90vh);
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid rgba(185, 160, 93, 0.38);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.16), transparent 18rem),
+    linear-gradient(145deg, rgba(30, 22, 14, 0.98), rgba(8, 10, 8, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.72);
+}
+
+.living-history-card h2 {
+  margin-bottom: 0.35rem;
+  color: var(--gold);
+}
+
+.cabinet-missing-forms,
+.cabinet-custom-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.cabinet-missing-form {
+  opacity: 0.78;
+  border-style: dashed;
+}

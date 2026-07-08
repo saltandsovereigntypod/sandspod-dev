@@ -371,13 +371,45 @@ function renderCabinetItems() {
         const forms = item.forms || [];
 
         if (forms.length === 1) {
+          const missingForms =
+            item.customCabinetItemId && typeof CUSTOM_FORM_PRESETS !== "undefined"
+              ? (CUSTOM_FORM_PRESETS[item.category] || [])
+                  .filter((formLabel) => !forms.some((form) => form.label === formLabel))
+              : [];
+
           return `
             <div class="cabinet-custom-wrap">
               ${renderCabinetTile(item, forms[0], false)}
 
               ${
+                missingForms.length
+                  ? `
+                    <div class="cabinet-missing-forms">
+                      ${missingForms
+                        .map((formLabel) => `
+                          <button
+                            type="button"
+                            class="cabinet-missing-form"
+                            data-edit-custom-cabinet-item="${item.customCabinetItemId}">
+                            + ${formLabel}
+                          </button>
+                        `)
+                        .join("")}
+                    </div>
+                  `
+                  : ""
+              }
+
+              ${
                 item.customCabinetItemId
                   ? `
+                    <button
+                      type="button"
+                      class="cabinet-mini-action"
+                      data-edit-custom-cabinet-item="${item.customCabinetItemId}">
+                      Edit
+                    </button>
+
                     <button
                       type="button"
                       class="cabinet-mini-action"
@@ -391,18 +423,62 @@ function renderCabinetItems() {
           `;
         }
 
-        return `
-          <article class="cabinet-multi-tile">
-            <div class="cabinet-multi-heading">
-              <span>${item.icon || "✦"}</span>
-              <strong>${item.name}</strong>
-            </div>
+        const missingForms =
+        item.customCabinetItemId && typeof CUSTOM_FORM_PRESETS !== "undefined"
+          ? (CUSTOM_FORM_PRESETS[item.category] || [])
+              .filter((formLabel) => !forms.some((form) => form.label === formLabel))
+          : [];
 
-            <div class="cabinet-form-grid">
-              ${forms.map((form) => renderCabinetTile(item, form, true)).join("")}
-            </div>
-          </article>
-        `;
+      return `
+        <article class="cabinet-multi-tile">
+          <div class="cabinet-multi-heading">
+            <span>${item.icon || "✦"}</span>
+            <strong>${item.name}</strong>
+          </div>
+
+          <div class="cabinet-form-grid">
+            ${forms.map((form) => renderCabinetTile(item, form, true)).join("")}
+
+            ${
+              missingForms.length
+                ? missingForms
+                    .map((formLabel) => `
+                      <button
+                        type="button"
+                        class="cabinet-tile cabinet-form-tile cabinet-missing-form"
+                        data-edit-custom-cabinet-item="${item.customCabinetItemId}">
+                        <span class="cabinet-tile-icon">＋</span>
+                        <span class="cabinet-tile-name">Add ${formLabel}</span>
+                      </button>
+                    `)
+                    .join("")
+                : ""
+            }
+          </div>
+
+          ${
+            item.customCabinetItemId
+              ? `
+                <div class="cabinet-custom-actions-row">
+                  <button
+                    type="button"
+                    class="cabinet-mini-action"
+                    data-edit-custom-cabinet-item="${item.customCabinetItemId}">
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    class="cabinet-mini-action"
+                    data-delete-custom-cabinet-item="${item.customCabinetItemId}">
+                    Delete
+                  </button>
+                </div>
+              `
+              : ""
+          }
+        </article>
+      `;
       })
       .join("");
 }
