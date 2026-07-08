@@ -55,35 +55,120 @@ async function getCurrentAssetUser() {
   return user || null;
 }
 
-async function uploadUserAsset(file, folder = "uploads") {
-  if (!file) return "";
+async function compressImageFile(file, options = {}) {
+  const {
+    maxWidth = 1800,
+    maxHeight = 1800,
+    quality = 0.86
+  } = options;
+
+  if (!file || !file.type.startsWith("image/")) return file;
+
+  if (file.type === "image/png" && file.size < 900000) {
+    return file;
+  }
+
+  const imageUrl = URL.createObjectURL(file);
+  const image = new Image();
+
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+    image.src = imageUrl;
+  });
+
+  const scale = Math.min(
+    1,
+    maxWidth / image.width,
+    maxHeight / image.height
+  );
+
+  const width = Math.round(image.width * scale);
+  const height = Math.round(image.height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0, width, height);
+
+  URL.revokeObjectURL(imageUrl);
+
+  const outputType = file.type === "image/png" ? "image/png" : "image/webp";
+
+  const blob = await new Promise((resolve) => {
+    canvas.toBlob(resolve, outputType, quality);
+  });
+
+  if (!blob || blob.size >= file.size) return file;
+
+  const extension = outputType === "image/webp" ? "webp" : "png";
+  const baseName = file.name.replace(/\.[^/.]+$/, "");
+
+  return new File([blob], `${baseName}.${extension}`, {
+    type: outputType
+  });
+}
+
+function getStoragePathFromPublicUrl(publicUrl = "") {
+  const marker = "/storage/v1/object/public/user-assets/";
+  const index = publicUrl.indexOf(marker);
+
+  if (index === -1) return "";
+
+  return decodeURIComponent(publicUrl.slice(index + marker.length));
+}
+
+async function deleteUserAssetByPath(storagePath = "") {
+  if (!storagePath) return;
+
+  const { error } = await db.storage
+    .from("user-assets")
+    .remove([storagePath]);
+
+  if (error) {
+    console.warn("Could not delete old user asset:", error);
+  }
+}
+
+async function uploadUserAsset(file, folder = "uploads", options = {}) {
+  if (!file) return null;
 
   const user = await getCurrentAssetUser();
 
   if (!user) {
     showAltarToast("Please sign in to upload images");
-    return "";
+    return null;
   }
 
-  const extension = file.name.split(".").pop() || "png";
+  const optimizedFile = await compressImageFile(file, options);
+  const extension = optimizedFile.name.split(".").pop() || "png";
   const fileName = `${crypto.randomUUID ? crypto.randomUUID() : Date.now()}.${extension}`;
   const filePath = `${user.id}/${folder}/${fileName}`;
 
   const { error } = await db.storage
     .from("user-assets")
-    .upload(filePath, file, {
-      cacheControl: "3600",
+    .upload(filePath, optimizedFile, {
+      cacheControl: "31536000",
       upsert: false
     });
 
   if (error) {
     console.error(error);
     showAltarToast("Image upload failed");
-    return "";
+    return null;
   }
 
   const { data } = db.storage.from("user-assets").getPublicUrl(filePath);
-  return data.publicUrl || "";
+
+  return {
+    url: data.publicUrl || "",
+    path: filePath,
+    size: optimizedFile.size,
+    originalSize: file.size,
+    type: optimizedFile.type
+  };
 }
 
 async function loadCustomCabinetImages() {
@@ -105,8 +190,11 @@ async function loadCustomCabinetImages() {
     return {};
   }
 
-  customCabinetImageOverridesCache = (data || {}).reduce((output, row) => {
-    output[row.override_key] = row.image_url;
+  customCabinetImageOverridesCache = (data || []).reduce((output, row) => {
+    output[row.override_key] = {
+      url: row.image_url,
+      storagePath: row.storage_path || getStoragePathFromPublicUrl(row.image_url)
+    };
     return output;
   }, {});
 
@@ -118,10 +206,9 @@ function getCustomCabinetImages() {
 }
 
 function getCustomCabinetImage(data = {}) {
-  return customCabinetImageOverridesCache[getCabinetImageOverrideKey(data)] || "";
+  return customCabinetImageOverridesCache[getCabinetImageOverrideKey(data)]?.url || "";
 }
-
-async function setCustomCabinetImage(data = {}, imageUrl = "") {
+async function setCustomCabinetImage(data = {}, imageUrl = "", storagePath = "") {
   const user = await getCurrentAssetUser();
 
   if (!user || !imageUrl) {
@@ -130,6 +217,8 @@ async function setCustomCabinetImage(data = {}, imageUrl = "") {
   }
 
   const overrideKey = getCabinetImageOverrideKey(data);
+  const existingOverride = customCabinetImageOverridesCache[overrideKey];
+  const oldStoragePath = existingOverride?.storagePath || "";
 
   const { error } = await db
     .from("custom_cabinet_image_overrides")
@@ -138,6 +227,7 @@ async function setCustomCabinetImage(data = {}, imageUrl = "") {
         user_id: user.id,
         override_key: overrideKey,
         image_url: imageUrl,
+        storage_path: storagePath,
         metadata: {
           label: data.label || "",
           type: data.type || "",
@@ -154,7 +244,14 @@ async function setCustomCabinetImage(data = {}, imageUrl = "") {
     return;
   }
 
-  customCabinetImageOverridesCache[overrideKey] = imageUrl;
+  if (oldStoragePath && oldStoragePath !== storagePath) {
+    await deleteUserAssetByPath(oldStoragePath);
+  }
+
+  customCabinetImageOverridesCache[overrideKey] = {
+    url: imageUrl,
+    storagePath
+  };
 }
 
 async function removeCustomCabinetImage(data = {}) {
@@ -162,6 +259,7 @@ async function removeCustomCabinetImage(data = {}) {
   if (!user) return;
 
   const overrideKey = getCabinetImageOverrideKey(data);
+  const existingOverride = customCabinetImageOverridesCache[overrideKey];
 
   const { error } = await db
     .from("custom_cabinet_image_overrides")
@@ -173,6 +271,10 @@ async function removeCustomCabinetImage(data = {}) {
     console.error(error);
     showAltarToast("Custom image could not be removed");
     return;
+  }
+
+  if (existingOverride?.storagePath) {
+    await deleteUserAssetByPath(existingOverride.storagePath);
   }
 
   delete customCabinetImageOverridesCache[overrideKey];
@@ -209,7 +311,8 @@ async function loadCustomAltarBackgrounds() {
     icon: row.icon || "🖼️",
     keywords: row.keywords || ["custom", "uploaded", "background"],
     background: row.image_url,
-    customBackgroundId: row.id
+    customBackgroundId: row.id,
+    storagePath: row.storage_path || getStoragePathFromPublicUrl(row.image_url)
   }));
 
   return customAltarBackgroundsCache;
@@ -224,10 +327,14 @@ async function promptCustomCabinetImage(button) {
     const file = fileInput.files?.[0];
     if (!file) return;
 
-    const imageUrl = await uploadUserAsset(file, "cabinet");
-    if (!imageUrl) return;
+    const uploaded = await uploadUserAsset(file, "cabinet", {
+      maxWidth: 1200,
+      maxHeight: 1200
+    });
 
-    await setCustomCabinetImage(button.dataset, imageUrl);
+    if (!uploaded?.url) return;
+
+    await setCustomCabinetImage(button.dataset, uploaded.url, uploaded.path);
 
     renderCabinetItems();
     showAltarToast("Custom cabinet image saved");
@@ -261,15 +368,20 @@ async function promptCustomAltarBackground() {
     const file = fileInput.files?.[0];
     if (!file) return;
 
-    const imageUrl = await uploadUserAsset(file, "backgrounds");
-    if (!imageUrl) return;
+    const uploaded = await uploadUserAsset(file, "backgrounds", {
+      maxWidth: 2400,
+      maxHeight: 1600
+    });
+
+    if (!uploaded?.url) return;
 
     const { error } = await db.from("custom_altar_backgrounds").insert({
       user_id: user.id,
       name: name.trim(),
       icon: "🖼️",
       keywords: ["custom", "uploaded", "background"],
-      image_url: imageUrl
+      image_url: uploaded.url,
+      storage_path: uploaded.path
     });
 
     if (error) {
@@ -292,6 +404,10 @@ async function deleteCustomAltarBackground(backgroundId) {
   const user = await getCurrentAssetUser();
   if (!user || !backgroundId) return;
 
+  const existingBackground = customAltarBackgroundsCache.find((background) => {
+    return background.id === backgroundId;
+  });
+
   const confirmed = window.confirm("Delete this custom background?");
   if (!confirmed) return;
 
@@ -305,6 +421,10 @@ async function deleteCustomAltarBackground(backgroundId) {
     console.error(error);
     showAltarToast("Custom background could not be deleted");
     return;
+  }
+
+  if (existingBackground?.storagePath) {
+    await deleteUserAssetByPath(existingBackground.storagePath);
   }
 
   await loadCustomAltarBackgrounds();
