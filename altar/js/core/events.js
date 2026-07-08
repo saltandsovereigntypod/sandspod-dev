@@ -311,6 +311,9 @@ document.addEventListener("click", (event) => {
   const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
   const openLibraryEntityButton = event.target.closest("[data-open-library-entity]");
   const openLivingHistoryButton = event.target.closest("[data-open-living-history]");
+  const manageRelationshipsButton = event.target.closest("[data-manage-library-relationships]");
+  const closeRelationshipManagerButton = event.target.closest("[data-close-relationship-manager]");
+  const deleteLibraryRelationshipButton = event.target.closest("[data-delete-library-relationship]");
   const closeLivingHistoryButton = event.target.closest("[data-close-living-history]");
 
   if (openCabinetButton) {
@@ -415,6 +418,36 @@ document.addEventListener("click", (event) => {
 
     if (typeof closeLivingHistoryModal === "function") {
       closeLivingHistoryModal();
+    }
+
+    return;
+  }
+
+  if (manageRelationshipsButton) {
+    event.preventDefault();
+
+    if (typeof openRelationshipManagerModal === "function") {
+      openRelationshipManagerModal(manageRelationshipsButton.dataset.manageLibraryRelationships);
+    }
+
+    return;
+  }
+
+  if (closeRelationshipManagerButton) {
+    event.preventDefault();
+
+    if (typeof closeRelationshipManagerModal === "function") {
+      closeRelationshipManagerModal();
+    }
+
+    return;
+  }
+
+  if (deleteLibraryRelationshipButton) {
+    event.preventDefault();
+
+    if (typeof deleteLibraryRelationship === "function") {
+      deleteLibraryRelationship(deleteLibraryRelationshipButton.dataset.deleteLibraryRelationship);
     }
 
     return;
@@ -624,12 +657,45 @@ document.addEventListener("submit", async (event) => {
 
 document.addEventListener("submit", async (event) => {
   const customCabinetItemForm = event.target.closest("[data-custom-cabinet-item-form]");
+  const addLibraryRelationshipForm = event.target.closest("[data-add-library-relationship]");
+  const updateLibraryRelationshipForm = event.target.closest("[data-update-library-relationship]");
+  const mergeLibraryEntityForm = event.target.closest("[data-merge-library-entity]");
   if (!customCabinetItemForm) return;
 
   event.preventDefault();
 
   if (typeof saveCustomCabinetItem === "function") {
     await saveCustomCabinetItem(customCabinetItemForm);
+  }
+
+  if (addLibraryRelationshipForm) {
+    event.preventDefault();
+
+    if (typeof addLibraryRelationshipFromForm === "function") {
+      addLibraryRelationshipFromForm(addLibraryRelationshipForm);
+    }
+
+    return;
+  }
+
+  if (updateLibraryRelationshipForm) {
+    event.preventDefault();
+
+    if (typeof updateLibraryRelationshipFromForm === "function") {
+      updateLibraryRelationshipFromForm(updateLibraryRelationshipForm);
+    }
+
+    return;
+  }
+
+  if (mergeLibraryEntityForm) {
+    event.preventDefault();
+
+    if (typeof mergeLibraryEntityFromForm === "function") {
+      mergeLibraryEntityFromForm(mergeLibraryEntityForm);
+    }
+
+    return;
   }
 });
 
