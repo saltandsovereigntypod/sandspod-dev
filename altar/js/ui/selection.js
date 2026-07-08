@@ -391,25 +391,37 @@ function renderEntityActivityTimeline(events = []) {
 }
 
 async function hydrateCompanionLibraryExtras(entityId) {
+
   if (!entityId) return;
 
   const timelineTarget = document.querySelector(`[data-library-activity-timeline="${entityId}"]`);
 
   if (timelineTarget) {
+
     timelineTarget.innerHTML = `
+
       <div class="altar-info-card-section living-state-history">
+
         <p><strong>Living History</strong></p>
+
         <p>Loading activity...</p>
+
       </div>
+
     `;
 
     const events =
+
       typeof getObjectInstanceEventsByEntity === "function"
+
         ? await getObjectInstanceEventsByEntity(entityId)
+
         : [];
 
     timelineTarget.innerHTML = renderEntityActivityTimeline(events);
+
   }
+
 }
 
 function showLibraryEntityInCompanion(entityId) {
@@ -417,6 +429,7 @@ function showLibraryEntityInCompanion(entityId) {
 
   const entity = Library.getEntity(entityId);
   const companionContent = altarCompanionPanel.querySelector("[data-companion-content]");
+
   if (!entity || !companionContent) return;
 
   companionContent.innerHTML = renderCompanionLibraryEntity(
@@ -425,6 +438,11 @@ function showLibraryEntityInCompanion(entityId) {
   );
 
   hydrateCompanionLibraryExtras(entity.id);
+
+  if (!altarCompanionMinimized) {
+    altarCompanionPanel.classList.add("is-visible");
+    altarCompanionPanel.classList.remove("is-minimized");
+  }
 }
 
 function openLivingHistoryModal(entityId) {
@@ -645,17 +663,26 @@ function addLibraryRelationshipFromForm(form) {
   const entityId = modal?.dataset.entityId || "";
   const formData = new FormData(form);
 
-  const relation = String(formData.get("relation") || "");
-  const targetEntityId = String(formData.get("target_entity_id") || "");
+  const relation = String(formData.get("relation") || "").trim();
+  const targetEntityId = String(formData.get("target_entity_id") || "").trim();
 
-  if (!entityId || !relation || !targetEntityId) return;
+  if (!entityId || !relation || !targetEntityId) {
+    showAltarToast("Choose a relationship and connected entry first");
+    return;
+  }
 
-  if (typeof Library.connect === "function") {
+  const alreadyExists = Library.getConnections(entityId).some((connection) => {
+    const otherId = connection.from === entityId ? connection.to : connection.from;
+    return connection.relation === relation && otherId === targetEntityId;
+  });
+
+  if (!alreadyExists && typeof Library.connect === "function") {
     Library.connect(entityId, relation, targetEntityId);
   }
 
-  refreshRelationshipManagerModal(entityId);
   showLibraryEntityInCompanion(entityId);
+  refreshRelationshipManagerModal(entityId);
+  showAltarToast("Relationship added");
 }
 
 function updateLibraryRelationshipFromForm(form) {
