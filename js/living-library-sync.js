@@ -178,6 +178,28 @@ async function deleteLivingLibraryRelationFromSupabase(fromEntityId, relation, t
   }
 }
 
+async function updateLivingLibraryRelationInSupabase(oldConnection = {}, newConnection = {}) {
+  const user = getLivingLibraryUser();
+
+  if (!user || typeof db === "undefined") return;
+
+  if (oldConnection.from && oldConnection.relation && oldConnection.to) {
+    await deleteLivingLibraryRelationFromSupabase(
+      oldConnection.from,
+      oldConnection.relation,
+      oldConnection.to
+    );
+  }
+
+  if (newConnection.from && newConnection.relation && newConnection.to) {
+    await saveLivingLibraryRelationToSupabase(
+      newConnection.from,
+      newConnection.relation,
+      newConnection.to
+    );
+  }
+}
+
 function scheduleLivingLibraryEntitySave(entityId) {
   if (!livingLibrarySyncReady || !entityId) return;
 
@@ -334,6 +356,8 @@ function wrapLivingLibraryMethodsForSupabase() {
   const originalConnect = Library.connect?.bind(Library);
   const originalDisconnect = Library.disconnect?.bind(Library);
   const originalReplaceConnections = Library.replaceConnections?.bind(Library);
+  const originalUpdateConnection = Library.updateConnection?.bind(Library);
+  const originalRemoveConnection = Library.removeConnection?.bind(Library);
 
   if (originalUpdateEntity) {
     Library.updateEntity = function(entityId, updates) {
@@ -402,6 +426,62 @@ function wrapLivingLibraryMethodsForSupabase() {
       return result;
     };
   }
+}
+
+if (originalUpdateConnection) {
+  Library.updateConnection = function(connectionId, changes = {}) {
+    const before = (Library.exportLibrary?.().relations || []).find((link) => {
+      return link.id === connectionId;
+    });
+
+    const oldConnection = before
+      ? {
+          from: before.from,
+          relation: before.relation,
+          to: before.to
+        }
+      : {};
+
+    const result = originalUpdateConnection(connectionId, changes);
+
+    const after = (Library.exportLibrary?.().relations || []).find((link) => {
+      return link.id === connectionId;
+    });
+
+    const newConnection = after
+      ? {
+          from: after.from,
+          relation: after.relation,
+          to: after.to
+        }
+      : {};
+
+    if (livingLibrarySyncReady) {
+      updateLivingLibraryRelationInSupabase(oldConnection, newConnection);
+    }
+
+    return result;
+  };
+}
+
+if (originalRemoveConnection) {
+  Library.removeConnection = function(connectionId) {
+    const before = (Library.exportLibrary?.().relations || []).find((link) => {
+      return link.id === connectionId;
+    });
+
+    const result = originalRemoveConnection(connectionId);
+
+    if (livingLibrarySyncReady && before) {
+      deleteLivingLibraryRelationFromSupabase(
+        before.from,
+        before.relation,
+        before.to
+      );
+    }
+
+    return result;
+  };
 }
 
 async function saveAllLivingLibraryLayoutsToSupabase() {
