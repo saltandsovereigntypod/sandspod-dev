@@ -172,9 +172,14 @@ function openAltarApothecaryOverlay() {
   const overlay = document.querySelector("[data-altar-apothecary-overlay]");
   if (!overlay) return;
 
-  if (typeof renderApothecaryItems === "function") {
-    renderApothecaryItems();
-  }
+  Promise.all([
+    typeof migrateLocalApothecaryToCloud === "function" ? migrateLocalApothecaryToCloud() : Promise.resolve(),
+    typeof loadApothecaryItems === "function" ? loadApothecaryItems() : Promise.resolve()
+  ]).then(() => {
+    if (typeof renderApothecaryItems === "function") {
+      renderApothecaryItems();
+    }
+  });
 
   overlay.hidden = false;
   document.body.classList.add("altar-cabinet-overlay-open");

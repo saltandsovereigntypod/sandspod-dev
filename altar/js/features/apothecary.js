@@ -44,16 +44,155 @@ const apothecaryTypes = [
   }
 ];
 
+let apothecaryItemsCache = [];
+
+function mapApothecaryRowToItem(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    typeLabel: row.type_label || "",
+    imagePath: row.image_url || "",
+    intention: row.intention || "",
+    notes: row.notes || "",
+    details: row.details || {},
+    ingredients: row.ingredients || [],
+    livingState: row.living_state || {},
+    entityId: row.entity_id || "",
+    instanceId: row.instance_id || "",
+    grimoireEntryId: row.grimoire_entry_id || "",
+    grimoireStatus: row.grimoire_status || "",
+    logToGrimoire: Boolean(row.log_to_grimoire),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function mapApothecaryItemToRow(item, userId) {
+  return {
+    id: item.id,
+    user_id: userId,
+    name: item.name || "Untitled",
+    type: item.type || "",
+    type_label: item.typeLabel || "",
+    image_url: item.imagePath || "",
+    intention: item.intention || "",
+    notes: item.notes || "",
+    details: item.details || {},
+    ingredients: item.ingredients || [],
+    living_state: item.livingState || {},
+    entity_id: item.entityId || "",
+    instance_id: item.instanceId || "",
+    grimoire_entry_id: item.grimoireEntryId || "",
+    grimoire_status: item.grimoireStatus || "",
+    log_to_grimoire: Boolean(item.logToGrimoire),
+    metadata: {
+      source: "altar-apothecary"
+    },
+    updated_at: new Date().toISOString()
+  };
+}
+
 function getApothecaryItems() {
-  try {
-    return JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || [];
-  } catch {
+  return apothecaryItemsCache;
+}
+
+async function loadApothecaryItems() {
+  const user =
+    typeof getCurrentAssetUser === "function"
+      ? await getCurrentAssetUser()
+      : await ensureAltarUser();
+
+  if (!user) {
+    try {
+      apothecaryItemsCache = JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || [];
+    } catch {
+      apothecaryItemsCache = [];
+    }
+
+    return apothecaryItemsCache;
+  }
+
+  const { data, error } = await db
+    .from("apothecary_items")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Could not load My Apothecary");
+    apothecaryItemsCache = [];
     return [];
+  }
+
+  apothecaryItemsCache = (data || []).map(mapApothecaryRowToItem);
+  return apothecaryItemsCache;
+}
+
+async function saveApothecaryItems(items) {
+  apothecaryItemsCache = items;
+
+  const user =
+    typeof getCurrentAssetUser === "function"
+      ? await getCurrentAssetUser()
+      : await ensureAltarUser();
+
+  if (!user) {
+    localStorage.setItem(APOTHECARY_STORAGE_KEY, JSON.stringify(items));
+    return;
+  }
+
+  const rows = items.map((item) => mapApothecaryItemToRow(item, user.id));
+
+  const { error } = await db
+    .from("apothecary_items")
+    .upsert(rows, { onConflict: "id" });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("My Apothecary could not be saved");
   }
 }
 
-function saveApothecaryItems(items) {
-  localStorage.setItem(APOTHECARY_STORAGE_KEY, JSON.stringify(items));
+async function migrateLocalApothecaryToCloud() {
+  const user =
+    typeof getCurrentAssetUser === "function"
+      ? await getCurrentAssetUser()
+      : await ensureAltarUser();
+
+  if (!user) return;
+
+  const migrationKey = "saltAndSovereigntyApothecaryMigratedToCloud";
+  if (localStorage.getItem(migrationKey) === "true") return;
+
+  let localItems = [];
+
+  try {
+    localItems = JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || [];
+  } catch {
+    localItems = [];
+  }
+
+  if (localItems.length === 0) {
+    localStorage.setItem(migrationKey, "true");
+    return;
+  }
+
+  const rows = localItems.map((item) => mapApothecaryItemToRow(item, user.id));
+
+  const { error } = await db
+    .from("apothecary_items")
+    .upsert(rows, { onConflict: "id" });
+
+  if (error) {
+    console.error(error);
+    showAltarToast("Apothecary migration failed");
+    return;
+  }
+
+  localStorage.setItem(migrationKey, "true");
+  localStorage.removeItem(APOTHECARY_STORAGE_KEY);
 }
 
 /* =========================================================
@@ -769,7 +908,7 @@ async function saveCreatedApothecaryItem(form, modal) {
     ? items.map((savedItem) => (savedItem.id === item.id ? item : savedItem))
     : [item, ...items];
 
-  saveApothecaryItems(updatedItems);
+  await saveApothecaryItems(updatedItems);
 
   if (existingItem) {
     syncPlacedApothecaryObjects(item);
@@ -870,7 +1009,7 @@ function removePlacedApothecaryObjects(itemId) {
   saveWorkingAltarDraft();
 }
 
-function deleteApothecaryItem(itemId) {
+async function deleteApothecaryItem(itemId) {
   const item = getApothecaryItemById(itemId);
   if (!item) return;
 
@@ -882,7 +1021,29 @@ function deleteApothecaryItem(itemId) {
 
   pushAltarUndoSnapshot();
 
-  const items = getApothecaryItems().filter((savedItem) => savedItem.id !== itemId);
+  const user =
+    typeof getCurrentAssetUser === "function"
+      ? await getCurrentAssetUser()
+      : await ensureAltarUser();
+
+  if (user) {
+    const { error } = await db
+      .from("apothecary_items")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("id", itemId);
+
+    if (error) {
+      console.error(error);
+      showAltarToast("Apothecary item could not be deleted");
+      return;
+    }
+
+    apothecaryItemsCache = apothecaryItemsCache.filter((savedItem) => savedItem.id !== itemId);
+  } else {
+    const items = getApothecaryItems().filter((savedItem) => savedItem.id !== itemId);
+    await saveApothecaryItems(items);
+  }
   saveApothecaryItems(items);
 
   removePlacedApothecaryObjects(itemId);
