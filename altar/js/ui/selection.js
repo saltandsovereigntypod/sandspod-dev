@@ -240,7 +240,7 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
       <p class="altar-info-card-type">${entity.type || "entry"}</p>
       ${layers || `<p>Select an object to see its details.</p>`}
 
-      <div data-library-connected-to="${entity.id}"></div>
+      ${renderConnectedEntityList(entity.id)}
       <div data-library-activity-timeline="${entity.id}"></div>
 
       <div class="altar-info-card-section altar-info-card-actions">
@@ -393,12 +393,7 @@ function renderEntityActivityTimeline(events = []) {
 async function hydrateCompanionLibraryExtras(entityId) {
   if (!entityId) return;
 
-  const connectedTarget = document.querySelector(`[data-library-connected-to="${entityId}"]`);
   const timelineTarget = document.querySelector(`[data-library-activity-timeline="${entityId}"]`);
-
-  if (connectedTarget) {
-    connectedTarget.innerHTML = renderConnectedEntityList(entityId);
-  }
 
   if (timelineTarget) {
     timelineTarget.innerHTML = `
