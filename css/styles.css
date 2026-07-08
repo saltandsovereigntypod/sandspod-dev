@@ -2006,3 +2006,18 @@ body:has(.sanctuary-submission-form) h1 {
   opacity: 0.8;
   font-size: 0.95rem;
 }
+
+.contact-copy {
+  text-align: center;
+  opacity: 0.85;
+}
+
+.contact-copy button {
+  margin-left: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+}
