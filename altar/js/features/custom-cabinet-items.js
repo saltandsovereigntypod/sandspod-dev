@@ -20,7 +20,13 @@ function getCustomCabinetItems() {
 
 function normalizeCustomForms(row) {
   if (Array.isArray(row.forms) && row.forms.length) {
-    return row.forms;
+    return row.forms.map((form) => ({
+      ...form,
+      storagePath:
+        form.storagePath ||
+        form.storage_path ||
+        getStoragePathFromPublicUrl(form.image || "")
+    }));
   }
 
   return [
@@ -30,7 +36,8 @@ function normalizeCustomForms(row) {
       type: row.item_type,
       form: row.form_label || "standard",
       custom: true,
-      entityId: row.entity_id || ""
+      entityId: row.entity_id || "",
+      storagePath: row.storage_paths?.[0] || getStoragePathFromPublicUrl(row.image_url || "")
     }
   ];
 }
@@ -245,12 +252,28 @@ async function collectCustomCabinetForms(formData, category, itemType, entityId,
     if (!enabled) continue;
 
     const file = formData.get(`form_image_${formLabel}`);
-    const existingImage = String(formData.get(`existing_form_image_${formLabel}`) || "");
+    const existingForm = existingForms.find((form) => form.label === formLabel);
 
-    let image = existingImage;
+    let image = existingForm?.image || "";
+    let storagePath =
+      existingForm?.storagePath ||
+      existingForm?.storage_path ||
+      getStoragePathFromPublicUrl(existingForm?.image || "");
 
     if (file && file.size > 0) {
-      image = await uploadUserAsset(file, "custom-cabinet-items");
+      const uploaded = await uploadUserAsset(file, "custom-cabinet-items", {
+        maxWidth: 1200,
+        maxHeight: 1200
+      });
+
+      if (uploaded?.url) {
+        if (storagePath && storagePath !== uploaded.path) {
+          await deleteUserAssetByPath(storagePath);
+        }
+
+        image = uploaded.url;
+        storagePath = uploaded.path;
+      }
     }
 
     if (!image) continue;
@@ -261,11 +284,12 @@ async function collectCustomCabinetForms(formData, category, itemType, entityId,
       type: itemType,
       form: formLabel.toLowerCase().replaceAll(" ", "-"),
       custom: true,
-      entityId
+      entityId,
+      storagePath
     });
   }
 
-  return forms.length ? forms : existingForms;
+  return forms;
 }
 
 async function saveCustomCabinetItem(form) {
@@ -354,6 +378,7 @@ async function saveCustomCabinetItem(form) {
     item_type: itemType,
     form_label: forms[0].form || "standard",
     forms,
+    storage_paths: forms.map((form) => form.storagePath).filter(Boolean),
     metadata: {
       libraryMode,
       multiForm: forms.length > 1
@@ -386,6 +411,18 @@ async function deleteCustomCabinetItem(itemId) {
   const user = await getCurrentAssetUser();
   if (!user || !itemId) return;
 
+  const existingItem = getCustomItemById(itemId);
+
+  const storagePaths = (existingItem?.forms || [])
+    .map((form) => {
+      return (
+        form.storagePath ||
+        form.storage_path ||
+        getStoragePathFromPublicUrl(form.image || "")
+      );
+    })
+    .filter(Boolean);
+
   const confirmed = window.confirm("Delete this custom cabinet item? This will not delete the Living Library entry.");
   if (!confirmed) return;
 
@@ -399,6 +436,10 @@ async function deleteCustomCabinetItem(itemId) {
     console.error(error);
     showAltarToast("Custom cabinet item could not be deleted");
     return;
+  }
+
+  for (const storagePath of storagePaths) {
+    await deleteUserAssetByPath(storagePath);
   }
 
   await loadCustomCabinetItems();
