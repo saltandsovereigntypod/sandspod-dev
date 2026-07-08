@@ -317,13 +317,14 @@ function renderConnectedEntityList(entityId) {
 
   const rows = connections
     .map((connection) => {
-      const otherId = connection.from === entityId ? connection.to : connection.from;
+      const isOutgoing = connection.from === entityId;
+      const otherId = isOutgoing ? connection.to : connection.from;
       const otherEntity = Library.getEntity(otherId);
 
       if (!otherEntity) return "";
 
       const label = getReadableRelationLabel(connection, entityId);
-      const uniqueKey = `${label}|${otherId}`;
+      const uniqueKey = `${connection.id}|${label}|${otherId}`;
 
       if (seen.has(uniqueKey)) return "";
       seen.add(uniqueKey);
