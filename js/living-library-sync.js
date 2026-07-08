@@ -492,25 +492,6 @@ function wrapLivingLibraryMethodsForSupabase() {
   }
 }
 
-if (originalRemoveConnection) {
-  Library.removeConnection = function(connectionId) {
-    const before = (Library.exportLibrary?.().relations || []).find((link) => {
-      return link.id === connectionId;
-    });
-
-    const result = originalRemoveConnection(connectionId);
-
-    if (livingLibrarySyncReady && before) {
-      deleteLivingLibraryRelationFromSupabase(
-        before.from,
-        before.relation,
-        before.to
-      );
-    }
-
-    return result;
-  };
-}
 
 async function saveAllLivingLibraryLayoutsToSupabase() {
   const user = getLivingLibraryUser();
