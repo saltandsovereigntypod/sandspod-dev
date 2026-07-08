@@ -490,6 +490,36 @@ function connectUnique(from, relation, to) {
   });
 }
 
+function updateConnection(connectionId, changes = {}) {
+  const connection = library.relations.find((link) => link.id === connectionId);
+  if (!connection) return null;
+
+  Object.assign(connection, changes);
+  save();
+
+  return connection;
+}
+
+function removeConnection(connectionId) {
+  library.relations = library.relations.filter((link) => link.id !== connectionId);
+  save();
+}
+
+function getAllEntitiesSorted() {
+  return Object.values(library.entities || {}).sort((a, b) => {
+    return String(a.name || "").localeCompare(String(b.name || ""));
+  });
+}
+
+function mergeDuplicateEntities(sourceId, destinationId) {
+  if (!sourceId || !destinationId || sourceId === destinationId) return null;
+
+  mergeEntities(sourceId, destinationId);
+  save();
+
+  return getEntity(destinationId);
+}
+
 function importTraditionalLibrary() {
   if (typeof TraditionalLibrary === "undefined") return;
 
@@ -593,6 +623,10 @@ return {
   connect,
   disconnect,
   getConnections,
+  updateConnection,
+  removeConnection,
+  getAllEntitiesSorted,
+  mergeDuplicateEntities,
   getRelated,
   replaceConnections,
 

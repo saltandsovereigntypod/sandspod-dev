@@ -247,6 +247,10 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
         <button type="button" data-open-living-history="${entity.id}">
           View Full Living History
         </button>
+
+        <button type="button" data-manage-library-relationships="${entity.id}">
+          Manage Relationships
+        </button>
       </div>
     </div>
   `;
@@ -460,6 +464,270 @@ function openLivingHistoryModal(entityId) {
   document.body.classList.add("altar-modal-open");
 
   hydrateLivingHistoryModal(entityId);
+}
+
+function getRelationshipTypeOptions(selectedRelation = "") {
+  const relations = [
+    ["contains", "Contains"],
+    ["used_in", "Used In"],
+    ["pairs_with", "Pairs With"],
+    ["substitutes", "Substitutes"],
+    ["substitute_for", "Substitute For"],
+    ["associated_with", "Associated With"],
+    ["offered_to", "Offered To"],
+    ["ruled_by", "Ruled By"],
+    ["related_to", "Related To"]
+  ];
+
+  return relations
+    .map(([value, label]) => `
+      <option value="${value}" ${value === selectedRelation ? "selected" : ""}>
+        ${label}
+      </option>
+    `)
+    .join("");
+}
+
+function getLibraryEntityOptions(selectedEntityId = "", excludeEntityId = "") {
+  if (typeof Library === "undefined") return "";
+
+  const entities =
+    typeof Library.getAllEntitiesSorted === "function"
+      ? Library.getAllEntitiesSorted()
+      : [];
+
+  return entities
+    .filter((entity) => entity.id !== excludeEntityId)
+    .map((entity) => `
+      <option value="${entity.id}" ${entity.id === selectedEntityId ? "selected" : ""}>
+        ${entity.name || "Untitled"} (${entity.type || "entry"})
+      </option>
+    `)
+    .join("");
+}
+
+function openRelationshipManagerModal(entityId) {
+  if (!entityId || typeof Library === "undefined") return;
+
+  const entity = Library.getEntity(entityId);
+  if (!entity) return;
+
+  closeRelationshipManagerModal();
+
+  const connections =
+    typeof Library.getConnections === "function"
+      ? Library.getConnections(entityId)
+      : [];
+
+  const modal = document.createElement("div");
+  modal.className = "living-history-modal";
+  modal.setAttribute("data-relationship-manager-modal", "");
+  modal.dataset.entityId = entityId;
+
+  modal.innerHTML = `
+    <div class="living-history-card" role="dialog" aria-modal="true">
+      <button type="button" class="altar-cabinet-close" data-close-relationship-manager aria-label="Close">
+        ×
+      </button>
+
+      <p class="eyebrow">Living Library</p>
+      <h2>Relationships for ${entity.name || "this entry"}</h2>
+      <p class="altar-info-card-type">${entity.type || "entry"}</p>
+
+      <div class="altar-info-card-section">
+        <p><strong>Add Relationship</strong></p>
+
+        <form data-add-library-relationship>
+          <label>
+            Relationship
+            <select name="relation">
+              ${getRelationshipTypeOptions()}
+            </select>
+          </label>
+
+          <label>
+            Connected Entry
+            <select name="target_entity_id" required>
+              <option value="">Choose an entry</option>
+              ${getLibraryEntityOptions("", entityId)}
+            </select>
+          </label>
+
+          <button type="submit" class="button button--primary">
+            Add Relationship
+          </button>
+        </form>
+      </div>
+
+      <div class="altar-info-card-section">
+        <p><strong>Existing Relationships</strong></p>
+
+        ${
+          connections.length
+            ? connections
+                .map((connection) => {
+                  const otherId = connection.from === entityId ? connection.to : connection.from;
+                  const otherEntity = Library.getEntity(otherId);
+                  if (!otherEntity) return "";
+
+                  return `
+                    <div class="relationship-manager-row" data-relationship-row="${connection.id}">
+                      <form data-update-library-relationship="${connection.id}">
+                        <label>
+                          Relationship
+                          <select name="relation">
+                            ${getRelationshipTypeOptions(connection.relation)}
+                          </select>
+                        </label>
+
+                        <label>
+                          Connected Entry
+                          <select name="target_entity_id">
+                            ${getLibraryEntityOptions(otherId, entityId)}
+                          </select>
+                        </label>
+
+                        <div class="relationship-manager-actions">
+                          <button type="submit">Save</button>
+                          <button type="button" data-delete-library-relationship="${connection.id}">
+                            Delete
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  `;
+                })
+                .join("")
+            : `<p class="altar-info-empty">No relationships yet.</p>`
+        }
+      </div>
+
+      <div class="altar-info-card-section">
+        <p><strong>Merge Duplicate Entry</strong></p>
+        <p class="altar-info-empty">
+          Use this only when two entries are truly the same thing.
+        </p>
+
+        <form data-merge-library-entity>
+          <label>
+            Merge this entry into
+            <select name="destination_entity_id" required>
+              <option value="">Choose destination entry</option>
+              ${getLibraryEntityOptions("", entityId)}
+            </select>
+          </label>
+
+          <button type="submit">
+            Merge Into Selected Entry
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  document.body.classList.add("altar-modal-open");
+}
+
+function closeRelationshipManagerModal() {
+  const modal = document.querySelector("[data-relationship-manager-modal]");
+  if (!modal) return;
+
+  modal.remove();
+  document.body.classList.remove("altar-modal-open");
+}
+
+function refreshRelationshipManagerModal(entityId) {
+  closeRelationshipManagerModal();
+  openRelationshipManagerModal(entityId);
+}
+
+function addLibraryRelationshipFromForm(form) {
+  if (!form || typeof Library === "undefined") return;
+
+  const modal = form.closest("[data-relationship-manager-modal]");
+  const entityId = modal?.dataset.entityId || "";
+  const formData = new FormData(form);
+
+  const relation = String(formData.get("relation") || "");
+  const targetEntityId = String(formData.get("target_entity_id") || "");
+
+  if (!entityId || !relation || !targetEntityId) return;
+
+  if (typeof Library.connect === "function") {
+    Library.connect(entityId, relation, targetEntityId);
+  }
+
+  refreshRelationshipManagerModal(entityId);
+  showLibraryEntityInCompanion(entityId);
+}
+
+function updateLibraryRelationshipFromForm(form) {
+  if (!form || typeof Library === "undefined") return;
+
+  const modal = form.closest("[data-relationship-manager-modal]");
+  const entityId = modal?.dataset.entityId || "";
+  const connectionId = form.dataset.updateLibraryRelationship || "";
+  const formData = new FormData(form);
+
+  const relation = String(formData.get("relation") || "");
+  const targetEntityId = String(formData.get("target_entity_id") || "");
+
+  const connection = Library.getConnections(entityId).find((link) => link.id === connectionId);
+  if (!connection || !relation || !targetEntityId) return;
+
+  const changes =
+    connection.from === entityId
+      ? { relation, to: targetEntityId }
+      : { relation, from: targetEntityId };
+
+  if (typeof Library.updateConnection === "function") {
+    Library.updateConnection(connectionId, changes);
+  }
+
+  refreshRelationshipManagerModal(entityId);
+  showLibraryEntityInCompanion(entityId);
+}
+
+function deleteLibraryRelationship(connectionId) {
+  if (!connectionId || typeof Library === "undefined") return;
+
+  const modal = document.querySelector("[data-relationship-manager-modal]");
+  const entityId = modal?.dataset.entityId || "";
+
+  if (typeof Library.removeConnection === "function") {
+    Library.removeConnection(connectionId);
+  }
+
+  refreshRelationshipManagerModal(entityId);
+  showLibraryEntityInCompanion(entityId);
+}
+
+function mergeLibraryEntityFromForm(form) {
+  if (!form || typeof Library === "undefined") return;
+
+  const modal = form.closest("[data-relationship-manager-modal]");
+  const sourceId = modal?.dataset.entityId || "";
+  const formData = new FormData(form);
+  const destinationId = String(formData.get("destination_entity_id") || "");
+
+  if (!sourceId || !destinationId || sourceId === destinationId) return;
+
+  const source = Library.getEntity(sourceId);
+  const destination = Library.getEntity(destinationId);
+
+  const confirmed = window.confirm(
+    `Merge "${source?.name || "this entry"}" into "${destination?.name || "the selected entry"}"? This cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  if (typeof Library.mergeDuplicateEntities === "function") {
+    Library.mergeDuplicateEntities(sourceId, destinationId);
+  }
+
+  closeRelationshipManagerModal();
+  showLibraryEntityInCompanion(destinationId);
 }
 
 function closeLivingHistoryModal() {
