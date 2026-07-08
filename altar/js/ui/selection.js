@@ -271,25 +271,47 @@ function renderConnectedEntityList(entityId) {
 
   const rows = connections
     .map((connection) => {
-      const otherId = connection.from === entityId ? connection.to : connection.from;
-      const otherEntity = Library.getEntity(otherId);
+      const isOutgoing = connection.from === entityId;
+      const isIncoming = connection.to === entityId;
 
+      let otherId = "";
+      let label = "";
+
+      if (isOutgoing) {
+        otherId = connection.to;
+        label = formatLibraryRelationLabel(connection.relation);
+      }
+
+      if (isIncoming) {
+        otherId = connection.from;
+
+        if (connection.relation === "ingredient_in") {
+          label = "Used In";
+        } else {
+          label = formatLibraryRelationLabel(connection.relation);
+        }
+      }
+
+      if (!otherId) return "";
+
+      const otherEntity = Library.getEntity(otherId);
       if (!otherEntity) return "";
 
       return `
         <p>
-          <strong>${formatLibraryRelationLabel(connection.relation)}:</strong>
+          <strong>${label}:</strong>
           ${otherEntity.name || "Untitled"} (${otherEntity.type || "entry"})
         </p>
       `;
     })
-    .filter(Boolean)
-    .join("");
+    .filter(Boolean);
+
+  const uniqueRows = [...new Set(rows)];
 
   return `
     <div class="altar-info-card-section">
       <p><strong>Connected To</strong></p>
-      ${rows || `<p class="altar-info-empty">No connections recorded yet.</p>`}
+      ${uniqueRows.join("") || `<p class="altar-info-empty">No connections recorded yet.</p>`}
     </div>
   `;
 }
