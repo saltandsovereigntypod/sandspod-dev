@@ -2100,3 +2100,69 @@ body:has(.sanctuary-submission-form) h1 {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   COMMUNITY GRIMOIRE FIELD NOTES
+   ========================================================= */
+
+.community-field-notes {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.24);
+}
+
+.community-field-notes h4 {
+  margin-bottom: 0.75rem;
+}
+
+.community-field-note {
+  margin: 0.8rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 0.9rem;
+  background: rgba(244, 236, 216, 0.045);
+}
+
+.community-field-note p {
+  margin-bottom: 0.45rem;
+}
+
+.community-field-note small {
+  color: var(--muted);
+}
+
+.community-field-note-form-wrap {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(185, 160, 93, 0.2);
+  border-radius: 0.9rem;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.community-field-note-form-wrap summary {
+  cursor: pointer;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.community-field-note-form-wrap form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.community-note-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.community-note-botcheck {
+  display: none;
+}
+
+.community-field-note-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
