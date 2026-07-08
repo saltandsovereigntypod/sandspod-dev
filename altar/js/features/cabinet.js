@@ -361,7 +361,8 @@ function renderCabinetItems() {
                           <button
                             type="button"
                             class="cabinet-missing-form"
-                            data-edit-custom-cabinet-item="${item.customCabinetItemId}">
+                            data-edit-custom-cabinet-item="${item.customCabinetItemId}"
+                            data-focus-custom-form="${formLabel}">
                             + ${formLabel}
                           </button>
                         `)
@@ -417,7 +418,8 @@ function renderCabinetItems() {
                       <button
                         type="button"
                         class="cabinet-tile cabinet-form-tile cabinet-missing-form"
-                        data-edit-custom-cabinet-item="${item.customCabinetItemId}">
+                        data-edit-custom-cabinet-item="${item.customCabinetItemId}"
+                        data-focus-custom-form="${formLabel}">
                         <span class="cabinet-tile-icon">＋</span>
                         <span class="cabinet-tile-name">Add ${formLabel}</span>
                       </button>

@@ -309,6 +309,7 @@ document.addEventListener("click", (event) => {
   const editCustomCabinetItemButton = event.target.closest("[data-edit-custom-cabinet-item]");
   const closeCustomCabinetItemButton = event.target.closest("[data-close-custom-cabinet-item]");
   const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
+  const createAllRemainingFormsButton = event.target.closest("[data-create-all-remaining-forms]");
   const openLibraryEntityButton = event.target.closest("[data-open-library-entity]");
   const openLivingHistoryButton = event.target.closest("[data-open-living-history]");
   const manageRelationshipsButton = event.target.closest("[data-manage-library-relationships]");
@@ -350,7 +351,10 @@ document.addEventListener("click", (event) => {
 
       if (typeof openCustomCabinetItemModal === "function") {
 
-        openCustomCabinetItemModal(editCustomCabinetItemButton.dataset.editCustomCabinetItem);
+        openCustomCabinetItemModal(
+          editCustomCabinetItemButton.dataset.editCustomCabinetItem,
+          editCustomCabinetItemButton.dataset.focusCustomForm || ""
+        );
 
       }
 
@@ -379,6 +383,20 @@ document.addEventListener("click", (event) => {
       closeCustomCabinetItemModal();
     }
 
+    return;
+  }
+
+  if (createAllRemainingFormsButton) {
+    event.preventDefault();
+
+    const modal = createAllRemainingFormsButton.closest("[data-custom-cabinet-item-modal]");
+    if (!modal) return;
+
+    modal.querySelectorAll(".custom-form-upload-row input[type='checkbox'][name^='form_enabled_']").forEach((checkbox) => {
+      checkbox.checked = true;
+    });
+
+    showAltarToast("Remaining forms selected");
     return;
   }
 

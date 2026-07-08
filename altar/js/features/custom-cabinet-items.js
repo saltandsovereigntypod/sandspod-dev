@@ -106,36 +106,67 @@ function getCustomItemById(itemId) {
   return customCabinetItemsCache.find((item) => item.id === itemId) || null;
 }
 
-function renderCustomFormUploadFields(category = "tools", existingForms = []) {
+function renderCustomFormUploadFields(category = "tools", existingForms = [], focusFormLabel = "") {
   const presetForms = CUSTOM_FORM_PRESETS[category] || ["Place"];
+  const existingLabels = existingForms.map((form) => form.label);
+  const missingForms = presetForms.filter((formLabel) => !existingLabels.includes(formLabel));
 
-  return presetForms
-    .map((formLabel) => {
-      const existing = existingForms.find((form) => form.label === formLabel);
-      const checked = existing || formLabel === "Place";
+  return `
+    ${
+      missingForms.length
+        ? `
+          <div class="custom-form-create-all-row">
+            <button type="button" class="cabinet-mini-action" data-create-all-remaining-forms>
+              Create All Remaining Forms
+            </button>
+          </div>
+        `
+        : ""
+    }
 
-      return `
-        <div class="custom-form-upload-row">
-          <label class="my-sanctuary-check">
-            <input type="checkbox" name="form_enabled_${formLabel}" ${checked ? "checked" : ""} />
-            ${formLabel}
-          </label>
+    ${presetForms
+      .map((formLabel) => {
+        const existing = existingForms.find((form) => form.label === formLabel);
+        const checked = Boolean(existing) || formLabel === focusFormLabel || (!existingForms.length && formLabel === "Place");
+        const isMissing = !existing;
 
-          <input
-            type="file"
-            name="form_image_${formLabel}"
-            accept="image/png,image/webp,image/jpeg"
-            ${existing ? "" : checked ? "required" : ""}
-          />
+        return `
+          <div class="custom-form-upload-row ${isMissing ? "is-missing-form" : "has-existing-form"}">
+            <label class="my-sanctuary-check">
+              <input
+                type="checkbox"
+                name="form_enabled_${formLabel}"
+                ${checked ? "checked" : ""}
+              />
+              ${existing ? "✓" : "+"} ${formLabel}
+            </label>
 
-          <input type="hidden" name="existing_form_image_${formLabel}" value="${existing?.image || ""}" />
-        </div>
-      `;
-    })
-    .join("");
+            ${
+              existing
+                ? `
+                  <label class="my-sanctuary-check custom-form-delete-option">
+                    <input type="checkbox" name="form_delete_${formLabel}" />
+                    Delete this form
+                  </label>
+                `
+                : ""
+            }
+
+            <input
+              type="file"
+              name="form_image_${formLabel}"
+              accept="image/png,image/webp,image/jpeg"
+            />
+
+            <input type="hidden" name="existing_form_image_${formLabel}" value="${existing?.image || ""}" />
+          </div>
+        `;
+      })
+      .join("")}
+  `;
 }
 
-async function openCustomCabinetItemModal(editItemId = "") {
+async function openCustomCabinetItemModal(editItemId = "", focusFormLabel = "") {
   closeCustomCabinetItemModal();
 
   const existingItem = editItemId ? getCustomItemById(editItemId) : null;
@@ -220,7 +251,7 @@ async function openCustomCabinetItemModal(editItemId = "") {
           <p>Choose which forms this item should have. Upload images now, or leave unchecked and add them later.</p>
 
           <div data-custom-form-upload-fields>
-            ${renderCustomFormUploadFields(selectedCategory, existingItem?.forms || [])}
+            ${renderCustomFormUploadFields(selectedCategory, existingItem?.forms || [], focusFormLabel)}
           </div>
         </div>
 
@@ -246,19 +277,30 @@ function closeCustomCabinetItemModal() {
 async function collectCustomCabinetForms(formData, category, itemType, entityId, existingForms = []) {
   const presetForms = CUSTOM_FORM_PRESETS[category] || ["Place"];
   const forms = [];
+  const deletedStoragePaths = [];
 
   for (const formLabel of presetForms) {
     const enabled = formData.get(`form_enabled_${formLabel}`) === "on";
-    if (!enabled) continue;
-
+    const markedForDelete = formData.get(`form_delete_${formLabel}`) === "on";
     const file = formData.get(`form_image_${formLabel}`);
     const existingForm = existingForms.find((form) => form.label === formLabel);
 
-    let image = existingForm?.image || "";
-    let storagePath =
+    const existingStoragePath =
       existingForm?.storagePath ||
       existingForm?.storage_path ||
       getStoragePathFromPublicUrl(existingForm?.image || "");
+
+    if (markedForDelete) {
+      if (existingStoragePath) deletedStoragePaths.push(existingStoragePath);
+      continue;
+    }
+
+    if (!enabled) {
+      continue;
+    }
+
+    let image = existingForm?.image || "";
+    let storagePath = existingStoragePath;
 
     if (file && file.size > 0) {
       const uploaded = await uploadUserAsset(file, "custom-cabinet-items", {
@@ -268,7 +310,7 @@ async function collectCustomCabinetForms(formData, category, itemType, entityId,
 
       if (uploaded?.url) {
         if (storagePath && storagePath !== uploaded.path) {
-          await deleteUserAssetByPath(storagePath);
+          deletedStoragePaths.push(storagePath);
         }
 
         image = uploaded.url;
@@ -289,7 +331,10 @@ async function collectCustomCabinetForms(formData, category, itemType, entityId,
     });
   }
 
-  return forms;
+  return {
+    forms,
+    deletedStoragePaths
+  };
 }
 
 async function saveCustomCabinetItem(form) {
@@ -354,13 +399,16 @@ async function saveCustomCabinetItem(form) {
     return;
   }
 
-  const forms = await collectCustomCabinetForms(
+  const formResult = await collectCustomCabinetForms(
     formData,
     category,
     itemType,
     entityId,
     existingItem?.forms || []
   );
+
+  const forms = formResult.forms || [];
+  const deletedStoragePaths = formResult.deletedStoragePaths || [];
 
   if (!forms.length) {
     showAltarToast("Choose at least one form and upload an image");
@@ -396,6 +444,10 @@ async function saveCustomCabinetItem(form) {
     console.error(error);
     showAltarToast("Custom cabinet item could not be saved");
     return;
+  }
+
+  for (const storagePath of deletedStoragePaths) {
+    await deleteUserAssetByPath(storagePath);
   }
 
   await loadCustomCabinetItems();

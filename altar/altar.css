@@ -3889,3 +3889,40 @@ body.altar-living-state-minimized .altar-living-state-panel {
 [data-merge-library-entity] button {
   width: fit-content;
 }
+
+/* =========================================================
+   Version 1 Cabinet + Relationship Polish
+   ========================================================= */
+
+.custom-form-create-all-row {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.custom-form-upload-row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(244, 236, 216, 0.04);
+}
+
+.custom-form-upload-row + .custom-form-upload-row {
+  margin-top: 0.65rem;
+}
+
+.custom-form-upload-row.is-missing-form {
+  border-style: dashed;
+  opacity: 0.88;
+}
+
+.custom-form-delete-option {
+  opacity: 0.76;
+  font-size: 0.88rem;
+}
+
+.custom-form-upload-row input[type="file"] {
+  width: 100%;
+}

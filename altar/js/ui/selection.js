@@ -676,9 +676,12 @@ function addLibraryRelationshipFromForm(form) {
     return connection.relation === relation && otherId === targetEntityId;
   });
 
-  if (!alreadyExists && typeof Library.connect === "function") {
-    Library.connect(entityId, relation, targetEntityId);
+  if (alreadyExists) {
+    showAltarToast("That relationship already exists");
+    return;
   }
+
+  Library.connect(entityId, relation, targetEntityId);
 
   showLibraryEntityInCompanion(entityId);
   refreshRelationshipManagerModal(entityId);
