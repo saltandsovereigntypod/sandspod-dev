@@ -5,8 +5,34 @@
 
 let customCabinetItemsCache = [];
 
-async function getCustomCabinetItems() {
+const CUSTOM_FORM_PRESETS = {
+  herbs: ["Sprig", "Loose", "Oil", "Incense"],
+  crystals: ["Point", "Chips", "Cluster"],
+  candles: ["Place"],
+  tools: ["Place"],
+  deities: ["Place"],
+  vessels: ["Place"]
+};
+
+function getCustomCabinetItems() {
   return customCabinetItemsCache;
+}
+
+function normalizeCustomForms(row) {
+  if (Array.isArray(row.forms) && row.forms.length) {
+    return row.forms;
+  }
+
+  return [
+    {
+      label: "Place",
+      image: row.image_url,
+      type: row.item_type,
+      form: row.form_label || "standard",
+      custom: true,
+      entityId: row.entity_id || ""
+    }
+  ];
 }
 
 async function loadCustomCabinetItems() {
@@ -37,16 +63,7 @@ async function loadCustomCabinetItems() {
     keywords: row.keywords || [],
     entityId: row.entity_id || "",
     customCabinetItemId: row.id,
-    forms: [
-      {
-        label: "Place",
-        image: row.image_url,
-        type: row.item_type,
-        form: row.form_label || "standard",
-        custom: true,
-        entityId: row.entity_id || ""
-      }
-    ],
+    forms: normalizeCustomForms(row),
     createdAt: row.created_at
   }));
 
@@ -54,8 +71,6 @@ async function loadCustomCabinetItems() {
 }
 
 function getAllLivingLibraryEntitiesForCustomCabinet() {
-  if (typeof Library === "undefined") return [];
-
   const rawLibrary = JSON.parse(localStorage.getItem("saltAndSovereigntyLibrary")) || {};
   return Object.values(rawLibrary.entities || {}).sort((a, b) => {
     return String(a.name || "").localeCompare(String(b.name || ""));
@@ -67,55 +82,99 @@ function getCustomCabinetCategoryLabel(category = "") {
   return match?.label || category || "Custom";
 }
 
-async function openCustomCabinetItemModal() {
+function getCustomCabinetTypeForCategory(category = "") {
+  const map = {
+    candles: "candle",
+    herbs: "herb",
+    crystals: "crystal",
+    tools: "tool",
+    deities: "deity",
+    vessels: "vessel"
+  };
+
+  return map[category] || "object";
+}
+
+function getCustomItemById(itemId) {
+  return customCabinetItemsCache.find((item) => item.id === itemId) || null;
+}
+
+function renderCustomFormUploadFields(category = "tools", existingForms = []) {
+  const presetForms = CUSTOM_FORM_PRESETS[category] || ["Place"];
+
+  return presetForms
+    .map((formLabel) => {
+      const existing = existingForms.find((form) => form.label === formLabel);
+      const checked = existing || formLabel === "Place";
+
+      return `
+        <div class="custom-form-upload-row">
+          <label class="my-sanctuary-check">
+            <input type="checkbox" name="form_enabled_${formLabel}" ${checked ? "checked" : ""} />
+            ${formLabel}
+          </label>
+
+          <input
+            type="file"
+            name="form_image_${formLabel}"
+            accept="image/png,image/webp,image/jpeg"
+            ${existing ? "" : checked ? "required" : ""}
+          />
+
+          <input type="hidden" name="existing_form_image_${formLabel}" value="${existing?.image || ""}" />
+        </div>
+      `;
+    })
+    .join("");
+}
+
+async function openCustomCabinetItemModal(editItemId = "") {
   closeCustomCabinetItemModal();
 
+  const existingItem = editItemId ? getCustomItemById(editItemId) : null;
   const entities = getAllLivingLibraryEntitiesForCustomCabinet();
+  const selectedCategory = existingItem?.category || "tools";
 
   const modal = document.createElement("div");
   modal.className = "custom-cabinet-item-modal";
   modal.setAttribute("data-custom-cabinet-item-modal", "");
 
+  if (existingItem) {
+    modal.dataset.editItemId = existingItem.id;
+  }
+
   modal.innerHTML = `
-    <div class="custom-cabinet-item-card" role="dialog" aria-modal="true" aria-label="Create Custom Cabinet Item">
-      <button class="altar-cabinet-close" type="button" data-close-custom-cabinet-item aria-label="Close">
-        ×
-      </button>
+    <div class="custom-cabinet-item-card" role="dialog" aria-modal="true">
+      <button class="altar-cabinet-close" type="button" data-close-custom-cabinet-item aria-label="Close">×</button>
 
       <p class="eyebrow">Cabinet</p>
-      <h2>Create Custom Cabinet Item</h2>
+      <h2>${existingItem ? "Edit Custom Cabinet Item" : "Create Custom Cabinet Item"}</h2>
 
       <form data-custom-cabinet-item-form>
         <label>
           Cabinet Category
-          <select name="category" required>
+          <select name="category" required data-custom-cabinet-category-select>
             ${cabinetCategories
               .filter((category) => category.id !== "backgrounds")
-              .map((category) => `<option value="${category.id}">${category.label}</option>`)
+              .map((category) => `
+                <option value="${category.id}" ${category.id === selectedCategory ? "selected" : ""}>
+                  ${category.label}
+                </option>
+              `)
               .join("")}
           </select>
         </label>
 
         <label>
           Item Name
-          <input type="text" name="name" placeholder="Grandmother's key, blue offering bowl, handmade wand..." required />
-        </label>
-
-        <label>
-          Form
-          <input type="text" name="form" placeholder="standard, statue, bowl, charm, bundle..." value="standard" />
-        </label>
-
-        <label>
-          Image
-          <input type="file" name="image" accept="image/png,image/webp,image/jpeg" required />
+          <input type="text" name="name" value="${existingItem?.name || ""}" required />
         </label>
 
         <div class="custom-cabinet-link-options">
           <p class="eyebrow">Living Library Link</p>
 
           <label class="my-sanctuary-check">
-            <input type="radio" name="library_mode" value="existing" checked />
+            <input type="radio" name="library_mode" value="existing" ${existingItem ? "checked" : "checked"} />
             Link to an existing Living Library entry
           </label>
 
@@ -125,7 +184,7 @@ async function openCustomCabinetItemModal() {
               <option value="">Choose an entry</option>
               ${entities
                 .map((entity) => `
-                  <option value="${entity.id}">
+                  <option value="${entity.id}" ${entity.id === existingItem?.entityId ? "selected" : ""}>
                     ${entity.name || "Untitled"} (${entity.type || "entry"})
                   </option>
                 `)
@@ -134,27 +193,32 @@ async function openCustomCabinetItemModal() {
           </label>
 
           <label class="my-sanctuary-check">
-            <input type="radio" name="library_mode" value="new" />
+            <input type="radio" name="library_mode" value="new" ${existingItem ? "disabled" : ""} />
             Create a new My Practice entry
           </label>
 
           <label>
             My Practice Notes
-            <textarea
-              name="my_practice_notes"
-              rows="4"
-              placeholder="What is this object, how do you use it, what does it mean in your practice?"
-            ></textarea>
+            <textarea name="my_practice_notes" rows="4"></textarea>
           </label>
 
           <label>
             Keywords
-            <input type="text" name="keywords" placeholder="protection, ancestors, devotion, dreamwork" />
+            <input type="text" name="keywords" value="${(existingItem?.keywords || []).join(", ")}" />
           </label>
         </div>
 
+        <div class="custom-cabinet-link-options">
+          <p class="eyebrow">Forms</p>
+          <p>Choose which forms this item should have. Upload images now, or leave unchecked and add them later.</p>
+
+          <div data-custom-form-upload-fields>
+            ${renderCustomFormUploadFields(selectedCategory, existingItem?.forms || [])}
+          </div>
+        </div>
+
         <button class="button button--primary" type="submit">
-          Save Custom Cabinet Item
+          ${existingItem ? "Save Changes" : "Save Custom Cabinet Item"}
         </button>
       </form>
     </div>
@@ -172,17 +236,36 @@ function closeCustomCabinetItemModal() {
   document.body.classList.remove("altar-modal-open");
 }
 
-function getCustomCabinetTypeForCategory(category = "") {
-  const map = {
-    candles: "candle",
-    herbs: "herb",
-    crystals: "crystal",
-    tools: "tool",
-    deities: "deity",
-    vessels: "vessel"
-  };
+async function collectCustomCabinetForms(formData, category, itemType, entityId, existingForms = []) {
+  const presetForms = CUSTOM_FORM_PRESETS[category] || ["Place"];
+  const forms = [];
 
-  return map[category] || "object";
+  for (const formLabel of presetForms) {
+    const enabled = formData.get(`form_enabled_${formLabel}`) === "on";
+    if (!enabled) continue;
+
+    const file = formData.get(`form_image_${formLabel}`);
+    const existingImage = String(formData.get(`existing_form_image_${formLabel}`) || "");
+
+    let image = existingImage;
+
+    if (file && file.size > 0) {
+      image = await uploadUserAsset(file, "custom-cabinet-items");
+    }
+
+    if (!image) continue;
+
+    forms.push({
+      label: formLabel,
+      image,
+      type: itemType,
+      form: formLabel.toLowerCase().replaceAll(" ", "-"),
+      custom: true,
+      entityId
+    });
+  }
+
+  return forms.length ? forms : existingForms;
 }
 
 async function saveCustomCabinetItem(form) {
@@ -193,10 +276,13 @@ async function saveCustomCabinetItem(form) {
     return;
   }
 
+  const modal = form.closest("[data-custom-cabinet-item-modal]");
+  const editItemId = modal?.dataset.editItemId || "";
+  const existingItem = editItemId ? getCustomItemById(editItemId) : null;
+
   const formData = new FormData(form);
   const category = String(formData.get("category") || "").trim();
   const name = String(formData.get("name") || "").trim();
-  const formLabel = String(formData.get("form") || "standard").trim() || "standard";
   const libraryMode = String(formData.get("library_mode") || "existing");
   const selectedEntityId = String(formData.get("entity_id") || "");
   const notes = String(formData.get("my_practice_notes") || "").trim();
@@ -204,25 +290,16 @@ async function saveCustomCabinetItem(form) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
-  const file = formData.get("image");
 
-  if (!category || !name || !file || !file.size) {
-    showAltarToast("Add a name, category, and image first");
+  if (!category || !name) {
+    showAltarToast("Add a name and category first");
     return;
   }
 
-  const imageUrl = await uploadUserAsset(file, "custom-cabinet-items");
-  if (!imageUrl) return;
-
   const itemType = getCustomCabinetTypeForCategory(category);
-  let entityId = selectedEntityId;
+  let entityId = selectedEntityId || existingItem?.entityId || "";
 
-  if (libraryMode === "new") {
-    if (typeof Library === "undefined") {
-      showAltarToast("Living Library is not ready");
-      return;
-    }
-
+  if (!existingItem && libraryMode === "new") {
     const entity = Library.createEntity({
       type: itemType,
       name,
@@ -232,8 +309,7 @@ async function saveCustomCabinetItem(form) {
       myPractice: {
         Notes: notes,
         CreatedFrom: "Custom Cabinet Item",
-        CabinetCategory: getCustomCabinetCategoryLabel(category),
-        Form: formLabel
+        CabinetCategory: getCustomCabinetCategoryLabel(category)
       },
       metadata: {
         customCabinetItem: true,
@@ -249,25 +325,47 @@ async function saveCustomCabinetItem(form) {
     }
   }
 
-  if (libraryMode === "existing" && !entityId) {
+  if (!entityId) {
     showAltarToast("Choose a Living Library entry or create a new one");
     return;
   }
 
-  const { error } = await db.from("custom_cabinet_items").insert({
+  const forms = await collectCustomCabinetForms(
+    formData,
+    category,
+    itemType,
+    entityId,
+    existingItem?.forms || []
+  );
+
+  if (!forms.length) {
+    showAltarToast("Choose at least one form and upload an image");
+    return;
+  }
+
+  const row = {
     user_id: user.id,
     category,
     name,
     icon: "✦",
     keywords,
     entity_id: entityId,
-    image_url: imageUrl,
+    image_url: forms[0].image,
     item_type: itemType,
-    form_label: formLabel,
+    form_label: forms[0].form || "standard",
+    forms,
     metadata: {
-      libraryMode
-    }
-  });
+      libraryMode,
+      multiForm: forms.length > 1
+    },
+    updated_at: new Date().toISOString()
+  };
+
+  const query = editItemId
+    ? db.from("custom_cabinet_items").update(row).eq("user_id", user.id).eq("id", editItemId)
+    : db.from("custom_cabinet_items").insert(row);
+
+  const { error } = await query;
 
   if (error) {
     console.error(error);
@@ -278,11 +376,10 @@ async function saveCustomCabinetItem(form) {
   await loadCustomCabinetItems();
 
   closeCustomCabinetItemModal();
-
   activeCabinetCategory = category;
   renderCabinet();
 
-  showAltarToast(`${name} added to Cabinet`);
+  showAltarToast(existingItem ? `${name} updated` : `${name} added to Cabinet`);
 }
 
 async function deleteCustomCabinetItem(itemId) {

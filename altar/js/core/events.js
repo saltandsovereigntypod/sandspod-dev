@@ -304,7 +304,9 @@ document.addEventListener("click", (event) => {
   const closeCabinetButton = event.target.closest("[data-close-cabinet-overlay]");
   const openApothecaryButton = event.target.closest("[data-open-apothecary-overlay]");
   const closeApothecaryButton = event.target.closest("[data-close-apothecary-overlay]");
+
   const addCustomCabinetItemButton = event.target.closest("[data-add-custom-cabinet-item]");
+  const editCustomCabinetItemButton = event.target.closest("[data-edit-custom-cabinet-item]");
   const closeCustomCabinetItemButton = event.target.closest("[data-close-custom-cabinet-item]");
   const deleteCustomCabinetItemButton = event.target.closest("[data-delete-custom-cabinet-item]");
 
@@ -334,6 +336,36 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+    if (editCustomCabinetItemButton) {
+
+      event.preventDefault();
+
+      event.stopPropagation();
+
+      if (typeof openCustomCabinetItemModal === "function") {
+
+        openCustomCabinetItemModal(editCustomCabinetItemButton.dataset.editCustomCabinetItem);
+
+      }
+
+      return;
+
+    }
+
+    if (closeCustomCabinetItemButton) {
+
+      event.preventDefault();
+
+      if (typeof closeCustomCabinetItemModal === "function") {
+
+        closeCustomCabinetItemModal();
+
+      }
+
+      return;
+
+    }
+
   if (closeCustomCabinetItemButton) {
     event.preventDefault();
 
@@ -354,6 +386,18 @@ document.addEventListener("click", (event) => {
 
     return;
   }
+});
+
+document.addEventListener("change", (event) => {
+  const categorySelect = event.target.closest("[data-custom-cabinet-category-select]");
+  if (!categorySelect) return;
+
+  const modal = categorySelect.closest("[data-custom-cabinet-item-modal]");
+  const formFields = modal?.querySelector("[data-custom-form-upload-fields]");
+
+  if (!formFields || typeof renderCustomFormUploadFields !== "function") return;
+
+  formFields.innerHTML = renderCustomFormUploadFields(categorySelect.value, []);
 });
 
 
