@@ -121,7 +121,7 @@ function createMySanctuaryPanel() {
            <a href="/grimoire/index.html">📖 My Book of Shadows</a>
            <button type="button" data-my-sanctuary-view-button="rituals">🌙 My Saved Rituals</button>
            <a href="/submit/">✦ Offer to the Sanctuary</a>
-           <span>✨ Community Grimoire <em>Coming soon</em></span>
+           <a href="/grimoire/community-grimoire.html">✨ Community Grimoire</a>
            <button type="button" data-my-sanctuary-view-button="submissions">📬 My Submissions</button>
            <button type="button" data-my-sanctuary-view-button="settings">⚙ My Settings</button>
          </nav>

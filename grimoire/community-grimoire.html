@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Community Grimoire | Salt & Sovereignty</title>
+    <meta
+      name="description"
+      content="A community grimoire of shared ritual reflections, witchcraft experiences, dream notes, and living practice offered through Salt & Sovereignty."
+    />
+
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body>
+    <header class="site-header" data-header>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="Salt & Sovereignty home">
+          <span class="brand-mark" aria-hidden="true">S&S</span>
+          <span>Salt & Sovereignty</span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+          <span class="sr-only">Toggle navigation</span>
+          <span></span><span></span><span></span>
+        </button>
+
+        <div class="nav-links" id="nav-menu">
+          <a href="index.html#about">About</a>
+          <a href="index.html#podcast">Podcast</a>
+          <a href="index.html#books">Books</a>
+          <a href="index.html#blog">Blog</a>
+          <a href="community-grimoire.html">Community Grimoire</a>
+          <a href="index.html#contact">Contact</a>
+
+          <button class="nav-sanctuary-button" type="button" data-my-sanctuary-open>
+            My Sanctuary
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero community-grimoire-hero">
+        <div class="hero-content">
+          <p class="eyebrow">The Living Archive</p>
+
+          <h1>Community Grimoire</h1>
+
+          <p>
+            A shared grimoire of ritual reflections, dream notes, spellwork experiences,
+            devotional practice, and hard-won wisdom offered by the Salt & Sovereignty community.
+          </p>
+
+          <p>
+            Every contribution is reviewed before publication. This space is not here to define
+            one true way. It is here to witness the many ways practice becomes alive.
+          </p>
+        </div>
+      </section>
+
+      <section class="section community-grimoire-section">
+        <div class="section-card">
+          <div class="section-heading">
+            <p class="section-kicker">Shared Pages</p>
+            <h2>Browse the Community Grimoire</h2>
+          </div>
+
+          <div class="community-grimoire-tools">
+            <label>
+              <span class="sr-only">Search the Community Grimoire</span>
+              <input
+                type="search"
+                placeholder="Search by title, tag, or keyword..."
+                data-community-grimoire-search
+              />
+            </label>
+
+            <label>
+              <span class="sr-only">Filter by type</span>
+              <select data-community-grimoire-filter>
+                <option value="all">All Contributions</option>
+                <option value="community_grimoire">Community Grimoire</option>
+                <option value="ritual_experience">Ritual Experiences</option>
+                <option value="dream_experience">Dream Experiences</option>
+                <option value="blog">Blog or Journal Submissions</option>
+                <option value="podcast">Podcast Stories or Questions</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          </div>
+
+          <div data-community-grimoire-status class="community-grimoire-status">
+            Opening the Community Grimoire...
+          </div>
+
+          <div data-community-grimoire-list class="community-grimoire-list"></div>
+        </div>
+      </section>
+
+      <section class="section community-grimoire-submit">
+        <div class="section-card">
+          <div class="section-heading">
+            <p class="section-kicker">Offer a Page</p>
+            <h2>Want to contribute?</h2>
+          </div>
+
+          <p>
+            If you have a ritual reflection, dream experience, piece of practice wisdom,
+            or story you would like to offer, you can submit it through My Sanctuary.
+          </p>
+
+          <button class="button button--primary" type="button" data-my-sanctuary-open>
+            Open My Sanctuary
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© Salt & Sovereignty</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sanctuary-modal.js"></script>
+    <script src="js/my-settings.js"></script>
+    <script src="js/my-rituals.js"></script>
+    <script src="js/submissions.js"></script>
+    <script src="js/my-sanctuary.js"></script>
+    <script src="script.js"></script>
+    <script src="js/community-grimoire.js"></script>
+  </body>
+</html>
