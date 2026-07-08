@@ -1980,3 +1980,29 @@ body:has(.sanctuary-submission-form) h1 {
 
 }
 
+.contact-email {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.contact-email a {
+  display: inline-block;
+  padding: 0.9rem 1.5rem;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.contact-email a:hover {
+  background: rgba(197, 168, 92, 0.12);
+  transform: translateY(-2px);
+}
+
+.contact-note {
+  text-align: center;
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
