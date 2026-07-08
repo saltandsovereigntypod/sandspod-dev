@@ -245,7 +245,7 @@ function renderCommunityGrimoireEntries() {
       const tags = Array.isArray(entry.tags) ? entry.tags : [];
 
       return `
-        <article class="community-grimoire-card reveal">
+        <article class="community-grimoire-card">
           <div class="community-grimoire-card-header">
             <p class="section-kicker">
               ${escapeCommunityGrimoireHTML(formatCommunityGrimoireType(entry.submission_type))}

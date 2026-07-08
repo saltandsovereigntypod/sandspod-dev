@@ -116,11 +116,12 @@ async function autoArchiveOldSubmissions() {
   const { error } = await db
     .from("community_submissions")
     .update({
-      status: "archived",
+      admin_folder: "archived",
       archived_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })
-    .in("status", ["published", "rejected"])
+    .in("status", ["published", "rejected", "needs_revision"])
+    .eq("admin_folder", "active")
     .lt("last_activity_at", cutoff.toISOString());
 
   if (error) console.error(error);
@@ -202,8 +203,10 @@ async function loadAdminSubmissions() {
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (adminSubmissionFilter !== "all") {
-    query = query.eq("status", adminSubmissionFilter);
+  if (adminSubmissionFilter === "archived") {
+    query = query.eq("admin_folder", "archived");
+  } else if (adminSubmissionFilter !== "all") {
+    query = query.eq("status", adminSubmissionFilter).eq("admin_folder", "active");
   }
 
   if (adminSubmissionSearch.trim()) {
@@ -400,7 +403,14 @@ async function updateAdminSubmissionStatus(submissionId, status) {
   };
 
   if (status === "published") patch.published_at = new Date().toISOString();
-  if (status === "archived") patch.archived_at = new Date().toISOString();
+  if (status === "archived") {
+    patch.admin_folder = "archived";
+    patch.archived_at = new Date().toISOString();
+    delete patch.status;
+  } else {
+    patch.admin_folder = "active";
+    patch.archived_at = null;
+  }
 
   if (["approved", "needs_revision", "rejected", "published", "archived"].includes(status)) {
     patch.reviewed_at = new Date().toISOString();
