@@ -288,6 +288,26 @@ async function getObjectInstanceEvents(instanceId) {
   return data || [];
 }
 
+async function getObjectInstanceEventsByEntity(entityId) {
+  const user = getObjectInstanceUser();
+
+  if (!user || typeof db === "undefined" || !entityId) return [];
+
+  const { data, error } = await db
+    .from(OBJECT_INSTANCE_EVENTS_TABLE)
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("entity_id", entityId)
+    .order("occurred_at", { ascending: false });
+
+  if (error) {
+    console.error("Entity event timeline failed:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 window.createObjectInstance = createObjectInstance;
 window.updateObjectInstance = updateObjectInstance;
 window.getObjectInstance = getObjectInstance;
@@ -295,3 +315,4 @@ window.getObjectInstancesByEntity = getObjectInstancesByEntity;
 
 window.addObjectInstanceEvent = addObjectInstanceEvent;
 window.getObjectInstanceEvents = getObjectInstanceEvents;
+window.getObjectInstanceEventsByEntity = getObjectInstanceEventsByEntity;

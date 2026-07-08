@@ -3772,3 +3772,24 @@ body.altar-living-state-minimized .altar-living-state-panel {
   padding: 1rem;
   background: rgba(244, 236, 216, 0.045);
 }
+
+/* =========================================================
+   Living Library Connections + Timeline
+   ========================================================= */
+
+.living-state-history .living-state-event {
+  margin-top: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(244, 236, 216, 0.04);
+}
+
+.living-state-history .living-state-event p {
+  margin: 0.2rem 0;
+}
+
+.altar-info-empty {
+  opacity: 0.72;
+  font-style: italic;
+}

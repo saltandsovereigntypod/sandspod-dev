@@ -239,8 +239,123 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
       <h3>${entity.name || "Library Entry"}</h3>
       <p class="altar-info-card-type">${entity.type || "entry"}</p>
       ${layers || `<p>Select an object to see its details.</p>`}
+
+      <div data-library-connected-to="${entity.id}"></div>
+      <div data-library-activity-timeline="${entity.id}"></div>
     </div>
   `;
+}
+
+function formatLibraryRelationLabel(relation = "") {
+  return String(relation || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function renderConnectedEntityList(entityId) {
+  if (!entityId || typeof Library === "undefined") return "";
+
+  const connections =
+    typeof Library.getConnections === "function"
+      ? Library.getConnections(entityId)
+      : [];
+
+  if (!connections.length) {
+    return `
+      <div class="altar-info-card-section">
+        <p><strong>Connected To</strong></p>
+        <p class="altar-info-empty">No connections recorded yet.</p>
+      </div>
+    `;
+  }
+
+  const rows = connections
+    .map((connection) => {
+      const otherId = connection.from === entityId ? connection.to : connection.from;
+      const otherEntity = Library.getEntity(otherId);
+
+      if (!otherEntity) return "";
+
+      return `
+        <p>
+          <strong>${formatLibraryRelationLabel(connection.relation)}:</strong>
+          ${otherEntity.name || "Untitled"} (${otherEntity.type || "entry"})
+        </p>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
+  return `
+    <div class="altar-info-card-section">
+      <p><strong>Connected To</strong></p>
+      ${rows || `<p class="altar-info-empty">No connections recorded yet.</p>`}
+    </div>
+  `;
+}
+
+function renderEntityActivityTimeline(events = []) {
+  if (!events.length) {
+    return `
+      <div class="altar-info-card-section living-state-history">
+        <p><strong>Living History</strong></p>
+        <p class="altar-info-empty">No activity recorded yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="altar-info-card-section living-state-history">
+      <p><strong>Living History</strong></p>
+
+      ${events
+        .slice(0, 12)
+        .map((event) => `
+          <div class="living-state-event">
+            <p>
+              <span aria-hidden="true">${renderLivingStateEventIcon(event.event_type)}</span>
+              <strong>${event.event_label || event.event_type || "Event"}</strong>
+            </p>
+
+            <p>${formatLivingStateDate(event.occurred_at)}</p>
+
+            ${
+              event.event_notes
+                ? `<p>${event.event_notes}</p>`
+                : ""
+            }
+          </div>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
+async function hydrateCompanionLibraryExtras(entityId) {
+  if (!entityId) return;
+
+  const connectedTarget = document.querySelector(`[data-library-connected-to="${entityId}"]`);
+  const timelineTarget = document.querySelector(`[data-library-activity-timeline="${entityId}"]`);
+
+  if (connectedTarget) {
+    connectedTarget.innerHTML = renderConnectedEntityList(entityId);
+  }
+
+  if (timelineTarget) {
+    timelineTarget.innerHTML = `
+      <div class="altar-info-card-section living-state-history">
+        <p><strong>Living History</strong></p>
+        <p>Loading activity...</p>
+      </div>
+    `;
+
+    const events =
+      typeof getObjectInstanceEventsByEntity === "function"
+        ? await getObjectInstanceEventsByEntity(entityId)
+        : [];
+
+    timelineTarget.innerHTML = renderEntityActivityTimeline(events);
+  }
 }
 
 function buildObjectInfoMarkup(object, mode = "compact") {
@@ -424,6 +539,12 @@ function showAltarCompanionPanel(object) {
   if (!companionContent) return;
 
   companionContent.innerHTML = buildObjectInfoMarkup(object, "panel");
+
+  const entity = getLibraryEntityForObject(object);
+
+  if (entity?.id && typeof hydrateCompanionLibraryExtras === "function") {
+    hydrateCompanionLibraryExtras(entity.id);
+  }
 
   if (!altarCompanionMinimized) {
     altarCompanionPanel.classList.add("is-visible");
