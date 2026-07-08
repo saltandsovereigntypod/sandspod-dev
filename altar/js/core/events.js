@@ -660,17 +660,27 @@ document.addEventListener("submit", async (event) => {
   const addLibraryRelationshipForm = event.target.closest("[data-add-library-relationship]");
   const updateLibraryRelationshipForm = event.target.closest("[data-update-library-relationship]");
   const mergeLibraryEntityForm = event.target.closest("[data-merge-library-entity]");
-  if (!customCabinetItemForm) return;
+
+  if (
+    !customCabinetItemForm &&
+    !addLibraryRelationshipForm &&
+    !updateLibraryRelationshipForm &&
+    !mergeLibraryEntityForm
+  ) {
+    return;
+  }
 
   event.preventDefault();
 
-  if (typeof saveCustomCabinetItem === "function") {
-    await saveCustomCabinetItem(customCabinetItemForm);
+  if (customCabinetItemForm) {
+    if (typeof saveCustomCabinetItem === "function") {
+      await saveCustomCabinetItem(customCabinetItemForm);
+    }
+
+    return;
   }
 
   if (addLibraryRelationshipForm) {
-    event.preventDefault();
-
     if (typeof addLibraryRelationshipFromForm === "function") {
       addLibraryRelationshipFromForm(addLibraryRelationshipForm);
     }
@@ -679,8 +689,6 @@ document.addEventListener("submit", async (event) => {
   }
 
   if (updateLibraryRelationshipForm) {
-    event.preventDefault();
-
     if (typeof updateLibraryRelationshipFromForm === "function") {
       updateLibraryRelationshipFromForm(updateLibraryRelationshipForm);
     }
@@ -689,8 +697,6 @@ document.addEventListener("submit", async (event) => {
   }
 
   if (mergeLibraryEntityForm) {
-    event.preventDefault();
-
     if (typeof mergeLibraryEntityFromForm === "function") {
       mergeLibraryEntityFromForm(mergeLibraryEntityForm);
     }
