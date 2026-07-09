@@ -934,14 +934,24 @@ function getTraditionalTypeLabel(type = "") {
 }
 
 function getLibraryEntityIntro(entity) {
+  if (!entity) return "";
+
+  if (entity.type === "apothecary") {
+    return `${formatLibraryEntityName(entity.name)} is part of My Practice.`;
+  }
+
   const traditional = entity.traditional || {};
   const uses = traditional.Uses || traditional.Domains || traditional.Purpose || "";
 
-  if (!uses) {
-    return `${formatLibraryEntityName(entity.name)} is part of the Traditional Library.`;
+  if (uses) {
+    return `${formatLibraryEntityName(entity.name)} is traditionally associated with ${String(uses).toLowerCase()}.`;
   }
 
-  return `${formatLibraryEntityName(entity.name)} is traditionally associated with ${String(uses).toLowerCase()}.`;
+  if (Object.keys(entity.myPractice || {}).length) {
+    return `${formatLibraryEntityName(entity.name)} is part of My Practice.`;
+  }
+
+  return `${formatLibraryEntityName(entity.name)} is part of the Living Library.`;
 }
 
 function normalizeLibraryImageName(name = "") {
@@ -2188,13 +2198,36 @@ async function deleteLibraryEntryFromMyPractice(entityId) {
 
   const confirmed = window.confirm(
     isApothecaryEntry
-      ? `Delete "${formatLibraryEntityName(entity.name)}" from My Practice? This will remove this apothecary entry from the Living Library.`
+      ? `Delete "${formatLibraryEntityName(entity.name)}" from My Practice and My Apothecary? This cannot be undone.`
       : `Delete your My Practice notes for "${formatLibraryEntityName(entity.name)}"? The traditional entry will remain if it exists.`
   );
 
   if (!confirmed) return;
 
   if (isApothecaryEntry) {
+    const user = requireUser();
+
+    const apothecaryItemId =
+      entity.metadata?.apothecaryItemId ||
+      entity.metadata?.apothecary_item_id ||
+      entity.myPractice?.ApothecaryItemId ||
+      entity.myPractice?.apothecaryItemId ||
+      "";
+
+    if (user && apothecaryItemId && typeof db !== "undefined") {
+      const { error } = await db
+        .from("apothecary_items")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("id", apothecaryItemId);
+
+      if (error) {
+        console.error(error);
+        flashStatus("Could not delete the matching apothecary item.");
+        return;
+      }
+    }
+
     if (typeof deleteLivingLibraryEntityFromSupabase === "function") {
       await deleteLivingLibraryEntityFromSupabase(entityId);
     }
@@ -2209,7 +2242,7 @@ async function deleteLibraryEntryFromMyPractice(entityId) {
     await renderLivingLibraryShelves();
     renderWelcomeState();
 
-    flashStatus("Apothecary entry removed from My Practice.");
+    flashStatus("Apothecary entry removed from My Practice and My Apothecary.");
     return;
   }
 
