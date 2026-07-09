@@ -245,46 +245,52 @@ function renderCommunityGrimoireEntries() {
       const tags = Array.isArray(entry.tags) ? entry.tags : [];
 
       return `
-        <article class="community-grimoire-card">
-          <div class="community-grimoire-card-header">
-            <p class="section-kicker">
-              ${escapeCommunityGrimoireHTML(formatCommunityGrimoireType(entry.submission_type))}
-            </p>
+        <details class="community-grimoire-card community-grimoire-entry">
+          <summary class="community-grimoire-summary">
+            <div>
+              <p class="section-kicker">
+                ${escapeCommunityGrimoireHTML(formatCommunityGrimoireType(entry.submission_type))}
+              </p>
 
-            <h3>${escapeCommunityGrimoireHTML(entry.title)}</h3>
+              <h3>${escapeCommunityGrimoireHTML(entry.title)}</h3>
 
-            <p class="community-grimoire-meta">
-              Offered by ${escapeCommunityGrimoireHTML(getCommunityGrimoireAuthor(entry))}
+              <p class="community-grimoire-meta">
+                Offered by ${escapeCommunityGrimoireHTML(getCommunityGrimoireAuthor(entry))}
+                ${
+                  entry.updated_at || entry.created_at
+                    ? ` · ${formatCommunityGrimoireDate(entry.updated_at || entry.created_at)}`
+                    : ""
+                }
+              </p>
+
               ${
-                entry.updated_at || entry.created_at
-                  ? ` · ${formatCommunityGrimoireDate(entry.updated_at || entry.created_at)}`
+                tags.length
+                  ? `
+                    <div class="community-grimoire-tags">
+                      ${tags
+                        .map((tag) => `<span>${escapeCommunityGrimoireHTML(tag)}</span>`)
+                        .join("")}
+                    </div>
+                  `
                   : ""
               }
-            </p>
+            </div>
+
+            <span class="community-grimoire-open-label">Open page</span>
+          </summary>
+
+          <div class="community-grimoire-entry-full">
+            <div class="community-grimoire-body">
+              ${escapeCommunityGrimoireHTML(entry.body)
+                .split("\n")
+                .filter(Boolean)
+                .map((paragraph) => `<p>${paragraph}</p>`)
+                .join("")}
+            </div>
+
+            ${renderFieldNotes(entry.id)}
           </div>
-
-          <div class="community-grimoire-body">
-            ${escapeCommunityGrimoireHTML(entry.body)
-              .split("\n")
-              .filter(Boolean)
-              .map((paragraph) => `<p>${paragraph}</p>`)
-              .join("")}
-          </div>
-
-          ${
-            tags.length
-              ? `
-                <div class="community-grimoire-tags">
-                  ${tags
-                    .map((tag) => `<span>${escapeCommunityGrimoireHTML(tag)}</span>`)
-                    .join("")}
-                </div>
-              `
-              : ""
-          }
-
-          ${renderFieldNotes(entry.id)}
-        </article>
+        </details>
       `;
     })
     .join("");

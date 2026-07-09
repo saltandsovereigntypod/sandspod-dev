@@ -261,6 +261,16 @@ document.addEventListener("submit", async (event) => {
     return;
   }
 
+  await db
+    .from("community_submissions")
+    .update({
+      admin_folder: "active",
+      archived_at: null,
+      last_activity_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", submissionId);
+
   form.reset();
   showMySanctuaryNotice("Reply sent.");
 });

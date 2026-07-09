@@ -206,7 +206,11 @@ async function loadAdminSubmissions() {
   if (adminSubmissionFilter === "archived") {
     query = query.eq("admin_folder", "archived");
   } else if (adminSubmissionFilter !== "all") {
-    query = query.eq("status", adminSubmissionFilter).eq("admin_folder", "active");
+    query = query
+      .eq("status", adminSubmissionFilter)
+      .eq("admin_folder", "active");
+  } else {
+    query = query.eq("admin_folder", "active");
   }
 
   if (adminSubmissionSearch.trim()) {
@@ -395,25 +399,27 @@ async function updateAdminSubmissionStatus(submissionId, status) {
       ? document.querySelector("[data-admin-moderator-notes]")?.value || ""
       : submission.moderator_notes || "";
 
+  const now = new Date().toISOString();
+
   const patch = {
-    status,
     moderator_notes: notes,
-    updated_at: new Date().toISOString(),
-    last_activity_at: new Date().toISOString()
+    updated_at: now,
+    last_activity_at: now
   };
 
-  if (status === "published") patch.published_at = new Date().toISOString();
   if (status === "archived") {
     patch.admin_folder = "archived";
-    patch.archived_at = new Date().toISOString();
-    delete patch.status;
+    patch.archived_at = now;
   } else {
+    patch.status = status;
     patch.admin_folder = "active";
     patch.archived_at = null;
-  }
 
-  if (["approved", "needs_revision", "rejected", "published", "archived"].includes(status)) {
-    patch.reviewed_at = new Date().toISOString();
+    if (status === "published") patch.published_at = now;
+
+    if (["approved", "needs_revision", "rejected", "published"].includes(status)) {
+      patch.reviewed_at = now;
+    }
   }
 
   const { error } = await db
@@ -427,7 +433,11 @@ async function updateAdminSubmissionStatus(submissionId, status) {
     return;
   }
 
-  adminSubmissionStatus(`Moved to ${formatAdminStatus(status)}.`);
+  adminSubmissionStatus(
+    status === "archived"
+      ? "Moved to Archive."
+      : `Moved to ${formatAdminStatus(status)}.`
+  );
 
   await loadAdminSubmissions();
 
@@ -452,6 +462,9 @@ async function saveAdminSubmissionNotes() {
     .from("community_submissions")
     .update({
       moderator_notes: notes,
+      admin_folder: "active",
+      archived_at: null,
+      last_activity_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })
     .eq("id", activeAdminSubmission.id);
@@ -560,6 +573,8 @@ document.addEventListener("submit", async (event) => {
   await db
     .from("community_submissions")
     .update({
+      admin_folder: "active",
+      archived_at: null,
       last_activity_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })
