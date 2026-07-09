@@ -441,6 +441,42 @@ p {
   color: var(--cream);
 }
 
+.blog-tools {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem auto;
+  max-width: 760px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.blog-tools input,
+.blog-tools select {
+  flex: 1 1 240px;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(189, 181, 0, 0.35);
+  background: rgba(18, 13, 10, 0.88);
+  color: #f4ead8;
+  font: inherit;
+}
+
+.blog-tools input::placeholder {
+  color: rgba(244, 234, 216, 0.55);
+}
+
+.blog-actions {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.blog-empty-message,
+.blog-error {
+  text-align: center;
+  margin-top: 2rem;
+  opacity: 0.8;
+}
+
 .service-grid {
   grid-template-columns: repeat(3, 1fr);
 }

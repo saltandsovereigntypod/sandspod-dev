@@ -117,49 +117,116 @@ function formatPostDate(value) {
   });
 }
 
+const blogGrid = document.getElementById("blogPostsGrid");
+const blogSearch = document.getElementById("blogSearch");
+const blogCategoryFilter = document.getElementById("blogCategoryFilter");
+const loadMoreButton = document.getElementById("loadMorePosts");
+const blogEmptyMessage = document.getElementById("blogEmptyMessage");
+
+let allBlogPosts = [];
+let visiblePostCount = 6;
+
 async function loadBlogPosts() {
-  if (!blogPreview) return;
+  if (!blogGrid) return;
 
   try {
     const response = await fetch("posts.json");
+    allBlogPosts = await response.json();
 
-    if (!response.ok) {
-      throw new Error("Could not load posts.json");
-    }
+    allBlogPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const posts = await response.json();
-
-    posts.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    const latestPost = posts[0];
-    const otherPosts = posts.slice(1, 5);
-
-    blogPreview.innerHTML = `
-      <a class="featured-card blog-card-link is-visible" href="${latestPost.url}">
-        <span class="tag">${latestPost.category}</span>
-        <h3>${latestPost.title}</h3>
-        <p>${latestPost.summary}</p>
-        <p><strong>${formatPostDate(latestPost.date)}</strong></p>
-        <span class="text-link">Read More</span>
-      </a>
-
-      ${otherPosts
-        .map(
-          (post) => `
-            <a class="small-card blog-card-link is-visible" href="${post.url}">
-              <span>${post.category}</span>
-              <h3>${post.title}</h3>
-              <p>${post.summary}</p>
-              <p><strong>${formatPostDate(post.date)}</strong></p>
-            </a>
-          `
-        )
-        .join("")}
-    `;
+    buildCategoryFilter();
+    renderBlogPosts();
   } catch (error) {
-    console.warn("Blog posts could not be loaded.", error);
+    console.error("Could not load blog posts:", error);
+    blogGrid.innerHTML = `<p class="blog-error">The grimoire is resting. Try again soon.</p>`;
   }
 }
+
+function buildCategoryFilter() {
+  if (!blogCategoryFilter) return;
+
+  const categories = [...new Set(allBlogPosts.map(post => post.category).filter(Boolean))];
+
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    blogCategoryFilter.appendChild(option);
+  });
+}
+
+function getFilteredPosts() {
+  const searchTerm = blogSearch?.value.toLowerCase().trim() || "";
+  const selectedCategory = blogCategoryFilter?.value || "all";
+
+  return allBlogPosts.filter(post => {
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchTerm) ||
+      post.summary.toLowerCase().includes(searchTerm) ||
+      post.category.toLowerCase().includes(searchTerm);
+
+    const matchesCategory =
+      selectedCategory === "all" || post.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+}
+
+function renderBlogPosts() {
+  const filteredPosts = getFilteredPosts();
+  const postsToShow = filteredPosts.slice(0, visiblePostCount);
+
+  blogGrid.innerHTML = "";
+
+  if (blogEmptyMessage) {
+    blogEmptyMessage.hidden = filteredPosts.length > 0;
+  }
+
+  postsToShow.forEach(post => {
+    const article = document.createElement("article");
+    article.className = "blog-preview-card reveal is-visible";
+
+    article.innerHTML = `
+      <p class="blog-category">${post.category}</p>
+      <h3>${post.title}</h3>
+      <p class="blog-date">${formatPostDate(post.date)}</p>
+      <p>${post.summary}</p>
+      <a href="${post.url}" class="text-link">Read entry</a>
+    `;
+
+    blogGrid.appendChild(article);
+  });
+
+  if (loadMoreButton) {
+    loadMoreButton.hidden = visiblePostCount >= filteredPosts.length;
+  }
+}
+
+function formatPostDate(dateString) {
+  const date = new Date(dateString + "T00:00:00");
+
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+blogSearch?.addEventListener("input", () => {
+  visiblePostCount = 6;
+  renderBlogPosts();
+});
+
+blogCategoryFilter?.addEventListener("change", () => {
+  visiblePostCount = 6;
+  renderBlogPosts();
+});
+
+loadMoreButton?.addEventListener("click", () => {
+  visiblePostCount += 6;
+  renderBlogPosts();
+});
 
 loadBlogPosts();
 
