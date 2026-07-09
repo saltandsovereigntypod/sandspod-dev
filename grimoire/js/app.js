@@ -45,6 +45,79 @@ function renderSignedOutState() {
    INITIALIZE GRIMOIRE
    ========================================================= */
 
+function cleanupDeletedApothecaryLibraryEntries() {
+  if (typeof Library === "undefined") return;
+
+  let savedApothecaryItems = [];
+
+  if (typeof getApothecaryItems === "function") {
+    savedApothecaryItems = getApothecaryItems();
+  } else {
+    try {
+      savedApothecaryItems =
+        JSON.parse(localStorage.getItem("saltAndSovereigntyApothecaryItems")) || [];
+    } catch {
+      savedApothecaryItems = [];
+    }
+  }
+
+  const savedIds = new Set(savedApothecaryItems.map((item) => item.id));
+
+  Object.values(Library.exportLibrary().entities || {}).forEach((entity) => {
+    if (entity.type !== "apothecary") return;
+
+    const apothecaryItemId =
+      entity.metadata?.apothecaryItemId ||
+      entity.metadata?.apothecary_item_id ||
+      entity.myPractice?.ApothecaryItemId ||
+      "";
+
+    const hasKnownItemId = Boolean(apothecaryItemId);
+    const stillExists = hasKnownItemId && savedIds.has(apothecaryItemId);
+
+    if (hasKnownItemId && !stillExists && typeof Library.removeEntity === "function") {
+      Library.removeEntity(entity.id);
+    }
+  });
+}
+
+function cleanupOrphanedApothecaryLibraryEntries() {
+  if (typeof Library === "undefined") return;
+
+  let savedApothecaryItems = [];
+
+  try {
+    savedApothecaryItems =
+      JSON.parse(localStorage.getItem("saltAndSovereigntyApothecaryItems")) || [];
+  } catch {
+    savedApothecaryItems = [];
+  }
+
+  const savedIds = new Set(
+    savedApothecaryItems
+      .map((item) => item.id)
+      .filter(Boolean)
+  );
+
+  Object.values(Library.exportLibrary().entities || {}).forEach((entity) => {
+    if (entity.type !== "apothecary") return;
+
+    const linkedApothecaryItemId =
+      entity.metadata?.apothecaryItemId ||
+      entity.metadata?.apothecary_item_id ||
+      entity.myPractice?.ApothecaryItemId ||
+      entity.myPractice?.apothecaryItemId ||
+      "";
+
+    if (!linkedApothecaryItemId) return;
+    if (savedIds.has(linkedApothecaryItemId)) return;
+
+    if (typeof Library.removeEntity === "function") {
+      Library.removeEntity(entity.id);
+    }
+  });
+}
+
 async function syncTraditionalLibraryToGrimoireIfEnabled() {
   if (typeof TraditionalLibrary === "undefined") return;
   if (typeof Library === "undefined") return;
@@ -69,6 +142,8 @@ async function initGrimoire() {
     await loadPages();
     
     await syncTraditionalLibraryToGrimoireIfEnabled();
+    cleanupOrphanedApothecaryLibraryEntries();
+    cleanupDeletedApothecaryLibraryEntries();
     
     if (typeof initLivingLibrarySupabaseSync === "function") {
       await initLivingLibrarySupabaseSync();
@@ -976,7 +1051,45 @@ function renderLibraryChips(value) {
 
 function renderLibraryPlainValue(value) {
   if (Array.isArray(value)) {
-    return value.map((item) => escapeHtml(item)).join(", ");
+    return value
+      .map((item) => {
+        if (item && typeof item === "object") {
+          const amount = item.amount ? `${item.amount} ` : "";
+          const name =
+            item.libraryName ||
+            item.label ||
+            item.name ||
+            item.herb ||
+            item.crystal ||
+            item.tool ||
+            item.vessel ||
+            item.deity ||
+            item.type ||
+            "Ingredient";
+
+          return escapeHtml(`${amount}${name}`.trim());
+        }
+
+        return escapeHtml(item);
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (value && typeof value === "object") {
+    const label =
+      value.libraryName ||
+      value.label ||
+      value.name ||
+      value.herb ||
+      value.crystal ||
+      value.tool ||
+      value.vessel ||
+      value.deity ||
+      value.type ||
+      "";
+
+    return label ? escapeHtml(label) : escapeHtml(JSON.stringify(value));
   }
 
   return String(value || "");
@@ -1694,7 +1807,7 @@ async function renderLibraryEntity(entityId) {
             </label>
 
             ${
-              Object.keys(entity.myPractice || {}).length
+              Object.keys(entity.myPractice || {}).length || entity.type === "apothecary"
                 ? `
                   <button class="button button--small" type="button" data-toggle-library-edit="${entity.id}">
                     ${libraryEditMode ? "Preview" : "Edit"}
@@ -2015,11 +2128,28 @@ async function deleteLibraryEntryFromMyPractice(entityId) {
   const entity = Library.getEntity(entityId);
   if (!entity) return;
 
+  const isApothecaryEntry = entity.type === "apothecary";
+
   const confirmed = window.confirm(
-    `Delete your My Practice notes for "${formatLibraryEntityName(entity.name)}"? The traditional entry will remain if it exists.`
+    isApothecaryEntry
+      ? `Delete "${formatLibraryEntityName(entity.name)}" from My Practice? This will remove this apothecary entry from the Living Library.`
+      : `Delete your My Practice notes for "${formatLibraryEntityName(entity.name)}"? The traditional entry will remain if it exists.`
   );
 
   if (!confirmed) return;
+
+  if (isApothecaryEntry && typeof Library.removeEntity === "function") {
+    Library.removeEntity(entityId);
+
+    activeLibraryEntityId = null;
+    libraryEditMode = false;
+
+    await renderLivingLibraryShelves();
+    renderWelcomeState();
+
+    flashStatus("Apothecary entry removed from My Practice.");
+    return;
+  }
 
   Library.updateEntity(entityId, {
     myPractice: {}

@@ -240,7 +240,7 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
       <p class="altar-info-card-type">${entity.type || "entry"}</p>
       ${layers || `<p>Select an object to see its details.</p>`}
 
-      ${renderConnectedEntityList(entity.id)}
+      ${renderConnectedEntityList(entity.id, { allowedRelations: ["contains"] })}
       <div data-library-activity-timeline="${entity.id}"></div>
 
       <div class="altar-info-card-section altar-info-card-actions">
@@ -296,21 +296,24 @@ function getReadableRelationLabel(connection, currentEntityId) {
     : incomingLabels[relation] || formatLibraryRelationLabel(relation);
 }
 
-function renderConnectedEntityList(entityId) {
+function renderConnectedEntityList(entityId, options = {}) {
   if (!entityId || typeof Library === "undefined") return "";
 
-  const connections =
+  const allowedRelations = options.allowedRelations || null;
+
+  let connections =
     typeof Library.getConnections === "function"
       ? Library.getConnections(entityId)
       : [];
 
+  if (Array.isArray(allowedRelations)) {
+    connections = connections.filter((connection) => {
+      return allowedRelations.includes(connection.relation);
+    });
+  }
+
   if (!connections.length) {
-    return `
-      <div class="altar-info-card-section">
-        <p><strong>Connected To</strong></p>
-        <p class="altar-info-empty">No connections recorded yet.</p>
-      </div>
-    `;
+    return "";
   }
 
   const seen = new Set();
@@ -324,7 +327,7 @@ function renderConnectedEntityList(entityId) {
       if (!otherEntity) return "";
 
       const label = getReadableRelationLabel(connection, entityId);
-      const uniqueKey = `${connection.id}|${label}|${otherId}`;
+      const uniqueKey = `${connection.relation}|${label}|${otherId}`;
 
       if (seen.has(uniqueKey)) return "";
       seen.add(uniqueKey);
@@ -345,10 +348,12 @@ function renderConnectedEntityList(entityId) {
     .filter(Boolean)
     .join("");
 
+  if (!rows) return "";
+
   return `
     <div class="altar-info-card-section">
       <p><strong>Connected To</strong></p>
-      ${rows || `<p class="altar-info-empty">No connections recorded yet.</p>`}
+      ${rows}
     </div>
   `;
 }
@@ -792,13 +797,6 @@ function buildObjectInfoMarkup(object, mode = "compact") {
       ? Library.getEntity(object.dataset.entityId)
       : null;
 
-  if (mode === "panel" && libraryEntity && typeof renderCompanionLibraryEntity === "function") {
-    return renderCompanionLibraryEntity(libraryEntity, companionSettings);
-  }
-
-  if (mode === "panel" && entity && typeof renderCompanionLibraryEntity === "function") {
-    return renderCompanionLibraryEntity(entity, companionSettings);
-  }
   const useSettings = mode === "panel";
   const activeGroup = object.dataset.groupId
     ? altarGroups.find((group) => group.id === object.dataset.groupId)
@@ -940,6 +938,12 @@ function buildObjectInfoMarkup(object, mode = "compact") {
               }
             </div>
           `
+          : ""
+      }
+
+      ${
+        mode === "panel" && entity?.id
+          ? renderConnectedEntityList(entity.id, { allowedRelations: ["contains"] })
           : ""
       }
 

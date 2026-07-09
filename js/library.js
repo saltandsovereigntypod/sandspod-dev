@@ -82,7 +82,23 @@ function rebuildIndexes() {
 
 }
 
+function dedupeRelations() {
+  const seen = new Set();
+
+  library.relations = (library.relations || []).filter((link) => {
+    if (!link.from || !link.to || !link.relation) return false;
+
+    const key = `${link.from}|${link.relation}|${link.to}`;
+
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+}
+
 function save() {
+  dedupeRelations();
   rebuildIndexes();
 
   const lightweightLibrary = structuredClone(library);
@@ -383,16 +399,10 @@ function mergeEntities(sourceId, destinationId) {
 }
 
   function connect(from, relation, to) {
+    if (!from || !relation || !to) return;
 
-    library.relations.push({
-      id: crypto.randomUUID(),
-      from,
-      relation,
-      to
-    });
-
+    connectUnique(from, relation, to);
     save();
-
   }
 
   function getConnections(id) {

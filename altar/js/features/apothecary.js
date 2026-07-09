@@ -1009,6 +1009,32 @@ function removePlacedApothecaryObjects(itemId) {
   saveWorkingAltarDraft();
 }
 
+function deleteLinkedApothecaryLibraryEntity(itemId) {
+  if (!itemId || typeof Library === "undefined") return;
+
+  const entities = Object.values(Library.exportLibrary().entities || {});
+
+  const matchingEntity = entities.find((entity) => {
+    const linkedApothecaryItemId =
+      entity.metadata?.apothecaryItemId ||
+      entity.metadata?.apothecary_item_id ||
+      entity.myPractice?.ApothecaryItemId ||
+      entity.myPractice?.apothecaryItemId ||
+      "";
+
+    return (
+      entity.type === "apothecary" &&
+      linkedApothecaryItemId === itemId
+    );
+  });
+
+  if (!matchingEntity) return;
+
+  if (typeof Library.removeEntity === "function") {
+    Library.removeEntity(matchingEntity.id);
+  }
+}
+
 async function deleteApothecaryItem(itemId) {
   const item = getApothecaryItemById(itemId);
   if (!item) return;
@@ -1042,14 +1068,14 @@ async function deleteApothecaryItem(itemId) {
     apothecaryItemsCache = apothecaryItemsCache.filter((savedItem) => savedItem.id !== itemId);
   } else {
     const items = getApothecaryItems().filter((savedItem) => savedItem.id !== itemId);
-    await saveApothecaryItems(items);
-  }
-  saveApothecaryItems(items);
+    saveApothecaryItems(items);
 
-  removePlacedApothecaryObjects(itemId);
-  renderApothecaryItems();
+    deleteLinkedApothecaryLibraryEntity(itemId);
 
-  showAltarToast("Apothecary item deleted");
+    removePlacedApothecaryObjects(itemId);
+    renderApothecaryItems();
+
+    showAltarToast("Apothecary item deleted");
 }
 
 document.addEventListener("click", (event) => {
@@ -1091,3 +1117,4 @@ document.addEventListener("submit", async (event) => {
 
   await saveCreatedApothecaryItem(form, modal);
 });
+}
