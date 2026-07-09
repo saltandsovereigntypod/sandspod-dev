@@ -2331,3 +2331,59 @@ body:has(.sanctuary-submission-form) h1 {
   padding-top: 1.25rem;
   border-top: 1px solid rgba(185, 160, 93, 0.24);
 }
+
+/* =========================================================
+   FIND ME ELSEWHERE
+   ========================================================= */
+
+.social-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.social-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: linear-gradient(
+        145deg,
+        rgba(38, 61, 46, 0.82),
+        rgba(17, 21, 18, 0.9)
+    );
+    box-shadow: var(--shadow);
+}
+
+.social-card h3 {
+    max-width: none;
+    margin-bottom: 0.75rem;
+}
+
+.social-card p {
+    flex: 1;
+    margin-bottom: 1.5rem;
+}
+
+.social-card .button {
+    align-self: flex-start;
+}
+
+.social-card button[disabled] {
+    opacity: 0.65;
+    cursor: default;
+}
+
+@media (max-width: 900px) {
+
+    .social-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .social-card .button {
+        width: 100%;
+        justify-content: center;
+    }
+
+}
