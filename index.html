@@ -209,22 +209,39 @@
         </div>
       </section>
 
-      <section class="section blog" id="blog">
-        <div class="section-intro reveal">
-          <p class="eyebrow">Journal</p>
-          <h2>Reflections from the threshold.</h2>
+      <section class="home-section blog-archive-section reveal" id="journal">
+        <div class="section-heading">
+          <p class="section-kicker">From the Grimoire</p>
+          <h2>Journal & Grimoire Entries</h2>
           <p>
-            A collection of stories, lessons, rituals, and reflections gathered along the path of healing and devotion.
+            Reflections, rituals, podcast notes, spellwork, and sacred wandering from Salt & Sovereignty.
           </p>
         </div>
-      
-        <div class="blog-grid" data-blog-preview>
-          <article class="featured-card reveal">
-            <span class="tag">Loading</span>
-            <h3>Loading latest post...</h3>
-            <p>Recent reflections will appear here soon.</p>
-          </article>
+
+        <div class="blog-tools">
+          <input
+            type="search"
+            id="blogSearch"
+            placeholder="Search the grimoire..."
+            aria-label="Search blog posts"
+          >
+
+          <select id="blogCategoryFilter" aria-label="Filter blog posts by category">
+            <option value="all">All categories</option>
+          </select>
         </div>
+
+        <div class="blog-grid" id="blogPostsGrid"></div>
+
+        <div class="blog-actions">
+          <button class="btn-secondary" id="loadMorePosts" type="button">
+            Show more entries
+          </button>
+        </div>
+
+        <p class="blog-empty-message" id="blogEmptyMessage" hidden>
+          No entries found. Try another search or category.
+        </p>
       </section>
 
       <section class="section coaching" id="coaching" hidden>
