@@ -524,7 +524,24 @@ async function initLivingLibrarySupabaseSync() {
   await saveAllLivingLibraryLayoutsToSupabase();
 }
 
+async function deleteLivingLibraryEntityFromSupabase(entityId) {
+  const user = getLivingLibraryUser();
+
+  if (!user || !entityId || typeof db === "undefined") return;
+
+  const { error } = await db
+    .from(LIVING_LIBRARY_TABLE)
+    .delete()
+    .eq("user_id", user.id)
+    .eq("entity_id", entityId);
+
+  if (error) {
+    console.error("Living Library delete failed:", error);
+  }
+}
+
 window.initLivingLibrarySupabaseSync = initLivingLibrarySupabaseSync;
 window.saveLivingLibraryEntityToSupabase = saveLivingLibraryEntityToSupabase;
+window.deleteLivingLibraryEntityFromSupabase = deleteLivingLibraryEntityFromSupabase;
 window.saveLivingLibraryRelationToSupabase = saveLivingLibraryRelationToSupabase;
 window.loadLivingLibraryRelationsFromSupabase = loadLivingLibraryRelationsFromSupabase;

@@ -1009,7 +1009,7 @@ function removePlacedApothecaryObjects(itemId) {
   saveWorkingAltarDraft();
 }
 
-function deleteLinkedApothecaryLibraryEntity(itemId) {
+async function deleteLinkedApothecaryLibraryEntity(itemId) {
   if (!itemId || typeof Library === "undefined") return;
 
   const entities = Object.values(Library.exportLibrary().entities || {});
@@ -1029,6 +1029,10 @@ function deleteLinkedApothecaryLibraryEntity(itemId) {
   });
 
   if (!matchingEntity) return;
+
+  if (typeof deleteLivingLibraryEntityFromSupabase === "function") {
+    await deleteLivingLibraryEntityFromSupabase(matchingEntity.id);
+  }
 
   if (typeof Library.removeEntity === "function") {
     Library.removeEntity(matchingEntity.id);
@@ -1070,7 +1074,7 @@ async function deleteApothecaryItem(itemId) {
     const items = getApothecaryItems().filter((savedItem) => savedItem.id !== itemId);
     saveApothecaryItems(items);
 
-    deleteLinkedApothecaryLibraryEntity(itemId);
+    await deleteLinkedApothecaryLibraryEntity(itemId);
 
     removePlacedApothecaryObjects(itemId);
     renderApothecaryItems();

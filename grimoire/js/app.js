@@ -2138,8 +2138,14 @@ async function deleteLibraryEntryFromMyPractice(entityId) {
 
   if (!confirmed) return;
 
-  if (isApothecaryEntry && typeof Library.removeEntity === "function") {
-    Library.removeEntity(entityId);
+  if (isApothecaryEntry) {
+    if (typeof deleteLivingLibraryEntityFromSupabase === "function") {
+      await deleteLivingLibraryEntityFromSupabase(entityId);
+    }
+
+    if (typeof Library.removeEntity === "function") {
+      Library.removeEntity(entityId);
+    }
 
     activeLibraryEntityId = null;
     libraryEditMode = false;
@@ -2154,6 +2160,10 @@ async function deleteLibraryEntryFromMyPractice(entityId) {
   Library.updateEntity(entityId, {
     myPractice: {}
   });
+
+  if (typeof saveLivingLibraryEntityToSupabase === "function") {
+    await saveLivingLibraryEntityToSupabase(entityId);
+  }
 
   await renderLivingLibraryShelves();
   await renderLibraryEntity(entityId);
