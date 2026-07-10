@@ -568,6 +568,11 @@ p {
   background: rgba(185, 160, 93, 0.08);
 }
 
+.blog-actions .button {
+  width: auto;
+  min-width: 12rem;
+  margin-inline: auto;
+}
 
 /* =========================================================
    7. FAQ, SUPPORT, CONTACT, AND FOOTER
