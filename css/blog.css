@@ -95,14 +95,6 @@
   margin-top: 1.5rem;
 }
 
-.sidebar-section::before {
-  content: "âœ¦";
-  display: block;
-  margin-bottom: 1rem;
-  color: var(--gold);
-  opacity: 0.6;
-}
-
 .grimoire-page {
   position: relative;
   max-width: 920px;
