@@ -124,7 +124,7 @@ const loadMoreButton = document.getElementById("loadMorePosts");
 const blogEmptyMessage = document.getElementById("blogEmptyMessage");
 
 let allBlogPosts = [];
-let visiblePostCount = 6;
+let visiblePostCount = 2;
 
 async function loadBlogPosts() {
   if (!blogGrid) return;
@@ -214,12 +214,12 @@ function formatPostDate(dateString) {
 }
 
 blogSearch?.addEventListener("input", () => {
-  visiblePostCount = 6;
+  visiblePostCount = 2;
   renderBlogPosts();
 });
 
 blogCategoryFilter?.addEventListener("change", () => {
-  visiblePostCount = 6;
+  visiblePostCount = 2;
   renderBlogPosts();
 });
 
