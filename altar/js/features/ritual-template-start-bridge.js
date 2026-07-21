@@ -73,3 +73,17 @@ if (typeof saveRitualTemplateFromEditor === "function") {
     }
   };
 }
+
+window.addEventListener("load", () => {
+  const script = document.createElement("script");
+  script.src = "js/features/ritual-living-library.js";
+  script.async = false;
+  script.addEventListener("load", async () => {
+    const templateId = new URLSearchParams(window.location.search).get("editRitualTemplate");
+    if (!templateId || typeof openRitualTemplateEditor !== "function") return;
+
+    await openRitualTemplateEditor(templateId);
+    window.history.replaceState({}, "", window.location.pathname);
+  });
+  document.body.appendChild(script);
+});
