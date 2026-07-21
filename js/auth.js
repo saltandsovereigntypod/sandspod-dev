@@ -83,7 +83,7 @@ async function signInWithGoogle() {
   const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://saltandsovereigntypod.github.io/sandspod-dev/"
+      redirectTo: "https://dev.saltandsovereignty.com/"
     }
   });
 
