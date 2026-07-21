@@ -128,3 +128,10 @@ const PAGE_TEMPLATES = {
 };
 
 const AUTOSAVE_DELAY = 700;
+
+window.addEventListener("load", () => {
+  const script = document.createElement("script");
+  script.src = "js/ritual-living-library-bridge.js";
+  script.async = false;
+  document.body.appendChild(script);
+});
