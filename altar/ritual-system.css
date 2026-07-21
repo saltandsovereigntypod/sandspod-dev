@@ -1,0 +1,212 @@
+/* =========================================================
+   RITUAL COMPANION
+   ========================================================= */
+
+.altar-companion-panel.is-ritual-mode {
+  border-color: rgba(185, 160, 93, 0.48);
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.14), transparent 18rem),
+    linear-gradient(155deg, rgba(24, 19, 13, 0.98), rgba(8, 10, 8, 0.98));
+}
+
+.ritual-companion {
+  display: grid;
+  gap: 1rem;
+}
+
+.ritual-companion-intro,
+.ritual-current-step,
+.ritual-launch-card,
+.ritual-template-card {
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.045);
+}
+
+.ritual-companion-intro p,
+.ritual-current-step p,
+.ritual-launch-card p,
+.ritual-template-card p {
+  margin: 0;
+}
+
+.ritual-companion-title {
+  margin: 0.2rem 0 0;
+  color: var(--gold);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.ritual-companion-kicker,
+.ritual-step-count,
+.ritual-session-status {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ritual-session-status {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid rgba(185, 160, 93, 0.25);
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+}
+
+.ritual-session-status.is-paused {
+  color: var(--gold);
+}
+
+.ritual-launch-options,
+.ritual-control-row,
+.ritual-step-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.ritual-launch-button,
+.ritual-control-button,
+.ritual-step-button,
+.ritual-template-button {
+  border: 1px solid rgba(185, 160, 93, 0.35);
+  border-radius: 999px;
+  padding: 0.62rem 0.85rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.ritual-launch-button:hover,
+.ritual-launch-button:focus-visible,
+.ritual-control-button:hover,
+.ritual-control-button:focus-visible,
+.ritual-step-button:hover,
+.ritual-step-button:focus-visible,
+.ritual-template-button:hover,
+.ritual-template-button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.17);
+}
+
+.ritual-launch-button.is-primary,
+.ritual-step-button.is-primary {
+  color: #0b0c09;
+  background: var(--gold);
+}
+
+.ritual-control-button.is-danger {
+  color: #f2d5cc;
+  border-color: rgba(187, 90, 69, 0.48);
+}
+
+.ritual-start-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.ritual-start-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--cream);
+  font-size: 0.84rem;
+}
+
+.ritual-start-form input,
+.ritual-start-form textarea {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 0.8rem;
+  padding: 0.68rem 0.75rem;
+  color: var(--cream);
+  background: rgba(0, 0, 0, 0.24);
+  font: inherit;
+}
+
+.ritual-start-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.ritual-spoken-text {
+  margin-top: 0.8rem;
+  border-left: 2px solid rgba(185, 160, 93, 0.55);
+  padding: 0.2rem 0 0.2rem 0.9rem;
+  color: var(--cream);
+  font-style: italic;
+  white-space: pre-wrap;
+}
+
+.ritual-step-instructions {
+  margin-top: 0.75rem !important;
+  color: var(--cream);
+  white-space: pre-wrap;
+}
+
+.ritual-timer {
+  display: grid;
+  place-items: center;
+  min-height: 5rem;
+  margin-top: 0.9rem;
+  border: 1px solid rgba(185, 160, 93, 0.22);
+  border-radius: 0.9rem;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.18);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.8rem;
+  letter-spacing: 0.08em;
+}
+
+.ritual-session-clock {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+
+.ritual-template-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ritual-template-card {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ritual-template-card h4 {
+  margin: 0;
+  color: var(--cream);
+  font-size: 1rem;
+}
+
+.ritual-empty-note {
+  color: var(--muted);
+  font-style: italic;
+}
+
+body.ritual-session-active .altar-living-state-panel {
+  display: none;
+}
+
+body.ritual-session-active .altar-companion-panel {
+  min-height: min(72vh, 760px);
+}
+
+@media (max-width: 760px) {
+  .ritual-launch-options,
+  .ritual-control-row,
+  .ritual-step-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ritual-launch-button,
+  .ritual-control-button,
+  .ritual-step-button,
+  .ritual-template-button {
+    width: 100%;
+  }
+}
