@@ -1,0 +1,149 @@
+/* =========================================================
+   POST-RITUAL JOURNAL
+   ========================================================= */
+
+.ritual-journal-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.ritual-journal-summary,
+.ritual-journal-section {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(244, 236, 216, 0.04);
+}
+
+.ritual-journal-summary h3,
+.ritual-journal-section h3 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+
+.ritual-journal-summary p,
+.ritual-journal-section p {
+  margin: 0;
+}
+
+.ritual-journal-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.ritual-journal-fact {
+  border: 1px solid rgba(185, 160, 93, 0.18);
+  border-radius: 0.75rem;
+  padding: 0.65rem;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.ritual-journal-fact span,
+.ritual-journal-items-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ritual-journal-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ritual-journal-item {
+  display: inline-flex;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.07);
+  font-size: 0.75rem;
+}
+
+.ritual-journal-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--cream);
+  font-size: 0.84rem;
+}
+
+.ritual-journal-form input,
+.ritual-journal-form textarea,
+.ritual-journal-form select {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.27);
+  border-radius: 0.78rem;
+  padding: 0.68rem 0.75rem;
+  color: var(--cream);
+  background: rgba(0, 0, 0, 0.25);
+  font: inherit;
+}
+
+.ritual-journal-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.ritual-journal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ritual-journal-actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ritual-journal-button {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.34);
+  border-radius: 999px;
+  padding: 0.68rem 0.85rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.08);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ritual-journal-button.is-primary {
+  color: #090b09;
+  background: var(--gold);
+}
+
+.ritual-journal-button:hover,
+.ritual-journal-button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.17);
+}
+
+.ritual-journal-status {
+  min-height: 1.3rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.ritual-journal-saved {
+  display: grid;
+  gap: 0.9rem;
+  text-align: center;
+}
+
+.ritual-journal-saved .ritual-companion-title {
+  color: var(--gold);
+}
+
+@media (max-width: 620px) {
+  .ritual-journal-grid,
+  .ritual-journal-facts {
+    grid-template-columns: 1fr;
+  }
+}
