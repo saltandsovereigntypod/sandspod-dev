@@ -131,28 +131,40 @@ async function loadApothecaryItems() {
 }
 
 async function saveApothecaryItems(items) {
-  apothecaryItemsCache = items;
+  const previousItems = apothecaryItemsCache;
 
-  const user =
-    typeof getCurrentAssetUser === "function"
-      ? await getCurrentAssetUser()
-      : await ensureAltarUser();
+  const user = await ensureAltarUser();
 
   if (!user) {
-    localStorage.setItem(APOTHECARY_STORAGE_KEY, JSON.stringify(items));
-    return;
+    console.error("[Apothecary] No authenticated user was available during save.");
+    showAltarToast("Please sign in again before saving to My Apothecary");
+    return false;
   }
 
   const rows = items.map((item) => mapApothecaryItemToRow(item, user.id));
 
-  const { error } = await db
+  const { data, error } = await db
     .from("apothecary_items")
-    .upsert(rows, { onConflict: "id" });
+    .upsert(rows, { onConflict: "id" })
+    .select("*");
 
   if (error) {
-    console.error(error);
-    showAltarToast("My Apothecary could not be saved");
+    apothecaryItemsCache = previousItems;
+
+    console.error("[Apothecary] Supabase save failed", error);
+
+    showAltarToast(
+      `My Apothecary could not be saved: ${
+        error.message || "Unknown database error"
+      }`
+    );
+
+    return false;
   }
+
+  apothecaryItemsCache = (data || []).map(mapApothecaryRowToItem);
+
+  return true;
 }
 
 async function migrateLocalApothecaryToCloud() {
@@ -908,11 +920,15 @@ async function saveCreatedApothecaryItem(form, modal) {
     ? items.map((savedItem) => (savedItem.id === item.id ? item : savedItem))
     : [item, ...items];
 
-  await saveApothecaryItems(updatedItems);
+  const saveSucceeded = await saveApothecaryItems(updatedItems);
 
-  if (existingItem) {
-    syncPlacedApothecaryObjects(item);
-  }
+   if (!saveSucceeded) {
+     return;
+   }
+   
+   if (existingItem) {
+     syncPlacedApothecaryObjects(item);
+   }
 
   closeCreateApothecaryModal();
   renderApothecaryItems();
