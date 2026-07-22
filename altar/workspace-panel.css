@@ -19,6 +19,7 @@
 .altar-workspace-panel-inner {
   display: grid;
   grid-template-rows: minmax(0, 1fr) 0;
+  align-content: start;
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -30,6 +31,7 @@
 }
 
 .altar-workspace-module {
+  grid-area: auto !important;
   display: block !important;
   width: 100% !important;
   min-width: 0;
@@ -37,6 +39,17 @@
   overflow: hidden;
   opacity: 1 !important;
   transform: none !important;
+  align-self: start;
+}
+
+.altar-workspace-panel-inner > .altar-companion-panel:not(.altar-living-state-panel) {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+.altar-workspace-panel-inner > .altar-living-state-panel {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
 }
 
 .altar-workspace-module + .altar-workspace-module {
@@ -52,9 +65,13 @@
   top: auto !important;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  width: 100%;
   height: 100%;
   max-height: none !important;
   min-height: 0;
+  margin: 0;
   overflow: hidden !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -71,6 +88,7 @@
 .altar-workspace-module .altar-companion-content {
   flex: 1 1 auto;
   min-height: 0;
+  margin-top: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;

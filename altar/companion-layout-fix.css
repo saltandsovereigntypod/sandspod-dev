@@ -1,0 +1,18 @@
+/* Keep the unified Companion panel anchored to the top of its workspace column. */
+.altar-companion-panel:not(.altar-living-state-panel) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: start;
+}
+
+.altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner {
+  width: 100%;
+  margin-top: 0;
+  align-self: flex-start;
+  justify-content: flex-start;
+}
+
+.altar-companion-panel:not(.altar-living-state-panel) .altar-companion-content {
+  margin-top: 0;
+}
