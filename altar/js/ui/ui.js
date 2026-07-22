@@ -3,6 +3,11 @@
    Empty state, toast, modals, mobile cabinet, toolbar shell
    ========================================================= */
 
+const workspacePanelStyles = document.createElement("link");
+workspacePanelStyles.rel = "stylesheet";
+workspacePanelStyles.href = "workspace-panel.css";
+document.head.appendChild(workspacePanelStyles);
+
 const toolbar = document.createElement("div");
 toolbar.className = "altar-toolbar";
 toolbar.hidden = true;
@@ -68,8 +73,8 @@ altarInfoCard.className = "altar-info-card";
 altarInfoCard.hidden = true;
 altarInfoCard.setAttribute("aria-live", "polite");
 
-const altarCompanionPanel = document.createElement("aside");
-altarCompanionPanel.className = "altar-companion-panel is-visible";
+const altarCompanionPanel = document.createElement("section");
+altarCompanionPanel.className = "altar-companion-panel altar-workspace-module is-visible";
 altarCompanionPanel.setAttribute("aria-live", "polite");
 altarCompanionPanel.innerHTML = `
   <div class="altar-companion-inner">
@@ -77,10 +82,6 @@ altarCompanionPanel.innerHTML = `
       <div>
         <p class="eyebrow">Companion</p>
         <h2>Selected Object</h2>
-      </div>
-
-      <div class="altar-companion-actions">
-        <button type="button" data-companion-minimize aria-label="Minimize companion panel">−</button>
       </div>
     </div>
 
@@ -90,8 +91,8 @@ altarCompanionPanel.innerHTML = `
   </div>
 `;
 
-const altarLivingStatePanel = document.createElement("aside");
-altarLivingStatePanel.className = "altar-companion-panel altar-living-state-panel is-visible";
+const altarLivingStatePanel = document.createElement("section");
+altarLivingStatePanel.className = "altar-companion-panel altar-living-state-panel altar-workspace-module is-visible";
 altarLivingStatePanel.setAttribute("aria-live", "polite");
 altarLivingStatePanel.innerHTML = `
   <div class="altar-companion-inner">
@@ -100,10 +101,6 @@ altarLivingStatePanel.innerHTML = `
         <p class="eyebrow">Living State</p>
         <h2>Current Manifestation</h2>
       </div>
-
-      <div class="altar-companion-actions">
-        <button type="button" data-living-state-minimize aria-label="Minimize living state panel">−</button>
-      </div>
     </div>
 
     <div class="altar-companion-content" data-living-state-content>
@@ -111,6 +108,15 @@ altarLivingStatePanel.innerHTML = `
     </div>
   </div>
 `;
+
+const altarWorkspacePanel = document.createElement("aside");
+altarWorkspacePanel.className = "altar-workspace-panel";
+altarWorkspacePanel.setAttribute("aria-label", "Altar companion and manifestation panel");
+altarWorkspacePanel.innerHTML = `<div class="altar-workspace-panel-inner"></div>`;
+altarWorkspacePanel.querySelector(".altar-workspace-panel-inner").append(
+  altarCompanionPanel,
+  altarLivingStatePanel
+);
 
 const mobileCabinetToggle = document.createElement("button");
 mobileCabinetToggle.type = "button";
@@ -128,7 +134,8 @@ if (altarStage) {
   companionToggle.className = "altar-companion-toggle";
   companionToggle.setAttribute("data-companion-toggle", "");
   companionToggle.setAttribute("aria-label", "Minimize companion panel");
-  companionToggle.textContent = "☰";
+  companionToggle.setAttribute("aria-expanded", "true");
+  companionToggle.textContent = "−";
 
   const altarWorkspaceTools = document.querySelector(".altar-workspace-tools");
 
@@ -137,8 +144,7 @@ if (altarStage) {
   }
 
   if (altarWorkspace && altarStageWrap) {
-    altarWorkspace.insertBefore(altarCompanionPanel, altarStageWrap);
-    altarWorkspace.insertBefore(altarLivingStatePanel, altarStageWrap);
+    altarWorkspace.insertBefore(altarWorkspacePanel, altarStageWrap);
   }
 
   const lightingCanvas = document.createElement("canvas");
@@ -153,11 +159,58 @@ if (altarStage) {
   altarStage.appendChild(altarInfoCard);
 }
 
- if (altarCabinet) {
+if (altarCabinet) {
   document.body.appendChild(altarMobileBackdrop);
   document.body.appendChild(mobileCabinetToggle);
   document.body.appendChild(altarToast);
 }
+
+function setAltarWorkspacePanelMinimized(isMinimized) {
+  document.body.classList.toggle("altar-companion-minimized", isMinimized);
+  altarWorkspacePanel.classList.toggle("is-minimized", isMinimized);
+
+  document.querySelectorAll("[data-companion-toggle]").forEach((button) => {
+    button.textContent = isMinimized ? "☰" : "−";
+    button.setAttribute("aria-expanded", String(!isMinimized));
+    button.setAttribute(
+      "aria-label",
+      isMinimized ? "Open companion panel" : "Minimize companion panel"
+    );
+  });
+
+  window.requestAnimationFrame(() => {
+    if (typeof repositionAllObjectsFromPercent === "function") {
+      repositionAllObjectsFromPercent();
+    }
+
+    if (typeof resizeLightingCanvas === "function") {
+      resizeLightingCanvas();
+    }
+
+    if (typeof renderLighting === "function") {
+      renderLighting();
+    }
+  });
+}
+
+document.addEventListener(
+  "click",
+  (event) => {
+    const toggle = event.target.closest("[data-companion-toggle]");
+    if (!toggle) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const isCurrentlyMinimized = document.body.classList.contains("altar-companion-minimized");
+    setAltarWorkspacePanelMinimized(!isCurrentlyMinimized);
+
+    if (typeof showAltarToast === "function") {
+      showAltarToast(isCurrentlyMinimized ? "Panel opened" : "Panel minimized");
+    }
+  },
+  true
+);
 
 function updateEmptyMessage() {
   if (!altarStage || !emptyMessage) return;
