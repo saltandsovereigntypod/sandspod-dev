@@ -48,6 +48,16 @@ function renderShelf() {
       }
     </div>
   `;
+
+  // The base shelf render replaces the entire table of contents.
+  // Restore the unified Living Library shelves after every rebuild.
+  queueMicrotask(() => {
+    if (typeof renderLivingLibraryShelves !== "function") return;
+
+    renderLivingLibraryShelves().catch((error) => {
+      console.error("Living Library shelves could not be rendered:", error);
+    });
+  });
 }
 
 function renderSection(section) {
