@@ -1,0 +1,156 @@
+/* =========================================================
+   UNIFIED ALTAR WORKSPACE PANEL
+   Presentation-only shell for Companion + Living State
+   ========================================================= */
+
+.altar-workspace-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(185, 160, 93, 0.3);
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 16rem),
+    rgba(10, 8, 6, 0.82);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+.altar-workspace-panel-inner {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.altar-workspace-panel:has(.altar-living-state-panel.is-visible:not(.is-minimized))
+  .altar-workspace-panel-inner {
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.altar-workspace-module {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0;
+  min-height: 0 !important;
+  overflow: hidden;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.altar-workspace-module + .altar-workspace-module {
+  border-top: 1px solid rgba(185, 160, 93, 0.24);
+}
+
+.altar-workspace-module.is-minimized {
+  display: none !important;
+}
+
+.altar-workspace-module .altar-companion-inner {
+  position: static !important;
+  top: auto !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: none !important;
+  min-height: 0;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 1rem;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.altar-workspace-module .altar-companion-header {
+  flex: 0 0 auto;
+}
+
+.altar-workspace-module .altar-companion-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 160, 93, 0.4) transparent;
+}
+
+.altar-workspace-module .altar-companion-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.altar-workspace-module .altar-companion-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(185, 160, 93, 0.4);
+}
+
+/* During a ritual, the live Companion guidance owns the whole panel. */
+body.ritual-session-active .altar-workspace-panel-inner {
+  grid-template-rows: minmax(0, 1fr) 0 !important;
+}
+
+body.ritual-session-active .altar-living-state-panel {
+  display: none !important;
+}
+
+body.altar-companion-minimized .altar-workspace-panel {
+  display: none !important;
+}
+
+@media (min-width: 901px) {
+  .altar-workspace {
+    grid-template-columns: minmax(230px, 320px) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+  }
+
+  .altar-workspace-panel {
+    grid-column: 1 !important;
+    grid-row: 2;
+    align-self: stretch;
+    height: 100%;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 2 !important;
+    grid-row: 2;
+  }
+
+  .altar-action-bar {
+    grid-column: 2 !important;
+  }
+
+  body.altar-companion-minimized .altar-workspace {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body.altar-companion-minimized .altar-workspace-tools,
+  body.altar-companion-minimized .altar-stage-wrap,
+  body.altar-companion-minimized .altar-action-bar {
+    grid-column: 1 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .altar-workspace-panel {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  .altar-workspace-module .altar-companion-inner {
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .altar-workspace-panel {
+    grid-column: 1;
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 2;
+  }
+}
