@@ -1,0 +1,91 @@
+/* =========================================================
+   PRACTICE MODULE
+   Visual styling only. Workspace sizing belongs in workspace-panel.css.
+   ========================================================= */
+
+.altar-workspace-panel .altar-living-state-panel {
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.025);
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-companion-header {
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.65rem;
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-companion-header h2 {
+  font-size: 1.05rem;
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-companion-content {
+  color: var(--muted);
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-info-card-inner {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-info-card-inner h3 {
+  max-width: none;
+  margin: 0 0 0.2rem;
+  color: var(--cream);
+  font-size: 1rem;
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-info-card-type {
+  margin: 0 0 0.65rem;
+  color: var(--gold);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-info-card-section {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.14);
+}
+
+.altar-workspace-panel .altar-living-state-panel .altar-info-card-section p {
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.altar-workspace-panel .living-state-practice-button {
+  width: 100%;
+  border: 1px solid rgba(185, 160, 93, 0.34);
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  color: var(--cream);
+  background: rgba(185, 160, 93, 0.12);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.altar-workspace-panel .living-state-practice-button:hover,
+.altar-workspace-panel .living-state-practice-button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.2);
+}
+
+.altar-workspace-panel .living-state-history {
+  padding-bottom: 0.25rem;
+}
+
+.altar-workspace-panel .living-state-event {
+  border: 1px solid rgba(185, 160, 93, 0.16);
+  border-radius: 0.75rem;
+  padding: 0.65rem;
+  background: rgba(244, 236, 216, 0.035);
+}
+
+.altar-workspace-panel .living-state-event p:last-child {
+  margin-bottom: 0;
+}
