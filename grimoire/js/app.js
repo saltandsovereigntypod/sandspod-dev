@@ -172,18 +172,6 @@ async function deleteLegacyGrimoireSections() {
   }
 }
 
-async function syncTraditionalLibraryToGrimoireIfEnabled() {
-  if (typeof TraditionalLibrary === "undefined") return;
-  if (typeof Library === "undefined") return;
-  if (typeof getMySettings !== "function") return;
-
-  const settings = await getMySettings();
-
-  if (!settings.sync_traditional_library_to_grimoire) return;
-
-  Library.importTraditionalLibrary();
-}
-
 async function initGrimoire() {
   const user = requireUser();
   if (!user) return;
@@ -197,7 +185,6 @@ async function initGrimoire() {
 
     await deleteLegacyGrimoireSections();
 
-    await syncTraditionalLibraryToGrimoireIfEnabled();
     cleanupOrphanedApothecaryLibraryEntries();
     cleanupDeletedApothecaryLibraryEntries();
     
@@ -810,6 +797,12 @@ function getMyPracticeTypeLabel(type = "") {
 }
 
 async function renderMyPracticeShelf() {
+  const settings = await getMySettings();
+
+  if (settings.library_myPractice_enabled === false) {
+      return;
+  }
+  
   if (!grimoireShelf) return;
   if (typeof Library === "undefined") return;
 
@@ -1273,7 +1266,7 @@ async function shouldShowTraditionalLibrary() {
 
   const settings = await getMySettings();
 
-  return Boolean(settings.sync_traditional_library_to_grimoire);
+  return settings.library_traditional_enabled !== false;
 }
 
 async function renderTraditionalLibraryShelf() {
