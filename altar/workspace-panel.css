@@ -19,15 +19,21 @@
 .altar-workspace-panel-inner {
   display: grid;
   grid-template-rows: minmax(0, 1fr) 0;
-  align-content: start;
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
-.altar-workspace-panel:has(.altar-living-state-panel.is-visible:not(.is-minimized))
+/* When both modules are active, Companion gets the larger working area. */
+.altar-workspace-panel:has(.altar-companion-panel:not(.altar-living-state-panel).is-visible:not(.is-minimized)):has(.altar-living-state-panel.is-visible:not(.is-minimized))
   .altar-workspace-panel-inner {
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 65fr) minmax(0, 35fr);
+}
+
+/* If Companion is hidden but Living State remains active, Living State owns the panel. */
+.altar-workspace-panel:has(.altar-companion-panel:not(.altar-living-state-panel).is-minimized):has(.altar-living-state-panel.is-visible:not(.is-minimized))
+  .altar-workspace-panel-inner {
+  grid-template-rows: 0 minmax(0, 1fr);
 }
 
 .altar-workspace-module {
@@ -39,7 +45,7 @@
   overflow: hidden;
   opacity: 1 !important;
   transform: none !important;
-  align-self: start;
+  align-self: stretch;
 }
 
 .altar-workspace-panel-inner > .altar-companion-panel:not(.altar-living-state-panel) {
@@ -91,12 +97,17 @@
   margin-top: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(185, 160, 93, 0.4) transparent;
 }
 
 .altar-workspace-module .altar-companion-content::-webkit-scrollbar {
   width: 6px;
+}
+
+.altar-workspace-module .altar-companion-content::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .altar-workspace-module .altar-companion-content::-webkit-scrollbar-thumb {
