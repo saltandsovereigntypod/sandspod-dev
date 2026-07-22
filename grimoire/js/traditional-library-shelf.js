@@ -1,102 +1,161 @@
 /* =========================================================
    TRADITIONAL LIVING LIBRARY SHELF
-   Restores the Traditional Information table-of-contents renderer.
+   Builds the Traditional Information table of contents directly
+   from the curated source and restores it after sidebar rebuilds.
    ========================================================= */
 
-function getTraditionalLibraryEntityTypes() {
-  if (typeof Library === "undefined") return [];
+let traditionalShelfRenderPending = false;
+let traditionalShelfIsRendering = false;
 
-  const entities = Object.values(Library.exportLibrary()?.entities || {});
+function getTraditionalSourceTypes() {
+  if (typeof TraditionalLibrary === "undefined") return [];
 
-  return [...new Set(
-    entities
-      .filter((entity) => entity.traditional && Object.keys(entity.traditional).length)
-      .map((entity) => entity.type)
-      .filter(Boolean)
-  )].sort((a, b) => getTraditionalTypeLabel(a).localeCompare(getTraditionalTypeLabel(b)));
+  return Object.keys(TraditionalLibrary)
+    .filter((type) => TraditionalLibrary[type] && Object.keys(TraditionalLibrary[type]).length)
+    .sort((a, b) => getTraditionalTypeLabel(a).localeCompare(getTraditionalTypeLabel(b)));
+}
+
+function findTraditionalLivingLibraryEntity(type, key, data = {}) {
+  if (typeof Library === "undefined") return null;
+
+  const normalizedNames = new Set([
+    String(key || "").replaceAll("_", " ").trim().toLowerCase(),
+    String(data.DisplayName || "").trim().toLowerCase()
+  ].filter(Boolean));
+
+  return Object.values(Library.exportLibrary()?.entities || {}).find((entity) => {
+    return entity.type === type && normalizedNames.has(String(entity.name || "").trim().toLowerCase());
+  }) || null;
 }
 
 async function renderTraditionalLibraryShelf() {
-  if (!grimoireShelf || typeof Library === "undefined") return;
+  if (!grimoireShelf || typeof TraditionalLibrary === "undefined") return;
+  if (traditionalShelfIsRendering) return;
 
-  const existing = grimoireShelf.querySelector("[data-traditional-library-shelf]");
-  if (existing) existing.remove();
+  traditionalShelfIsRendering = true;
 
-  const settings = typeof getMySettings === "function"
-    ? await getMySettings()
-    : {};
+  try {
+    const settings = typeof getMySettings === "function"
+      ? await getMySettings()
+      : {};
 
-  if (settings.library_traditional_enabled === false) return;
+    const existing = grimoireShelf.querySelector("[data-traditional-library-shelf]");
+    if (existing) existing.remove();
 
-  if (typeof Library.importTraditionalLibrary === "function") {
-    Library.importTraditionalLibrary();
-  }
+    if (settings.library_traditional_enabled === false) return;
 
-  const types = getTraditionalLibraryEntityTypes();
-  const wrapper = document.createElement("section");
-  wrapper.className = "book-toc-section traditional-library-shelf";
-  wrapper.setAttribute("data-traditional-library-shelf", "");
+    if (typeof Library !== "undefined" && typeof Library.importTraditionalLibrary === "function") {
+      Library.importTraditionalLibrary();
+    }
 
-  wrapper.innerHTML = `
-    <button
-      class="book-section-title traditional-library-title"
-      type="button"
-      data-traditional-library-toggle>
-      <span>Traditional Information</span>
-    </button>
+    const types = getTraditionalSourceTypes();
+    const wrapper = document.createElement("section");
+    wrapper.className = "book-toc-section traditional-library-shelf";
+    wrapper.setAttribute("data-traditional-library-shelf", "");
 
-    <div
-      class="book-section-pages traditional-library-root"
-      data-traditional-library-list
-      ${isLibraryShelfOpen("traditional-root") ? "" : "hidden"}>
-      ${types.length
-        ? types.map((type) => {
-            const entities = Object.values(Library.exportLibrary()?.entities || {})
-              .filter((entity) => (
-                entity.type === type
-                && entity.traditional
-                && Object.keys(entity.traditional).length
-              ))
-              .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+    wrapper.innerHTML = `
+      <button
+        class="book-section-title traditional-library-title"
+        type="button"
+        data-traditional-library-toggle>
+        <span>Traditional Information</span>
+      </button>
 
-            const groupKey = `traditional-${type}`;
-            const isOpen = isLibraryShelfOpen(groupKey);
+      <div
+        class="book-section-pages traditional-library-root"
+        data-traditional-library-list
+        ${isLibraryShelfOpen("traditional-root") ? "" : "hidden"}>
+        ${types.map((type) => {
+          const groupKey = `traditional-${type}`;
+          const isOpen = isLibraryShelfOpen(groupKey);
+          const entries = Object.entries(TraditionalLibrary[type] || {})
+            .map(([key, data]) => ({
+              key,
+              data,
+              entity: findTraditionalLivingLibraryEntity(type, key, data)
+            }))
+            .filter((entry) => entry.entity)
+            .sort((a, b) => {
+              const aName = a.data.DisplayName || a.entity.name || a.key;
+              const bName = b.data.DisplayName || b.entity.name || b.key;
+              return String(aName).localeCompare(String(bName));
+            });
 
-            return `
-              <div class="traditional-library-group" data-traditional-library-group="${type}">
-                <button
-                  class="traditional-library-group-title"
-                  type="button"
-                  data-library-type-toggle="${type}">
-                  <span>${isOpen ? "▾" : "▸"}</span>
-                  ${getTraditionalTypeLabel(type)}
-                </button>
+          return `
+            <div class="traditional-library-group" data-traditional-library-group="${type}">
+              <button
+                class="traditional-library-group-title"
+                type="button"
+                data-library-type-toggle="${type}">
+                <span>${isOpen ? "▾" : "▸"}</span>
+                ${getTraditionalTypeLabel(type)}
+              </button>
 
-                <div
-                  class="traditional-library-entity-list"
-                  data-library-type-list="${type}"
-                  ${isOpen ? "" : "hidden"}>
-                  ${entities.map((entity) => `
-                    <button
-                      type="button"
-                      class="book-page-link traditional-library-entity-link ${activeLibraryEntityId === entity.id ? "is-active" : ""}"
-                      data-library-entity-id="${entity.id}">
-                      ${formatLibraryEntityName(entity.name)}
-                    </button>
-                  `).join("")}
-                </div>
+              <div
+                class="traditional-library-entity-list"
+                data-library-type-list="${type}"
+                ${isOpen ? "" : "hidden"}>
+                ${entries.length
+                  ? entries.map(({ key, data, entity }) => `
+                      <button
+                        type="button"
+                        class="book-page-link traditional-library-entity-link ${activeLibraryEntityId === entity.id ? "is-active" : ""}"
+                        data-library-entity-id="${entity.id}">
+                        ${formatLibraryEntityName(data.DisplayName || entity.name || key)}
+                      </button>
+                    `).join("")
+                  : `<p class="book-section-empty">No entries available.</p>`}
               </div>
-            `;
-          }).join("")
-        : `<p class="book-section-empty">No traditional entries are available yet.</p>`}
-    </div>
-  `;
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
 
-  const myPracticeShelf = grimoireShelf.querySelector("[data-my-practice-shelf]");
+    const myPracticeShelf = grimoireShelf.querySelector("[data-my-practice-shelf]");
+    const baseShelf = grimoireShelf.querySelector(".book-section-list");
 
-  if (myPracticeShelf) {
-    myPracticeShelf.insertAdjacentElement("afterend", wrapper);
-  } else {
-    grimoireShelf.prepend(wrapper);
+    if (myPracticeShelf) {
+      myPracticeShelf.insertAdjacentElement("afterend", wrapper);
+    } else if (baseShelf) {
+      baseShelf.insertAdjacentElement("beforebegin", wrapper);
+    } else {
+      grimoireShelf.prepend(wrapper);
+    }
+  } finally {
+    traditionalShelfIsRendering = false;
   }
 }
+
+function scheduleTraditionalShelfRender() {
+  if (traditionalShelfRenderPending) return;
+  traditionalShelfRenderPending = true;
+
+  window.setTimeout(() => {
+    traditionalShelfRenderPending = false;
+    renderTraditionalLibraryShelf().catch((error) => {
+      console.error("Traditional Information shelf could not be rendered:", error);
+    });
+  }, 0);
+}
+
+function observeTraditionalShelfLifecycle() {
+  if (!grimoireShelf) return;
+
+  const observer = new MutationObserver((mutations) => {
+    if (traditionalShelfIsRendering) return;
+
+    const sidebarWasRebuilt = mutations.some((mutation) => {
+      return mutation.type === "childList" && mutation.target === grimoireShelf;
+    });
+
+    if (sidebarWasRebuilt && !grimoireShelf.querySelector("[data-traditional-library-shelf]")) {
+      scheduleTraditionalShelfRender();
+    }
+  });
+
+  observer.observe(grimoireShelf, { childList: true });
+  scheduleTraditionalShelfRender();
+}
+
+window.addEventListener("load", observeTraditionalShelfLifecycle);
