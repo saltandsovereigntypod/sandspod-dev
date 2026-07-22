@@ -4,6 +4,16 @@
    not the retired legacy grimoire sync toggle.
    ========================================================= */
 
+// app.js still checks the retired sync_traditional_library_to_grimoire
+// setting before rendering the Traditional Information shelf. This file
+// loads after app.js, so replace that legacy gate with the current setting.
+async function shouldShowTraditionalLibrary() {
+  if (typeof getMySettings !== "function") return true;
+
+  const settings = await getMySettings();
+  return settings.library_traditional_enabled !== false;
+}
+
 async function ensureTraditionalLivingLibraryIsVisible() {
   if (typeof TraditionalLibrary === "undefined") return;
   if (typeof Library === "undefined") return;
