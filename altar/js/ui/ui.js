@@ -124,6 +124,15 @@ mobileCabinetToggle.className = "altar-mobile-cabinet-toggle";
 mobileCabinetToggle.textContent = "✦ Add Items";
 mobileCabinetToggle.setAttribute("aria-expanded", "false");
 
+function syncAltarWorkspacePanelHeight() {
+  if (!altarStage || !altarWorkspacePanel) return;
+
+  const stageHeight = Math.round(altarStage.getBoundingClientRect().height);
+  if (stageHeight > 0) {
+    altarWorkspacePanel.style.height = `${stageHeight}px`;
+  }
+}
+
 if (altarStage) {
 
   const altarWorkspace = altarStage.closest(".altar-workspace");
@@ -157,6 +166,11 @@ if (altarStage) {
   altarStage.appendChild(toolbar);
   altarStage.appendChild(altarGroupIndicator);
   altarStage.appendChild(altarInfoCard);
+
+  const altarStageResizeObserver = new ResizeObserver(syncAltarWorkspacePanelHeight);
+  altarStageResizeObserver.observe(altarStage);
+  window.addEventListener("resize", syncAltarWorkspacePanelHeight);
+  window.requestAnimationFrame(syncAltarWorkspacePanelHeight);
 }
 
 if (altarCabinet) {
@@ -179,6 +193,8 @@ function setAltarWorkspacePanelMinimized(isMinimized) {
   });
 
   window.requestAnimationFrame(() => {
+    syncAltarWorkspacePanelHeight();
+
     if (typeof repositionAllObjectsFromPercent === "function") {
       repositionAllObjectsFromPercent();
     }
