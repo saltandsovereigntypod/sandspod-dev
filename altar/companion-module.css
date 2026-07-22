@@ -1,0 +1,141 @@
+/* =========================================================
+   COMPANION MODULE
+   Visual styling only. Workspace sizing belongs in workspace-panel.css.
+   ========================================================= */
+
+.altar-workspace-panel .altar-companion-panel:not(.altar-living-state-panel) {
+  color: var(--cream);
+}
+
+.altar-workspace-panel .altar-companion-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.altar-workspace-panel .altar-companion-header .eyebrow {
+  margin-bottom: 0.2rem;
+}
+
+.altar-workspace-panel .altar-companion-header h2 {
+  max-width: none;
+  margin: 0;
+  color: var(--cream);
+  font-size: 1.25rem;
+}
+
+.altar-workspace-panel .altar-companion-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+
+.altar-workspace-panel .altar-companion-actions button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(244, 236, 216, 0.22);
+  border-radius: 50%;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.08);
+  font: inherit;
+  cursor: pointer;
+}
+
+.altar-workspace-panel .altar-companion-actions button:hover,
+.altar-workspace-panel .altar-companion-actions button:focus-visible,
+.altar-workspace-panel .altar-companion-actions button.is-active {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.16);
+}
+
+.altar-workspace-panel .altar-companion-content {
+  color: var(--muted);
+}
+
+.altar-workspace-panel .altar-companion-content > :first-child {
+  margin-top: 0;
+}
+
+.altar-workspace-panel .altar-companion-content > :last-child {
+  margin-bottom: 0;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-inner {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  text-align: left;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-inner h3 {
+  max-width: none;
+  margin-bottom: 0.25rem;
+  color: var(--cream);
+  font-size: 1.15rem;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-type {
+  margin-bottom: 0.75rem;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.16);
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-section p {
+  margin-bottom: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-actions button,
+.altar-workspace-panel .altar-companion-edit-button {
+  border: 1px solid rgba(185, 160, 93, 0.26);
+  border-radius: 999px;
+  padding: 0.45rem 0.7rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.06);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.altar-workspace-panel .altar-companion-content .altar-info-card-actions button:hover,
+.altar-workspace-panel .altar-companion-content .altar-info-card-actions button:focus-visible,
+.altar-workspace-panel .altar-companion-edit-button:hover,
+.altar-workspace-panel .altar-companion-edit-button:focus-visible {
+  border-color: var(--gold);
+  background: rgba(185, 160, 93, 0.14);
+}
+
+.altar-workspace-panel .living-library-inline-link {
+  border: 0;
+  padding: 0;
+  color: var(--gold);
+  background: transparent;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
