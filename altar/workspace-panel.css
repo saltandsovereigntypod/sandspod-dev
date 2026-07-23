@@ -185,345 +185,93 @@ body.altar-companion-minimized .altar-workspace-panel {
 }
 
 /* =========================================================
-   COMPANION PANEL V2
-   Unified field-journal layout
+   COMPANION V2 — TRUE FULL-HEIGHT READABLE AREA
+   Header uses its natural height; content receives everything else.
    ========================================================= */
 
-.altar-workspace-panel {
-  display: block;
-  overflow: hidden;
-}
-
-.altar-workspace-panel-inner {
-  display: block;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.altar-workspace-panel-inner > .altar-companion-panel {
-  display: block !important;
-  width: 100% !important;
-  height: 100%;
-  min-height: 0 !important;
-  overflow: hidden;
-}
-
-.altar-workspace-panel-inner > .altar-living-state-panel {
-  display: none !important;
-}
-
-/* The entire Companion becomes one full-height page. */
-
-.altar-companion-panel > .altar-companion-inner {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 0;
-  overflow: hidden !important;
-}
-
-.altar-companion-panel > .altar-companion-inner > .altar-companion-header {
-  flex: 0 0 auto;
-  padding: 1.15rem 1.15rem 1rem;
-  border-bottom: 1px solid rgba(185, 160, 93, 0.26);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(185, 160, 93, 0.08),
-      rgba(185, 160, 93, 0)
-    );
-}
-
-.altar-companion-header .eyebrow {
-  margin-bottom: 0.45rem;
-}
-
-.altar-companion-header h2 {
-  margin: 0;
-  font-size: clamp(1.25rem, 2vw, 1.65rem);
-  line-height: 1.2;
-}
-
-.companion-v2-header-type {
-  margin: 0.4rem 0 0;
-  color: rgba(218, 190, 111, 0.9);
-  text-transform: capitalize;
-}
-
-/* One scrollbar for everything. */
-
-.altar-companion-panel > .altar-companion-inner > .altar-companion-content {
-  flex: 1 1 auto;
-  min-height: 0;
-  margin: 0;
-  padding: 0 1.15rem 1.25rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(185, 160, 93, 0.45) transparent;
-}
-
-.altar-companion-panel
-  > .altar-companion-inner
-  > .altar-companion-content::-webkit-scrollbar {
-  width: 7px;
-}
-
-.altar-companion-panel
-  > .altar-companion-inner
-  > .altar-companion-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.altar-companion-panel
-  > .altar-companion-inner
-  > .altar-companion-content::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(185, 160, 93, 0.45);
-}
-
-/* Remove the duplicated title inside the content.
-   The selected object now lives in the main Companion header. */
-
-.altar-companion-content
-  > .altar-info-card-inner.is-panel-view
-  > h3:first-child,
-.altar-companion-content
-  > .altar-info-card-inner.is-panel-view
-  > .altar-info-card-type:first-of-type {
-  display: none;
-}
-
-.altar-companion-content > .altar-info-card-inner {
-  padding-top: 0.35rem;
-}
-
-/* Collapsible field-journal sections. */
-
-.companion-v2-section {
-  margin: 0;
-  border-bottom: 1px solid rgba(185, 160, 93, 0.2);
-}
-
-.companion-v2-section:first-of-type {
-  border-top: 0;
-}
-
-.companion-v2-section > summary {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 1rem 1.6rem 1rem 0;
-  cursor: pointer;
-  color: var(--altar-gold, #d8bd72);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  list-style: none;
-  text-transform: uppercase;
-}
-
-.companion-v2-section > summary::-webkit-details-marker {
-  display: none;
-}
-
-.companion-v2-section > summary::after {
-  content: "⌄";
-  position: absolute;
-  right: 0.15rem;
-  top: 50%;
-  color: rgba(218, 190, 111, 0.8);
-  font-size: 1.15rem;
-  line-height: 1;
-  transform: translateY(-50%) rotate(-90deg);
-  transition: transform 180ms ease;
-}
-
-.companion-v2-section[open] > summary::after {
-  transform: translateY(-50%) rotate(0deg);
-}
-
-.companion-v2-section > :not(summary) {
-  animation: companionSectionReveal 180ms ease;
-}
-
-.companion-v2-section > p,
-.companion-v2-section > div,
-.companion-v2-section > ul,
-.companion-v2-section > ol,
-.companion-v2-section > button {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.companion-v2-section[open] {
-  padding-bottom: 1rem;
-}
-
-.companion-v2-section p {
-  line-height: 1.65;
-}
-
-.companion-v2-section p:first-of-type {
-  margin-top: 0;
-}
-
-@keyframes companionSectionReveal {
-  from {
-    opacity: 0;
-    transform: translateY(-0.25rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Living State now behaves like a normal section inside Companion. */
-
-.altar-companion-content > .altar-living-state-panel {
-  display: block !important;
-  width: 100% !important;
-  min-height: 0 !important;
-  margin: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.altar-companion-content > .altar-living-state-panel.is-minimized {
-  display: none !important;
-}
-
-.altar-companion-content
-  > .altar-living-state-panel
-  > .altar-companion-inner {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  padding: 0;
-  overflow: visible !important;
-}
-
-.altar-companion-content
-  > .altar-living-state-panel
-  .altar-companion-header {
-  display: none;
-}
-
-.altar-companion-content
-  > .altar-living-state-panel
-  .altar-companion-content {
-  width: 100%;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-}
-
-.altar-living-state-panel
-  .altar-info-card-inner.is-panel-view
-  > h3:first-child,
-.altar-living-state-panel
-  .altar-info-card-inner.is-panel-view
-  > .altar-info-card-type:first-of-type {
-  display: none;
-}
-
-/* Keep action buttons together without creating another scrolling box. */
-
-.altar-companion-content .altar-info-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(185, 160, 93, 0.2);
-}
-
-.altar-companion-content .altar-info-card-actions button {
-  flex: 1 1 auto;
-  min-width: 7rem;
-}
-
-/* Empty companion state. */
-
-.companion-v2-empty-state {
-  display: grid;
-  place-content: center;
-  min-height: 18rem;
-  padding: 2rem 1rem;
-  color: rgba(245, 238, 218, 0.7);
-  text-align: center;
-}
-
-.companion-v2-empty-state .book-divider {
-  margin-bottom: 0.8rem;
-  color: rgba(218, 190, 111, 0.75);
-}
-
-/* Desktop: Companion matches the altar plus controls. */
-
-@media (min-width: 901px) {
-  .altar-workspace-panel {
-    grid-column: 1 !important;
-    grid-row: 2 / span 2 !important;
-    align-self: start;
-  }
-
-  .altar-stage-wrap {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
-  }
-
-  .altar-action-bar {
-    grid-column: 2 !important;
-    grid-row: 3 !important;
-  }
-}
-
-/* Mobile: natural-height page rather than a cramped aspect-ratio panel. */
-
-@media (max-width: 900px) {
-  .altar-workspace-panel {
-    width: 100%;
-    height: min(72vh, 44rem);
-    aspect-ratio: auto;
-  }
-
-  .altar-companion-panel > .altar-companion-inner {
-    height: 100%;
-  }
-}
-/* Companion V2: allow the readable journal area to use all remaining height. */
-
+.altar-workspace-panel,
 .altar-workspace-panel-inner,
-.altar-workspace-panel-inner > .altar-companion-panel,
+.altar-workspace-panel-inner > .altar-companion-panel {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* Use an explicit two-row grid instead of competing flex heights. */
+
 .altar-workspace-panel-inner
   > .altar-companion-panel
   > .altar-companion-inner {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  width: 100% !important;
   height: 100% !important;
   min-height: 0 !important;
-  align-self: stretch !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
 }
+
+/* Header occupies only the space it actually needs. */
+
+.altar-workspace-panel-inner
+  > .altar-companion-panel
+  > .altar-companion-inner
+  > .altar-companion-header {
+  grid-row: 1 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+/* This is the actual readable and scrollable area.
+   It now fills every remaining pixel beneath the header. */
 
 .altar-workspace-panel-inner
   > .altar-companion-panel
   > .altar-companion-inner
   > .altar-companion-content {
-  flex: 1 1 0 !important;
-  height: 100% !important;
+  grid-row: 2 !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
   overflow-y: auto !important;
+}
+
+/* Prevent the rendered journal page from creating its own
+   smaller constrained viewing box. */
+
+.altar-workspace-panel
+  .altar-companion-content
+  > .altar-info-card-inner.is-panel-view {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Living State must flow inside the same scroll document,
+   not calculate a second internal height. */
+
+.altar-workspace-panel
+  .altar-companion-content
+  > .altar-living-state-panel,
+.altar-workspace-panel
+  .altar-companion-content
+  > .altar-living-state-panel
+  > .altar-companion-inner,
+.altar-workspace-panel
+  .altar-companion-content
+  > .altar-living-state-panel
+  .altar-companion-content {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
