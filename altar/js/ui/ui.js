@@ -125,11 +125,28 @@ mobileCabinetToggle.textContent = "✦ Add Items";
 mobileCabinetToggle.setAttribute("aria-expanded", "false");
 
 function syncAltarWorkspacePanelHeight() {
-  if (!altarStage || !altarWorkspacePanel) return;
+  if (!altarWorkspacePanel) return;
 
-  const stageHeight = Math.round(altarStage.getBoundingClientRect().height);
-  if (stageHeight > 0) {
-    altarWorkspacePanel.style.height = `${stageHeight}px`;
+  if (window.innerWidth <= 900) {
+    altarWorkspacePanel.style.removeProperty("height");
+    return;
+  }
+
+  const altarStageWrap = document.querySelector(".altar-stage-wrap");
+  const altarActionBar = document.querySelector(".altar-action-bar");
+
+  if (!altarStageWrap) return;
+
+  const stageTop = altarStageWrap.getBoundingClientRect().top;
+
+  const workspaceBottom = altarActionBar
+    ? altarActionBar.getBoundingClientRect().bottom
+    : altarStageWrap.getBoundingClientRect().bottom;
+
+  const fullWorkspaceHeight = Math.round(workspaceBottom - stageTop);
+
+  if (fullWorkspaceHeight > 0) {
+    altarWorkspacePanel.style.height = `${fullWorkspaceHeight}px`;
   }
 }
 
