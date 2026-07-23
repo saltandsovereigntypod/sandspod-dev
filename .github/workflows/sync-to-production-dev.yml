@@ -1,0 +1,39 @@
+name: Sync sandspod-dev to production dev
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-sandspod-dev-to-production-dev
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out sandspod-dev main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add production repository remote
+        env:
+          PROD_REPO_PAT: ${{ secrets.PROD_REPO_PAT }}
+        run: |
+          git remote add production "https://x-access-token:${PROD_REPO_PAT}@github.com/saltandsovereigntypod/sandspod.git"
+
+      - name: Sync main to production dev
+        run: |
+          git push production HEAD:dev --force
