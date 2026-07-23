@@ -505,3 +505,25 @@ body.altar-companion-minimized .altar-workspace-panel {
     height: 100%;
   }
 }
+/* Companion V2: allow the readable journal area to use all remaining height. */
+
+.altar-workspace-panel-inner,
+.altar-workspace-panel-inner > .altar-companion-panel,
+.altar-workspace-panel-inner
+  > .altar-companion-panel
+  > .altar-companion-inner {
+  height: 100% !important;
+  min-height: 0 !important;
+  align-self: stretch !important;
+}
+
+.altar-workspace-panel-inner
+  > .altar-companion-panel
+  > .altar-companion-inner
+  > .altar-companion-content {
+  flex: 1 1 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+}
