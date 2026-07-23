@@ -1086,9 +1086,12 @@ async function deleteApothecaryItem(itemId) {
     }
 
     apothecaryItemsCache = apothecaryItemsCache.filter((savedItem) => savedItem.id !== itemId);
-  } else {
-    const items = getApothecaryItems().filter((savedItem) => savedItem.id !== itemId);
-    saveApothecaryItems(items);
+    } else {
+    const items = getApothecaryItems().filter(
+      (savedItem) => savedItem.id !== itemId
+    );
+
+    await saveApothecaryItems(items);
 
     await deleteLinkedApothecaryLibraryEntity(itemId);
 
@@ -1096,6 +1099,7 @@ async function deleteApothecaryItem(itemId) {
     renderApothecaryItems();
 
     showAltarToast("Apothecary item deleted");
+  }
 }
 
 document.addEventListener("click", (event) => {
@@ -1137,4 +1141,3 @@ document.addEventListener("submit", async (event) => {
 
   await saveCreatedApothecaryItem(form, modal);
 });
-}
