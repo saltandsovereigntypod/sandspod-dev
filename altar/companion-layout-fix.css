@@ -34,12 +34,11 @@
 .altar-companion-panel:not(.altar-living-state-panel)
   > .altar-companion-inner
   > .altar-companion-content {
-  flex: 1 1 auto;
   width: 100%;
   height: auto;
   min-height: 0;
   max-height: none !important;
-  margin-top: 0;
+  margin: 0;
   overflow-y: auto;
   overflow-x: hidden;
 }
