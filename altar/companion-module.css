@@ -1,132 +1,262 @@
 /* =========================================================
-   COMPANION MODULE
-   Visual styling only. Workspace sizing belongs in workspace-panel.css.
+   COMPANION MODULE V3
+   Visual styling for the unified Companion field journal
    ========================================================= */
 
 .altar-workspace-panel .altar-companion-panel:not(.altar-living-state-panel) {
   color: var(--cream);
 }
 
+.altar-workspace-panel .altar-companion-inner {
+  box-sizing: border-box;
+}
+
 .altar-workspace-panel .altar-companion-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+  display: block;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 1.45rem 1.45rem 1.2rem;
+  border-bottom: 1px solid rgba(185, 160, 93, 0.22);
+  background:
+    radial-gradient(circle at top left, rgba(185, 160, 93, 0.13), transparent 15rem),
+    linear-gradient(180deg, rgba(244, 236, 216, 0.025), transparent);
 }
 
 .altar-workspace-panel .altar-companion-header .eyebrow {
-  margin-bottom: 0.2rem;
+  display: none;
 }
 
 .altar-workspace-panel .altar-companion-header h2 {
   max-width: none;
   margin: 0;
   color: var(--cream);
-  font-size: 1.25rem;
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  line-height: 1.12;
+  text-wrap: balance;
 }
 
-.altar-workspace-panel .altar-companion-actions {
+.companion-v3-header-tags {
   display: flex;
-  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.35rem;
+  margin-top: 0.5rem;
 }
 
-.altar-workspace-panel .altar-companion-actions button {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  aspect-ratio: 1;
-  border: 1px solid rgba(244, 236, 216, 0.22);
-  border-radius: 50%;
-  color: var(--cream);
-  background: rgba(244, 236, 216, 0.08);
-  font: inherit;
-  cursor: pointer;
+.companion-v3-header-tags span {
+  color: var(--gold);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
 }
 
-.altar-workspace-panel .altar-companion-actions button:hover,
-.altar-workspace-panel .altar-companion-actions button:focus-visible,
-.altar-workspace-panel .altar-companion-actions button.is-active {
-  border-color: var(--gold);
-  background: rgba(185, 160, 93, 0.16);
+.companion-v3-header-tags span + span {
+  display: none;
 }
 
 .altar-workspace-panel .altar-companion-content {
-  color: var(--muted);
-}
-
-.altar-workspace-panel .altar-companion-content > :first-child {
-  margin-top: 0;
-}
-
-.altar-workspace-panel .altar-companion-content > :last-child {
-  margin-bottom: 0;
-}
-
-.altar-workspace-panel .altar-companion-content .altar-info-card-inner {
+  min-height: 0;
   padding: 0;
-  border: 0;
-  border-radius: 0;
+  color: var(--muted);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(198, 166, 100, 0.55) transparent;
+}
+
+.altar-workspace-panel .altar-companion-content::-webkit-scrollbar {
+  width: 7px;
+}
+
+.altar-workspace-panel .altar-companion-content::-webkit-scrollbar-track {
   background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  text-align: left;
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-inner h3 {
-  max-width: none;
-  margin-bottom: 0.25rem;
+.altar-workspace-panel .altar-companion-content::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(198, 166, 100, 0.58);
+  background-clip: padding-box;
+}
+
+.companion-v3-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.companion-v3-glance {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.15rem 1.45rem 1.3rem;
+  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.companion-v3-living-summary {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.companion-v3-living-summary p,
+.companion-v3-glance-group p {
+  margin: 0.22rem 0;
   color: var(--cream);
-  font-size: 1.15rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-type {
-  margin-bottom: 0.75rem;
+.companion-v3-living-summary strong,
+.companion-v3-glance-group h3 {
   color: var(--gold);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+}
+
+.companion-v3-glance-group {
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(185, 160, 93, 0.14);
+}
+
+.companion-v3-glance-group:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.companion-v3-glance-group h3 {
+  max-width: none;
+  margin: 0 0 0.45rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-section {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(185, 160, 93, 0.16);
+.companion-v3-glance-group ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--cream);
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-section p {
-  margin-bottom: 0.45rem;
-  font-size: 0.82rem;
+.companion-v3-glance-group li {
+  font-size: 0.86rem;
   line-height: 1.45;
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+.companion-v3-knowledge {
+  display: grid;
+  padding: 0.2rem 1.45rem 0;
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-actions button,
-.altar-workspace-panel .altar-companion-edit-button {
-  border: 1px solid rgba(185, 160, 93, 0.26);
-  border-radius: 999px;
-  padding: 0.45rem 0.7rem;
+.companion-v3-section {
+  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+}
+
+.companion-v3-section summary {
+  position: relative;
+  display: block;
+  padding: 0.9rem 1.6rem 0.9rem 0;
   color: var(--cream);
-  background: rgba(244, 236, 216, 0.06);
+  font-family: var(--serif);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+  list-style: none;
+}
+
+.companion-v3-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.companion-v3-section summary::after {
+  content: "＋";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 400;
+  transform: translateY(-50%);
+}
+
+.companion-v3-section[open] summary::after {
+  content: "−";
+}
+
+.companion-v3-section-body {
+  padding: 0 0 1rem;
+}
+
+.companion-v3-section-body p {
+  margin: 0.42rem 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.companion-v3-section-body strong {
+  color: var(--cream);
+}
+
+.companion-v3-section-body ul,
+.companion-v3-section-body ol {
+  margin: 0.45rem 0 0.7rem;
+  padding-left: 1.2rem;
+  color: var(--cream);
+}
+
+.companion-v3-section-body .living-state-event {
+  margin-top: 0.65rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(185, 160, 93, 0.16);
+  border-radius: 0.8rem;
+  background: rgba(244, 236, 216, 0.035);
+}
+
+.companion-v3-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: auto;
+  padding: 1.2rem 1.45rem 1.45rem;
+}
+
+.companion-v3-actions button,
+.altar-workspace-panel .altar-companion-edit-button {
+  min-height: 2.65rem;
+  border: 1px solid rgba(185, 160, 93, 0.3);
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  color: var(--cream);
+  background: rgba(244, 236, 216, 0.055);
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  line-height: 1.2;
   cursor: pointer;
 }
 
-.altar-workspace-panel .altar-companion-content .altar-info-card-actions button:hover,
-.altar-workspace-panel .altar-companion-content .altar-info-card-actions button:focus-visible,
+.companion-v3-actions button:first-child,
+.companion-v3-actions button:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.companion-v3-actions button:hover,
+.companion-v3-actions button:focus-visible,
 .altar-workspace-panel .altar-companion-edit-button:hover,
 .altar-workspace-panel .altar-companion-edit-button:focus-visible {
   border-color: var(--gold);
-  background: rgba(185, 160, 93, 0.14);
+  color: var(--gold);
+  background: rgba(185, 160, 93, 0.13);
+}
+
+.companion-v3-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 15rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.companion-v3-empty-state p {
+  max-width: 26ch;
 }
 
 .altar-workspace-panel .living-library-inline-link {
@@ -138,4 +268,27 @@
   text-decoration: underline;
   text-underline-offset: 0.15em;
   cursor: pointer;
+}
+
+.altar-workspace-panel .altar-info-empty {
+  color: rgba(244, 236, 216, 0.62);
+  font-style: italic;
+}
+
+@media (max-width: 700px) {
+  .altar-workspace-panel .altar-companion-header,
+  .companion-v3-glance,
+  .companion-v3-knowledge,
+  .companion-v3-actions {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .companion-v3-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .companion-v3-actions button {
+    grid-column: 1 !important;
+  }
 }
