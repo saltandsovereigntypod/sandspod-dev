@@ -1,0 +1,150 @@
+/* ==========================================================
+   COMPANION PANEL LAYOUT
+   Layout ONLY
+   ========================================================== */
+
+@media (min-width: 901px) {
+
+  .altar-workspace {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    grid-template-areas:
+      "tools tools"
+      "companion stage"
+      "living stage";
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .altar-workspace-tools {
+    grid-area: tools;
+  }
+
+  .altar-stage-wrap {
+    grid-area: stage;
+    min-width: 0;
+  }
+
+  .altar-companion-panel:not(.altar-living-state-panel) {
+    grid-area: companion;
+    display: block;
+    align-self: start;
+  }
+
+  .altar-living-state-panel {
+    grid-area: living;
+    align-self: start;
+  }
+
+  .altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner,
+  .altar-living-state-panel .altar-companion-inner {
+
+    position: sticky;
+    top: 5.5rem;
+
+    display: flex;
+    flex-direction: column;
+
+    max-height: calc(100vh - 7rem);
+
+    border: 1px solid rgba(185,160,93,.28);
+    border-radius: 1rem;
+
+    padding: 1rem;
+
+    background:
+      radial-gradient(circle at top,
+      rgba(185,160,93,.12),
+      transparent 16rem),
+      rgba(10,8,6,.82);
+
+    backdrop-filter: blur(8px);
+
+    overflow: hidden;
+  }
+
+  .altar-companion-header {
+    flex: 0 0 auto;
+  }
+
+  .altar-companion-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    padding-right: .35rem;
+  }
+
+  body.altar-companion-minimized {
+
+    .altar-workspace {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "tools"
+        "stage"
+        "living";
+    }
+
+    .altar-companion-panel:not(.altar-living-state-panel) {
+      display:none;
+    }
+  }
+
+}
+
+@media (max-width:900px){
+
+  .altar-workspace{
+
+    display:grid;
+
+    grid-template-columns:1fr;
+
+    grid-template-areas:
+      "tools"
+      "companion"
+      "living"
+      "stage";
+
+    gap:1rem;
+
+  }
+
+  .altar-workspace-tools{
+    grid-area:tools;
+  }
+
+  .altar-companion-panel:not(.altar-living-state-panel){
+    grid-area:companion;
+  }
+
+  .altar-living-state-panel{
+    grid-area:living;
+  }
+
+  .altar-stage-wrap{
+    grid-area:stage;
+  }
+
+  .altar-companion-inner{
+
+    display:flex;
+    flex-direction:column;
+
+    max-height:18rem;
+
+    overflow:hidden;
+
+  }
+
+  .altar-companion-content{
+
+    overflow-y:auto;
+
+    min-height:0;
+
+    flex:1;
+
+  }
+
+}
