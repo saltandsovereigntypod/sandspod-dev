@@ -69,7 +69,8 @@
       const interactiveTarget = event.target.closest(
         "button, a, input, textarea, select, label, .altar-object, .altar-toolbar, " +
         ".altar-action-bar, .altar-companion-panel, .altar-cabinet-overlay, " +
-        ".saved-altars-modal, .altar-save-modal, .living-state-tend-modal"
+        ".saved-altars-modal, .altar-save-modal, .living-state-practice-modal, " +
+        ".living-state-tend-modal, .living-state-activity-modal"
       );
 
       if (interactiveTarget) return;
