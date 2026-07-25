@@ -1,18 +1,107 @@
 /* ==========================================================
    COMPANION PANEL LAYOUT
-   Layout ONLY
+   Layout only: sizing, placement, scrolling, responsiveness
    ========================================================== */
 
-@media (min-width: 901px) {
+/* The old Living State panel is no longer part of the visible workspace. */
+.altar-living-state-panel {
+  display: none !important;
+}
 
+.altar-workspace-panel,
+.altar-workspace-panel-inner,
+.altar-companion-panel,
+.altar-companion-inner,
+.altar-companion-content {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
+.altar-workspace-panel-inner {
+  height: 100%;
+}
+
+.altar-companion-panel:not(.altar-living-state-panel) {
+  height: 100%;
+  overflow: hidden;
+}
+
+.altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(185, 160, 93, 0.28);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at top, rgba(185, 160, 93, 0.12), transparent 16rem),
+    rgba(10, 8, 6, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+.altar-companion-header {
+  flex: 0 0 auto;
+}
+
+.altar-companion-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 901px) {
   .altar-workspace {
     display: grid;
-    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
     grid-template-areas:
       "tools tools"
-      "companion stage"
-      "living stage";
+      "companion stage";
     gap: 1.25rem;
+    align-items: start;
+  }
+
+  .altar-workspace-tools {
+    grid-area: tools;
+  }
+
+  .altar-workspace-panel {
+    grid-area: companion;
+    align-self: start;
+    overflow: hidden;
+  }
+
+  .altar-stage-wrap {
+    grid-area: stage;
+    min-width: 0;
+  }
+
+  body.altar-companion-minimized .altar-workspace {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "tools"
+      "stage";
+  }
+
+  body.altar-companion-minimized .altar-workspace-panel {
+    display: none;
+  }
+}
+
+/* Portrait phones and narrow tablets: altar first, readable Companion below. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .altar-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "tools"
+      "stage"
+      "companion";
+    gap: 1rem;
     align-items: start;
   }
 
@@ -25,126 +114,81 @@
     min-width: 0;
   }
 
-  .altar-companion-panel:not(.altar-living-state-panel) {
+  .altar-workspace-panel {
     grid-area: companion;
-    display: block;
-    align-self: start;
+    width: 100%;
+    height: auto !important;
   }
 
-  .altar-living-state-panel {
-    grid-area: living;
-    align-self: start;
+  .altar-workspace-panel-inner,
+  .altar-companion-panel:not(.altar-living-state-panel) {
+    height: auto;
   }
 
-  .altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner,
-  .altar-living-state-panel .altar-companion-inner {
-
-    position: sticky;
-    top: 5.5rem;
-
-    display: flex;
-    flex-direction: column;
-
-    max-height: calc(100vh - 7rem);
-
-    border: 1px solid rgba(185,160,93,.28);
-    border-radius: 1rem;
-
-    padding: 1rem;
-
-    background:
-      radial-gradient(circle at top,
-      rgba(185,160,93,.12),
-      transparent 16rem),
-      rgba(10,8,6,.82);
-
-    backdrop-filter: blur(8px);
-
-    overflow: hidden;
-  }
-
-  .altar-companion-header {
-    flex: 0 0 auto;
+  .altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner {
+    height: auto;
+    max-height: min(72dvh, 44rem);
   }
 
   .altar-companion-content {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
-    padding-right: .35rem;
+    flex: 0 1 auto;
+    max-height: calc(min(72dvh, 44rem) - 7rem);
   }
 
-  body.altar-companion-minimized {
-
-    .altar-workspace {
-      grid-template-columns: 1fr;
-      grid-template-areas:
-        "tools"
-        "stage"
-        "living";
-    }
-
-    .altar-companion-panel:not(.altar-living-state-panel) {
-      display:none;
-    }
+  body.altar-companion-minimized .altar-workspace-panel {
+    display: none;
   }
-
 }
 
-@media (max-width:900px){
+/* Landscape phones/tablets: Companion and altar sit beside each other. */
+@media (max-width: 900px) and (orientation: landscape) {
+  .altar-workspace {
+    display: grid;
+    grid-template-columns: minmax(250px, 34vw) minmax(0, 1fr);
+    grid-template-areas:
+      "tools tools"
+      "companion stage";
+    gap: 0.9rem;
+    align-items: start;
+  }
 
-  .altar-workspace{
+  .altar-workspace-tools {
+    grid-area: tools;
+  }
 
-    display:grid;
+  .altar-workspace-panel {
+    grid-area: companion;
+    align-self: start;
+    overflow: hidden;
+  }
 
-    grid-template-columns:1fr;
+  .altar-stage-wrap {
+    grid-area: stage;
+    min-width: 0;
+  }
 
+  .altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner {
+    max-height: none;
+  }
+
+  body.altar-companion-minimized .altar-workspace {
+    grid-template-columns: 1fr;
     grid-template-areas:
       "tools"
-      "companion"
-      "living"
       "stage";
-
-    gap:1rem;
-
   }
 
-  .altar-workspace-tools{
-    grid-area:tools;
+  body.altar-companion-minimized .altar-workspace-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) and (orientation: portrait) {
+  .altar-companion-panel:not(.altar-living-state-panel) .altar-companion-inner {
+    max-height: 78dvh;
   }
 
-  .altar-companion-panel:not(.altar-living-state-panel){
-    grid-area:companion;
+  .altar-companion-content {
+    max-height: calc(78dvh - 6.5rem);
   }
-
-  .altar-living-state-panel{
-    grid-area:living;
-  }
-
-  .altar-stage-wrap{
-    grid-area:stage;
-  }
-
-  .altar-companion-inner{
-
-    display:flex;
-    flex-direction:column;
-
-    max-height:18rem;
-
-    overflow:hidden;
-
-  }
-
-  .altar-companion-content{
-
-    overflow-y:auto;
-
-    min-height:0;
-
-    flex:1;
-
-  }
-
 }
