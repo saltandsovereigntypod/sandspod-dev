@@ -1,6 +1,6 @@
 /* =========================================================
    UNIFIED ALTAR WORKSPACE PANEL
-   Presentation-only shell for Companion + Living State
+   Authoritative sizing shell for the Companion
    ========================================================= */
 
 .altar-workspace-panel {
@@ -17,89 +17,89 @@
 }
 
 .altar-workspace-panel-inner {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) 0;
+  display: block;
+  width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
-/* When both modules are active, Companion gets the larger working area. */
-.altar-workspace-panel:has(.altar-companion-panel:not(.altar-living-state-panel).is-visible:not(.is-minimized)):has(.altar-living-state-panel.is-visible:not(.is-minimized))
-  .altar-workspace-panel-inner {
-  grid-template-rows: minmax(0, 65fr) minmax(0, 35fr);
-}
-
-/* If Companion is hidden but Living State remains active, Living State owns the panel. */
-.altar-workspace-panel:has(.altar-companion-panel:not(.altar-living-state-panel).is-minimized):has(.altar-living-state-panel.is-visible:not(.is-minimized))
-  .altar-workspace-panel-inner {
-  grid-template-rows: 0 minmax(0, 1fr);
+/* Living State now supplies data only. It never occupies workspace layout. */
+.altar-living-state-panel {
+  display: none !important;
 }
 
 .altar-workspace-module {
-  grid-area: auto !important;
-  display: block !important;
-  width: 100% !important;
+  width: 100%;
   min-width: 0;
-  min-height: 0 !important;
+  min-height: 0;
   overflow: hidden;
-  opacity: 1 !important;
-  transform: none !important;
-  align-self: stretch;
-}
-
-.altar-workspace-panel-inner > .altar-companion-panel:not(.altar-living-state-panel) {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-}
-
-.altar-workspace-panel-inner > .altar-living-state-panel {
-  grid-column: 1 !important;
-  grid-row: 2 !important;
-}
-
-.altar-workspace-module + .altar-workspace-module {
-  border-top: 1px solid rgba(185, 160, 93, 0.24);
+  opacity: 1;
+  transform: none;
 }
 
 .altar-workspace-module.is-minimized {
   display: none !important;
 }
 
-.altar-workspace-module .altar-companion-inner {
-  position: static !important;
-  top: auto !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+.altar-workspace-panel-inner > .altar-companion-panel:not(.altar-living-state-panel) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.altar-workspace-panel-inner
+  > .altar-companion-panel:not(.altar-living-state-panel)
+  > .altar-companion-inner {
+  position: static;
+  top: auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   align-items: stretch;
   width: 100%;
   height: 100%;
-  max-height: none !important;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.altar-workspace-panel-inner
+  > .altar-companion-panel
+  > .altar-companion-inner
+  > .altar-companion-header {
+  grid-row: 1;
   min-height: 0;
   margin: 0;
-  overflow: hidden !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  padding: 1rem;
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
 }
 
-.altar-workspace-module .altar-companion-header {
-  flex: 0 0 auto;
-}
-
-.altar-workspace-module .altar-companion-content {
-  flex: 1 1 auto;
+.altar-workspace-panel-inner
+  > .altar-companion-panel
+  > .altar-companion-inner
+  > .altar-companion-content {
+  grid-row: 2;
+  align-self: stretch;
+  width: 100%;
+  height: auto;
   min-height: 0;
-  margin-top: 0;
+  max-height: none;
+  margin: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(185, 160, 93, 0.4) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .altar-workspace-module .altar-companion-content::-webkit-scrollbar {
@@ -115,39 +115,38 @@
   background: rgba(185, 160, 93, 0.4);
 }
 
-/* During a ritual, the live Companion guidance owns the whole panel. */
-body.ritual-session-active .altar-workspace-panel-inner {
-  grid-template-rows: minmax(0, 1fr) 0 !important;
+/* The rendered page may grow, but only inside the scrolling content area. */
+.altar-workspace-panel .altar-companion-content > .companion-v3-page,
+.altar-workspace-panel .altar-companion-content > .altar-info-card-inner.is-panel-view {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  max-height: none;
+  overflow: visible;
 }
 
-body.ritual-session-active .altar-living-state-panel {
-  display: none !important;
-}
-
+body.ritual-session-active .altar-living-state-panel,
 body.altar-companion-minimized .altar-workspace-panel {
   display: none !important;
 }
 
 @media (min-width: 901px) {
   .altar-workspace {
-    grid-template-columns: minmax(230px, 320px) minmax(0, 1fr) !important;
-    align-items: stretch !important;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr) !important;
+    align-items: start !important;
   }
 
+  /* ui.js supplies the exact altar-plus-action-bar pixel height inline. */
   .altar-workspace-panel {
     grid-column: 1 !important;
     grid-row: 2;
-    align-self: stretch;
-    height: 100%;
+    align-self: start;
+    max-height: none;
   }
 
   .altar-stage-wrap {
     grid-column: 2 !important;
     grid-row: 2;
-  }
-
-  .altar-action-bar {
-    grid-column: 2 !important;
   }
 
   body.altar-companion-minimized .altar-workspace {
@@ -155,123 +154,73 @@ body.altar-companion-minimized .altar-workspace-panel {
   }
 
   body.altar-companion-minimized .altar-workspace-tools,
-  body.altar-companion-minimized .altar-stage-wrap,
-  body.altar-companion-minimized .altar-action-bar {
+  body.altar-companion-minimized .altar-stage-wrap {
     grid-column: 1 !important;
   }
 }
 
-@media (max-width: 900px) {
+/* Portrait mobile: full-width, genuinely readable journal beneath the altar. */
+@media (max-width: 900px) and (orientation: portrait) {
   .altar-workspace-panel {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: min(78dvh, 46rem) !important;
+    min-height: 30rem;
+    aspect-ratio: auto;
   }
 
-  .altar-workspace-module .altar-companion-inner {
-    max-height: none !important;
+  .altar-workspace-panel-inner,
+  .altar-workspace-panel-inner > .altar-companion-panel:not(.altar-living-state-panel),
+  .altar-workspace-panel-inner
+    > .altar-companion-panel:not(.altar-living-state-panel)
+    > .altar-companion-inner {
+    height: 100%;
+  }
+
+  .altar-workspace-panel .altar-companion-header h2 {
+    font-size: clamp(1.75rem, 8vw, 2.3rem);
+  }
+
+  .altar-workspace-panel .altar-companion-content,
+  .altar-workspace-panel .companion-v3-section-body,
+  .altar-workspace-panel .companion-v3-journal-field > div,
+  .altar-workspace-panel .companion-v3-glance-group p {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .altar-workspace-panel .companion-v3-section summary {
+    font-size: 1.15rem;
   }
 }
 
+/* Landscape mobile: side-by-side and independently scrollable. */
 @media (max-width: 900px) and (orientation: landscape) {
   .altar-workspace-panel {
     grid-column: 1;
+    width: 100%;
+    height: 100% !important;
+    min-height: 0;
     aspect-ratio: auto;
-    height: 100%;
   }
 
   .altar-stage-wrap {
     grid-column: 2;
   }
+
+  .altar-workspace-panel .altar-companion-header h2 {
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+  }
+
+  .altar-workspace-panel .altar-companion-content,
+  .altar-workspace-panel .companion-v3-journal-field > div {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
 }
 
-/* =========================================================
-   COMPANION V2 — TRUE FULL-HEIGHT READABLE AREA
-   Header uses its natural height; content receives everything else.
-   ========================================================= */
-
-.altar-workspace-panel,
-.altar-workspace-panel-inner,
-.altar-workspace-panel-inner > .altar-companion-panel {
-  height: 100% !important;
-  min-height: 0 !important;
-}
-
-/* Use an explicit two-row grid instead of competing flex heights. */
-
-.altar-workspace-panel-inner
-  > .altar-companion-panel
-  > .altar-companion-inner {
-  display: grid !important;
-  grid-template-rows: auto minmax(0, 1fr) !important;
-  align-items: stretch !important;
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-
-/* Header occupies only the space it actually needs. */
-
-.altar-workspace-panel-inner
-  > .altar-companion-panel
-  > .altar-companion-inner
-  > .altar-companion-header {
-  grid-row: 1 !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-}
-
-/* This is the actual readable and scrollable area.
-   It now fills every remaining pixel beneath the header. */
-
-.altar-workspace-panel-inner
-  > .altar-companion-panel
-  > .altar-companion-inner
-  > .altar-companion-content {
-  grid-row: 2 !important;
-  align-self: stretch !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  margin: 0 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-}
-
-/* Prevent the rendered journal page from creating its own
-   smaller constrained viewing box. */
-
-.altar-workspace-panel
-  .altar-companion-content
-  > .altar-info-card-inner.is-panel-view {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 100% !important;
-  max-height: none !important;
-  overflow: visible !important;
-}
-
-/* Living State must flow inside the same scroll document,
-   not calculate a second internal height. */
-
-.altar-workspace-panel
-  .altar-companion-content
-  > .altar-living-state-panel,
-.altar-workspace-panel
-  .altar-companion-content
-  > .altar-living-state-panel
-  > .altar-companion-inner,
-.altar-workspace-panel
-  .altar-companion-content
-  > .altar-living-state-panel
-  .altar-companion-content {
-  width: 100% !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  overflow: visible !important;
+@media (max-width: 430px) and (orientation: portrait) {
+  .altar-workspace-panel {
+    height: 82dvh !important;
+    min-height: 32rem;
+  }
 }
