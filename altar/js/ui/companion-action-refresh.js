@@ -17,12 +17,8 @@
     const panel = getCompanionPanel();
     if (!panel) return;
 
-    // These labels described information that is already shown directly in
-    // the Companion, so keeping them created a second, non-interactive copy.
     panel.querySelector("[data-companion-emphasis]")?.remove();
 
-    // Apothecary and Living Library editing are separate destinations. Their
-    // labels should make that distinction clear when both actions are present.
     const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
     if (apothecaryEdit && apothecaryEdit.textContent !== "Edit Apothecary Item") {
       apothecaryEdit.textContent = "Edit Apothecary Item";
@@ -36,6 +32,14 @@
     }
   }
 
+  function applyActiveCompanionLayer(object = null) {
+    polishCompanionMarkup();
+
+    if (typeof window.scheduleCompanionV4 === "function") {
+      window.scheduleCompanionV4(object);
+    }
+  }
+
   function wrapCompanionRenderer(functionName) {
     const originalRenderer = window[functionName];
 
@@ -45,7 +49,7 @@
 
     function companionAwareRenderer(...args) {
       const result = originalRenderer.apply(this, args);
-      queueMicrotask(polishCompanionMarkup);
+      queueMicrotask(() => applyActiveCompanionLayer(args[0] || null));
       return result;
     }
 
@@ -69,7 +73,7 @@
 
     return Promise.resolve(window.showAltarCompanionPanel(target))
       .then(() => {
-        polishCompanionMarkup();
+        applyActiveCompanionLayer(target);
         document.dispatchEvent(
           new CustomEvent("companion:refreshed", {
             detail: { object: target }
@@ -124,7 +128,7 @@
   wrapCompanionRenderer("showLibraryEntityInCompanion");
   wrapLifecycleSubmitHandler("submitLivingStateTendForm");
   wrapLifecycleSubmitHandler("submitLivingStateActivityForm");
-  polishCompanionMarkup();
+  applyActiveCompanionLayer();
 
   document.addEventListener("companion:refresh", (event) => {
     refreshSelectedCompanion(event.detail?.object || null);
