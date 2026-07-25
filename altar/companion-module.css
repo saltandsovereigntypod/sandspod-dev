@@ -1,30 +1,88 @@
 /* =========================================================
-   COMPANION MODULE V3
-   Visual styling for the unified Companion field journal
+   COMPANION MODULE
+   Visual styling for the unified Companion living grimoire
    ========================================================= */
 
-/* The Companion fully replaces the old compact card on the altar stage. */
+/* The Companion fully replaces the old compact altar information card. */
 .altar-info-card {
   display: none !important;
 }
 
 .altar-workspace-panel .altar-companion-panel:not(.altar-living-state-panel) {
+  --companion-accent: var(--gold);
+  --companion-accent-soft: rgba(185, 160, 93, 0.14);
+  --companion-accent-faint: rgba(185, 160, 93, 0.065);
+  --companion-line: rgba(185, 160, 93, 0.2);
+  --companion-paper: rgba(244, 236, 216, 0.035);
+  --companion-paper-strong: rgba(244, 236, 216, 0.065);
   color: var(--cream);
+  background:
+    radial-gradient(circle at 15% 0%, var(--companion-accent-soft), transparent 18rem),
+    linear-gradient(155deg, rgba(22, 28, 22, 0.98), rgba(10, 10, 8, 0.99));
+}
+
+/* Quiet object identities. These should feel like marginalia, not themes. */
+.altar-companion-panel[data-companion-identity="herb"] {
+  --companion-accent: #a7b982;
+  --companion-accent-soft: rgba(133, 160, 91, 0.18);
+  --companion-accent-faint: rgba(133, 160, 91, 0.075);
+  --companion-line: rgba(159, 181, 119, 0.22);
+}
+
+.altar-companion-panel[data-companion-identity="crystal"] {
+  --companion-accent: #b9acc8;
+  --companion-accent-soft: rgba(149, 125, 174, 0.18);
+  --companion-accent-faint: rgba(149, 125, 174, 0.075);
+  --companion-line: rgba(185, 172, 200, 0.22);
+}
+
+.altar-companion-panel[data-companion-identity="candle"] {
+  --companion-accent: #d4ad6d;
+  --companion-accent-soft: rgba(208, 143, 66, 0.18);
+  --companion-accent-faint: rgba(208, 143, 66, 0.075);
+  --companion-line: rgba(212, 173, 109, 0.22);
+}
+
+.altar-companion-panel[data-companion-identity="spell-jar"],
+.altar-companion-panel[data-companion-identity="oil"],
+.altar-companion-panel[data-companion-identity="incense"],
+.altar-companion-panel[data-companion-identity="spray"],
+.altar-companion-panel[data-companion-identity="sachet"] {
+  --companion-accent: #bfa06f;
+  --companion-accent-soft: rgba(166, 126, 67, 0.2);
+  --companion-accent-faint: rgba(166, 126, 67, 0.08);
+  --companion-line: rgba(191, 160, 111, 0.23);
 }
 
 .altar-workspace-panel .altar-companion-inner {
   box-sizing: border-box;
 }
 
+/* ---------- Header ---------- */
+
 .altar-workspace-panel .altar-companion-header {
+  position: relative;
   display: block;
   flex: 0 0 auto;
   margin: 0;
-  padding: 1.45rem 1.45rem 1.2rem;
-  border-bottom: 1px solid rgba(185, 160, 93, 0.22);
+  padding: 1.5rem 1.5rem 1.25rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--companion-line);
   background:
-    radial-gradient(circle at top left, rgba(185, 160, 93, 0.13), transparent 15rem),
-    linear-gradient(180deg, rgba(244, 236, 216, 0.025), transparent);
+    radial-gradient(circle at top left, var(--companion-accent-soft), transparent 15rem),
+    linear-gradient(180deg, rgba(244, 236, 216, 0.035), transparent);
+}
+
+.altar-workspace-panel .altar-companion-header::after {
+  content: "✦  ☽  ✦";
+  position: absolute;
+  right: 1.3rem;
+  bottom: 0.55rem;
+  color: var(--companion-accent);
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  opacity: 0.42;
+  pointer-events: none;
 }
 
 .altar-workspace-panel .altar-companion-header .eyebrow {
@@ -35,8 +93,11 @@
   max-width: none;
   margin: 0;
   color: var(--cream);
-  font-size: clamp(1.55rem, 2vw, 2rem);
-  line-height: 1.12;
+  font-family: var(--serif);
+  font-size: clamp(1.55rem, 2vw, 2.05rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
   text-wrap: balance;
 }
 
@@ -44,27 +105,55 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.5rem;
+  gap: 0.42rem;
+  margin-top: 0.62rem;
 }
 
 .companion-v3-header-tags span {
-  color: var(--gold);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55rem;
+  border: 1px solid var(--companion-line);
+  border-radius: 999px;
+  padding: 0.16rem 0.58rem;
+  color: var(--companion-accent);
+  background: var(--companion-accent-faint);
+  font-size: 0.7rem;
+  letter-spacing: 0.075em;
+  line-height: 1;
   text-transform: capitalize;
 }
 
-.companion-v3-header-tags span + span {
-  display: none;
+.companion-v3-emphasis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+  margin-top: 0.75rem;
+  padding-right: 4.5rem;
 }
+
+.companion-v3-emphasis span {
+  position: relative;
+  color: rgba(244, 236, 216, 0.62);
+  font-size: 0.68rem;
+  letter-spacing: 0.035em;
+}
+
+.companion-v3-emphasis span:not(:last-child)::after {
+  content: "·";
+  position: absolute;
+  right: -0.48rem;
+  color: var(--companion-accent);
+}
+
+/* ---------- Scrollable page surface ---------- */
 
 .altar-workspace-panel .altar-companion-content {
   min-height: 0;
   padding: 0;
   color: var(--muted);
   scrollbar-width: thin;
-  scrollbar-color: rgba(198, 166, 100, 0.55) transparent;
+  scrollbar-color: color-mix(in srgb, var(--companion-accent) 58%, transparent) transparent;
 }
 
 .altar-workspace-panel .altar-companion-content::-webkit-scrollbar {
@@ -78,7 +167,7 @@
 .altar-workspace-panel .altar-companion-content::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: rgba(198, 166, 100, 0.58);
+  background: color-mix(in srgb, var(--companion-accent) 58%, transparent);
   background-clip: padding-box;
 }
 
@@ -88,37 +177,55 @@
   min-height: 100%;
 }
 
+/* ---------- Current status ---------- */
+
 .companion-v3-glance {
   display: grid;
-  gap: 0.9rem;
-  padding: 1.15rem 1.45rem 1.3rem;
-  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1.35rem;
+  border-bottom: 1px solid var(--companion-line);
+  background:
+    linear-gradient(90deg, var(--companion-accent-faint), transparent 65%),
+    rgba(0, 0, 0, 0.06);
 }
 
 .companion-v3-living-summary {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .companion-v3-living-summary > p {
+  position: relative;
   margin: 0;
-  border: 1px solid rgba(185, 160, 93, 0.16);
-  border-radius: 0.75rem;
-  padding: 0.58rem 0.7rem;
+  border: 1px solid var(--companion-line);
+  border-radius: 0.8rem;
+  padding: 0.68rem 0.78rem 0.68rem 0.95rem;
   color: var(--cream);
-  background: rgba(244, 236, 216, 0.035);
+  background: var(--companion-paper);
   font-size: 0.84rem;
-  line-height: 1.4;
+  line-height: 1.48;
+}
+
+.companion-v3-living-summary > p::before {
+  content: "";
+  position: absolute;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  left: 0;
+  width: 2px;
+  border-radius: 99px;
+  background: var(--companion-accent);
+  opacity: 0.68;
 }
 
 .companion-v3-living-summary strong,
 .companion-v3-glance-group h3 {
-  color: var(--gold);
+  color: var(--companion-accent);
 }
 
 .companion-v3-glance-group {
-  padding-top: 0.8rem;
-  border-top: 1px solid rgba(185, 160, 93, 0.14);
+  padding-top: 0.95rem;
+  border-top: 1px solid var(--companion-line);
 }
 
 .companion-v3-glance-group:first-child {
@@ -128,21 +235,21 @@
 
 .companion-v3-glance-group h3 {
   max-width: none;
-  margin: 0 0 0.55rem;
-  color: var(--gold);
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
+  margin: 0 0 0.58rem;
+  font-family: var(--serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
 .companion-v3-glance-group p {
-  margin: 0.22rem 0;
+  margin: 0.24rem 0;
   color: var(--cream);
   font-size: 0.88rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Ingredient and dressing rows read like small field-journal cards. */
 .companion-v3-glance-group ul {
   display: grid;
   gap: 0.5rem;
@@ -154,39 +261,41 @@
 .companion-v3-glance-group li {
   position: relative;
   min-height: 2.7rem;
-  border: 1px solid rgba(185, 160, 93, 0.17);
-  border-radius: 0.8rem;
-  padding: 0.65rem 0.75rem 0.65rem 2rem;
+  border: 1px solid var(--companion-line);
+  border-radius: 0.82rem;
+  padding: 0.68rem 0.78rem 0.68rem 2rem;
   color: var(--cream);
   background:
-    radial-gradient(circle at top left, rgba(185, 160, 93, 0.09), transparent 70%),
-    rgba(244, 236, 216, 0.035);
+    radial-gradient(circle at top left, var(--companion-accent-faint), transparent 72%),
+    var(--companion-paper);
   font-size: 0.84rem;
-  line-height: 1.4;
+  line-height: 1.42;
 }
 
 .companion-v3-glance-group li::before {
   content: "✦";
   position: absolute;
   left: 0.72rem;
-  top: 0.65rem;
-  color: var(--gold);
-  font-size: 0.72rem;
+  top: 0.68rem;
+  color: var(--companion-accent);
+  font-size: 0.7rem;
 }
+
+/* ---------- Knowledge pages ---------- */
 
 .companion-v3-knowledge {
   display: grid;
-  padding: 0.2rem 1.45rem 0;
+  padding: 0.25rem 1.5rem 0;
 }
 
 .companion-v3-section {
-  border-bottom: 1px solid rgba(185, 160, 93, 0.18);
+  border-bottom: 1px solid var(--companion-line);
 }
 
 .companion-v3-section summary {
   position: relative;
   display: block;
-  padding: 0.9rem 1.6rem 0.9rem 0;
+  padding: 1rem 1.8rem 1rem 0;
   color: var(--cream);
   font-family: var(--serif);
   font-size: 1.08rem;
@@ -205,9 +314,16 @@
   position: absolute;
   top: 50%;
   right: 0;
-  color: var(--gold);
+  display: grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 1px solid var(--companion-line);
+  border-radius: 50%;
+  color: var(--companion-accent);
+  background: var(--companion-accent-faint);
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   font-weight: 400;
   transform: translateY(-50%);
 }
@@ -217,14 +333,22 @@
 }
 
 .companion-v3-section-body {
-  padding: 0 0 1rem;
+  padding: 0 0 1.2rem;
+}
+
+.companion-v3-section-body > :first-child {
+  margin-top: 0;
+}
+
+.companion-v3-section-body > :last-child {
+  margin-bottom: 0;
 }
 
 .companion-v3-section-body p {
-  margin: 0.42rem 0;
+  margin: 0.48rem 0;
   color: var(--muted);
-  font-size: 0.86rem;
-  line-height: 1.55;
+  font-size: 0.87rem;
+  line-height: 1.62;
 }
 
 .companion-v3-section-body strong {
@@ -233,76 +357,201 @@
 
 .companion-v3-section-body ul,
 .companion-v3-section-body ol {
-  margin: 0.45rem 0 0.7rem;
-  padding-left: 1.2rem;
+  margin: 0.5rem 0 0.78rem;
+  padding-left: 1.25rem;
   color: var(--cream);
+  line-height: 1.55;
 }
 
-/* Relationship entries become linked mini-cards instead of loose paragraphs. */
-.companion-v3-section[data-companion-v3-section="Relationships"] .companion-v3-section-body > p:not(.altar-info-empty) {
+/* Each field reads like a small handwritten grimoire entry. */
+.companion-v3-journal-fields {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.2rem;
-  margin: 0.5rem 0;
-  border: 1px solid rgba(185, 160, 93, 0.16);
-  border-radius: 0.8rem;
-  padding: 0.65rem 0.75rem;
-  background: rgba(244, 236, 216, 0.035);
+  gap: 0.85rem;
 }
 
-.companion-v3-section[data-companion-v3-section="Relationships"] .living-library-inline-link {
-  width: fit-content;
-  color: var(--gold);
+.companion-v3-journal-field {
+  position: relative;
+  margin: 0;
+  border-left: 2px solid var(--companion-accent);
+  padding: 0.08rem 0 0.08rem 0.9rem;
+}
+
+.companion-v3-journal-field h4 {
+  max-width: none;
+  margin: 0 0 0.32rem;
+  color: var(--companion-accent);
   font-family: var(--serif);
-  font-size: 0.96rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  text-align: left;
+  letter-spacing: 0.065em;
+  line-height: 1.25;
+  text-transform: uppercase;
 }
 
-.companion-v3-section[data-companion-v3-section="Relationships"] .altar-info-muted {
-  font-size: 0.72rem;
+.companion-v3-journal-field > div {
+  color: var(--cream);
+  font-size: 0.88rem;
+  line-height: 1.62;
+  white-space: pre-line;
+}
+
+.companion-v3-traditional .companion-v3-section-body {
+  background:
+    linear-gradient(90deg, var(--companion-accent-faint), transparent 72%);
+}
+
+.companion-v3-traditional .companion-v3-section-body,
+.companion-v3-my-practice .companion-v3-section-body,
+.companion-v3-community .companion-v3-section-body {
+  margin: 0 -0.35rem;
+  border-radius: 0.85rem;
+  padding: 0.9rem 0.85rem 1rem;
+}
+
+.companion-v3-my-practice .companion-v3-section-body {
+  background: rgba(244, 236, 216, 0.025);
+}
+
+.companion-v3-community .companion-v3-section-body {
+  background: rgba(87, 104, 85, 0.08);
+}
+
+/* ---------- Relationship knowledge graph ---------- */
+
+.companion-v3-relationship-group + .companion-v3-relationship-group {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--companion-line);
+}
+
+.companion-v3-relationship-group h4 {
+  max-width: none;
+  margin: 0 0 0.58rem;
+  color: var(--companion-accent);
+  font-family: var(--serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.companion-v3-relationship-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.48rem;
+}
+
+.altar-workspace-panel .companion-v3-relationship-chip {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  min-height: 2rem;
+  border: 1px solid var(--companion-line);
+  border-radius: 999px;
+  padding: 0.35rem 0.72rem;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at top left, var(--companion-accent-faint), transparent 90%),
+    var(--companion-paper);
+  font-family: var(--serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.altar-workspace-panel .companion-v3-relationship-chip::before {
+  content: "✦";
+  margin-right: 0.38rem;
+  color: var(--companion-accent);
+  font-size: 0.58rem;
+}
+
+.altar-workspace-panel .companion-v3-relationship-chip:hover,
+.altar-workspace-panel .companion-v3-relationship-chip:focus-visible {
+  border-color: var(--companion-accent);
+  color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+  outline: none;
+}
+
+/* ---------- Living history timeline ---------- */
+
+.companion-v3-history .companion-v3-section-body {
+  position: relative;
+  padding-left: 0.35rem;
+}
+
+.companion-v3-history .companion-v3-section-body::before {
+  content: "";
+  position: absolute;
+  top: 0.4rem;
+  bottom: 1.4rem;
+  left: 0.66rem;
+  width: 1px;
+  background: linear-gradient(var(--companion-accent), transparent);
+  opacity: 0.45;
 }
 
 .companion-v3-section-body .living-state-event {
   position: relative;
-  margin-top: 0.65rem;
-  padding: 0.75rem 0.8rem 0.75rem 1rem;
-  border: 1px solid rgba(185, 160, 93, 0.16);
-  border-radius: 0.8rem;
-  background: rgba(244, 236, 216, 0.035);
+  margin: 0 0 0.7rem 1.55rem;
+  border: 1px solid var(--companion-line);
+  border-radius: 0.82rem;
+  padding: 0.72rem 0.78rem;
+  background: var(--companion-paper);
 }
 
 .companion-v3-section-body .living-state-event::before {
   content: "";
   position: absolute;
-  left: -1px;
-  top: 0.65rem;
-  bottom: 0.65rem;
-  width: 2px;
-  border-radius: 999px;
-  background: rgba(185, 160, 93, 0.48);
+  top: 0.82rem;
+  left: -1.38rem;
+  width: 0.48rem;
+  height: 0.48rem;
+  border: 2px solid rgba(12, 13, 10, 0.95);
+  border-radius: 50%;
+  background: var(--companion-accent);
+  box-shadow: 0 0 0 2px var(--companion-line);
 }
+
+.companion-v3-section-body .living-state-event p {
+  margin: 0.25rem 0;
+}
+
+/* ---------- Actions ---------- */
 
 .companion-v3-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.58rem;
   margin-top: auto;
-  padding: 1.2rem 1.45rem 1.45rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+  background:
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.14)),
+    radial-gradient(circle at bottom right, var(--companion-accent-faint), transparent 13rem);
 }
 
 .companion-v3-actions button,
 .altar-workspace-panel .altar-companion-edit-button {
-  min-height: 2.65rem;
-  border: 1px solid rgba(185, 160, 93, 0.3);
+  min-height: 2.75rem;
+  border: 1px solid var(--companion-line);
   border-radius: 999px;
-  padding: 0.55rem 0.8rem;
+  padding: 0.58rem 0.82rem;
   color: var(--cream);
-  background: rgba(244, 236, 216, 0.055);
+  background: var(--companion-paper-strong);
   font: inherit;
-  font-size: 0.78rem;
+  font-family: var(--serif);
+  font-size: 0.8rem;
   line-height: 1.2;
   cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
 }
 
 .companion-v3-actions button:first-child,
@@ -314,31 +563,48 @@
 .companion-v3-actions button:focus-visible,
 .altar-workspace-panel .altar-companion-edit-button:hover,
 .altar-workspace-panel .altar-companion-edit-button:focus-visible {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(185, 160, 93, 0.13);
+  border-color: var(--companion-accent);
+  color: var(--companion-accent);
+  background: var(--companion-accent-soft);
+  outline: none;
+  transform: translateY(-1px);
 }
+
+/* ---------- Empty state ---------- */
 
 .companion-v3-empty-state {
   display: grid;
   place-items: center;
-  min-height: 15rem;
-  padding: 2rem 1.5rem;
+  align-content: center;
+  min-height: 16rem;
+  padding: 2.4rem 1.5rem;
   text-align: center;
 }
 
+.companion-v3-empty-state .book-divider {
+  margin-bottom: 1.15rem;
+  color: var(--companion-accent);
+  letter-spacing: 0.18em;
+  opacity: 0.8;
+}
+
 .companion-v3-empty-state p {
-  max-width: 26ch;
+  max-width: 27ch;
+  margin: 0;
+  color: rgba(244, 236, 216, 0.72);
+  font-family: var(--serif);
+  font-size: 0.98rem;
+  line-height: 1.65;
 }
 
 .altar-workspace-panel .living-library-inline-link {
   border: 0;
   padding: 0;
-  color: var(--gold);
+  color: var(--companion-accent);
   background: transparent;
   font: inherit;
   text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-underline-offset: 0.16em;
   cursor: pointer;
 }
 
@@ -347,8 +613,69 @@
   font-style: italic;
 }
 
-@media (max-width: 700px) {
-  .altar-workspace-panel .altar-companion-header,
+/* ---------- Mobile Companion ---------- */
+
+@media (max-width: 900px) {
+  .altar-workspace-panel .altar-companion-panel:not(.altar-living-state-panel) {
+    width: 100%;
+    max-width: none;
+    border-radius: 1.35rem;
+  }
+
+  .altar-workspace-panel .altar-companion-header {
+    padding: 1.25rem 1.2rem 1.05rem;
+  }
+
+  .altar-workspace-panel .altar-companion-header::after {
+    right: 1rem;
+  }
+
+  .companion-v3-glance,
+  .companion-v3-knowledge,
+  .companion-v3-actions {
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+  }
+
+  .companion-v3-emphasis {
+    padding-right: 3.5rem;
+  }
+
+  .companion-v3-journal-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .companion-v3-journal-field {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .altar-workspace-panel .altar-companion-panel:not(.altar-living-state-panel) {
+    border-radius: 1.15rem;
+  }
+
+  .altar-workspace-panel .altar-companion-header {
+    padding: 1.15rem 1rem 1rem;
+  }
+
+  .altar-workspace-panel .altar-companion-header h2 {
+    font-size: clamp(1.55rem, 8vw, 2rem);
+  }
+
+  .altar-workspace-panel .altar-companion-header::after {
+    display: none;
+  }
+
+  .companion-v3-header-tags span {
+    min-height: 1.7rem;
+    font-size: 0.72rem;
+  }
+
+  .companion-v3-emphasis {
+    padding-right: 0;
+  }
+
   .companion-v3-glance,
   .companion-v3-knowledge,
   .companion-v3-actions {
@@ -356,11 +683,66 @@
     padding-right: 1rem;
   }
 
-  .companion-v3-actions {
-    grid-template-columns: 1fr;
+  .companion-v3-glance {
+    padding-top: 1rem;
+    padding-bottom: 1.1rem;
   }
 
-  .companion-v3-actions button {
-    grid-column: 1 !important;
+  .companion-v3-section summary {
+    min-height: 3.25rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    font-size: 1.02rem;
+  }
+
+  .companion-v3-journal-fields {
+    grid-template-columns: 1fr;
+    gap: 0.95rem;
+  }
+
+  .companion-v3-journal-field h4 {
+    font-size: 0.8rem;
+  }
+
+  .companion-v3-journal-field > div {
+    font-size: 0.9rem;
+  }
+
+  .companion-v3-relationship-chips {
+    gap: 0.55rem;
+  }
+
+  .altar-workspace-panel .companion-v3-relationship-chip {
+    min-height: 2.35rem;
+    padding: 0.45rem 0.76rem;
+    font-size: 0.84rem;
+  }
+
+  .companion-v3-actions {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    padding-top: 1.05rem;
+    padding-bottom: 1.15rem;
+  }
+
+  .companion-v3-actions button,
+  .companion-v3-actions button:first-child,
+  .companion-v3-actions button:last-child:nth-child(odd) {
+    grid-column: 1;
+    width: 100%;
+    min-height: 3rem;
+    font-size: 0.86rem;
+  }
+
+  .companion-v3-empty-state {
+    min-height: 12rem;
+    padding: 2rem 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-v3-actions button,
+  .altar-workspace-panel .altar-companion-edit-button {
+    transition: none;
   }
 }
