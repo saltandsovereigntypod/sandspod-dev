@@ -1,10 +1,6 @@
 /* =========================================================
    COMPANION V4
-   Identity-aware Current State presentation layer.
-
-   This module is intentionally idempotent: it may run after the immediate
-   render and again after asynchronous instance/history data resolves without
-   duplicating sections or event listeners.
+   Compact identity-aware Companion presentation layer.
    ========================================================= */
 
 (function initializeCompanionV4() {
@@ -25,91 +21,140 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
-      .companion-v4-current-state {
-        margin: 0 0 1rem;
-        border: 1px solid rgba(190, 157, 92, 0.34);
-        border-radius: 1.1rem;
-        background: rgba(18, 17, 14, 0.72);
-        overflow: hidden;
-      }
-
-      .companion-v4-current-state > summary {
-        cursor: pointer;
-        list-style: none;
-        padding: 1rem 1.1rem;
-        color: var(--gold, #c8a96b);
-        font-family: Georgia, serif;
-        font-size: 1.02rem;
-        font-weight: 700;
-      }
-
-      .companion-v4-current-state > summary::-webkit-details-marker {
-        display: none;
-      }
-
-      .companion-v4-current-state > summary::after {
-        content: "+";
-        float: right;
-        opacity: 0.8;
-      }
-
-      .companion-v4-current-state[open] > summary::after {
-        content: "−";
-      }
-
-      .companion-v4-current-state-body {
-        display: grid;
-        gap: 0.7rem;
-        padding: 0 1.1rem 1.1rem;
-      }
-
-      .companion-v4-state-row {
-        display: grid;
-        grid-template-columns: minmax(7rem, 0.42fr) minmax(0, 1fr);
-        gap: 0.75rem;
-        align-items: start;
-        padding-top: 0.7rem;
-        border-top: 1px solid rgba(190, 157, 92, 0.16);
-      }
-
-      .companion-v4-state-row strong {
-        color: rgba(238, 224, 194, 0.82);
-        font-size: 0.78rem;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-
-      .companion-v4-state-row span,
-      .companion-v4-state-row p {
-        margin: 0;
-        color: rgba(245, 237, 220, 0.94);
-        line-height: 1.45;
-      }
-
-      .companion-v4-current-state .companion-v3-lifecycle {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        background: transparent;
-      }
-
-      .companion-v4-current-state .companion-v3-lifecycle-primary {
-        margin-bottom: 0.65rem;
+      .altar-companion-panel[data-companion-version="4"] [data-companion-emphasis] {
+        display: none !important;
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-page {
         display: flex;
         flex-direction: column;
+        gap: 0.55rem;
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-knowledge {
         display: contents;
       }
 
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-section,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state {
+        margin: 0;
+        border-radius: 0.8rem;
+        overflow: hidden;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state > summary {
+        min-height: 42px;
+        padding: 0.62rem 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        list-style: none;
+        font-size: 0.95rem;
+        line-height: 1.15;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary::-webkit-details-marker,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary::after,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state > summary::after {
+        content: "+";
+        flex: 0 0 auto;
+        opacity: 0.75;
+        font-size: 0.95rem;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-section[open] > summary::after,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state[open] > summary::after {
+        content: "−";
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-section-body,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state-body {
+        padding: 0 0.85rem 0.75rem;
+      }
+
+      .companion-v4-current-state {
+        border: 1px solid rgba(190, 157, 92, 0.34);
+        background: rgba(18, 17, 14, 0.72);
+      }
+
+      .companion-v4-current-state > summary {
+        color: var(--gold, #c8a96b);
+        font-family: Georgia, serif;
+        font-weight: 700;
+      }
+
+      .companion-v4-current-state-body {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .companion-v4-state-row {
+        display: grid;
+        grid-template-columns: minmax(6.2rem, 0.38fr) minmax(0, 1fr);
+        gap: 0.65rem;
+        align-items: start;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(190, 157, 92, 0.14);
+      }
+
+      .companion-v4-state-row strong {
+        color: rgba(238, 224, 194, 0.8);
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .companion-v4-state-row span {
+        color: rgba(245, 237, 220, 0.94);
+        line-height: 1.35;
+      }
+
+      .companion-v4-current-state .companion-v3-lifecycle {
+        margin: 0;
+        padding: 0.5rem 0 0;
+        border: 0;
+        background: transparent;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-actions {
+        margin-top: 0.45rem;
+        padding: 0.7rem;
+        gap: 0.5rem;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-primary-action {
+        min-height: 40px;
+        width: auto;
+        padding: 0.55rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.88rem;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-secondary-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-secondary-actions button {
+        min-height: 34px;
+        width: auto;
+        padding: 0.42rem 0.65rem;
+        border-radius: 0.65rem;
+        font-size: 0.78rem;
+        line-height: 1.1;
+      }
+
       @media (max-width: 560px) {
         .companion-v4-state-row {
           grid-template-columns: 1fr;
-          gap: 0.3rem;
+          gap: 0.2rem;
         }
       }
     `;
@@ -120,19 +165,11 @@
     return document.querySelector(".altar-companion-panel");
   }
 
-  function getContent(panel) {
-    return panel?.querySelector("[data-companion-content]") || null;
-  }
-
   function getIdentity(panel, object) {
     const preset = panel?.dataset.companionIdentity;
     if (preset && preset !== "empty") return preset;
 
-    const raw = String(
-      object?.dataset.apothecaryType ||
-      object?.dataset.type ||
-      "entry"
-    ).toLowerCase();
+    const raw = String(object?.dataset.apothecaryType || object?.dataset.type || "entry").toLowerCase();
 
     if (raw.includes("spell jar") || raw.includes("spell-jar")) return "spell-jar";
     if (raw.includes("candle")) return "candle";
@@ -190,20 +227,9 @@
         : []);
     }
 
-    if (identity === "herb") {
-      add("Form", object?.dataset.form || "");
-      add("Herb", object?.dataset.herb || "");
-    }
-
-    if (identity === "crystal") {
-      add("Form", object?.dataset.form || object?.dataset.crystalForm || "");
-      add("Crystal", object?.dataset.crystal || "");
-    }
-
-    if (identity === "deity") {
-      add("Presence", "Placed on the altar");
-      add("Deity", object?.dataset.deity || "");
-    }
+    if (identity === "herb") add("Form", object?.dataset.form || "");
+    if (identity === "crystal") add("Form", object?.dataset.form || object?.dataset.crystalForm || "");
+    if (identity === "deity") add("Presence", "Placed on the altar");
 
     return rows;
   }
@@ -218,21 +244,15 @@
     `;
   }
 
-  function removeLegacyGlance(page) {
-    page?.querySelector(".companion-v3-glance")?.remove();
-  }
-
   function ensureCurrentState(panel, object) {
-    const content = getContent(panel);
-    const page = content?.querySelector(".companion-v3-page");
+    const page = panel.querySelector("[data-companion-content] .companion-v3-page");
     if (!page) return;
 
-    removeLegacyGlance(page);
+    page.querySelector(".companion-v3-glance")?.remove();
 
     const identity = getIdentity(panel, object);
     const rows = getStateRows(identity, object);
     const lifecycle = panel.querySelector(".altar-companion-header [data-companion-lifecycle]");
-
     let section = page.querySelector("[data-companion-v4-current-state]");
 
     if (!rows.length && !lifecycle) {
@@ -253,29 +273,16 @@
     }
 
     const body = section.querySelector("[data-companion-v4-current-state-body]");
-    if (!body) return;
-
     body.innerHTML = rows.map(renderRow).join("");
-
-    if (lifecycle) {
-      body.appendChild(lifecycle);
-    }
+    if (lifecycle) body.appendChild(lifecycle);
   }
 
   function normalizeActions(panel) {
     const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
-    if (apothecaryEdit && apothecaryEdit.textContent !== "Edit Apothecary Item") {
-      apothecaryEdit.textContent = "Edit Apothecary Item";
-    }
+    if (apothecaryEdit) apothecaryEdit.textContent = "Edit Apothecary Item";
 
     const libraryEdit = panel.querySelector('[data-library-edit-section="myPractice"]');
-    if (libraryEdit && libraryEdit.textContent !== "Edit Library Entry") {
-      libraryEdit.textContent = "Edit Library Entry";
-    }
-  }
-
-  function removeLegacyEmphasis(panel) {
-    panel.querySelector("[data-companion-emphasis]")?.remove();
+    if (libraryEdit) libraryEdit.textContent = "Edit Library Entry";
   }
 
   function applyCompanionV4(object = null) {
@@ -284,12 +291,12 @@
     const panel = getPanel();
     if (!panel) return false;
 
-    const target = object || (typeof selectedObject !== "undefined" ? selectedObject : null);
+    panel.dataset.companionVersion = "4";
+    panel.querySelector("[data-companion-emphasis]")?.remove();
 
-    removeLegacyEmphasis(panel);
+    const target = object || (typeof selectedObject !== "undefined" ? selectedObject : null);
     normalizeActions(panel);
     ensureCurrentState(panel, target);
-    panel.dataset.companionVersion = "4";
     return true;
   }
 
