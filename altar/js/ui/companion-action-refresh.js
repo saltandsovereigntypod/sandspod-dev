@@ -13,18 +13,6 @@
     );
   }
 
-  function loadCompanionV4() {
-    if (window.scheduleCompanionV4 || document.querySelector('script[data-companion-v4-loader]')) {
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "js/ui/companion-v4.js";
-    script.defer = true;
-    script.setAttribute("data-companion-v4-loader", "");
-    document.head.appendChild(script);
-  }
-
   function polishCompanionMarkup() {
     const panel = getCompanionPanel();
     if (!panel) return;
@@ -136,7 +124,6 @@
 
   window.refreshAltarCompanion = refreshSelectedCompanion;
 
-  loadCompanionV4();
   wrapCompanionRenderer("showAltarCompanionPanel");
   wrapCompanionRenderer("showLibraryEntityInCompanion");
   wrapLifecycleSubmitHandler("submitLivingStateTendForm");
