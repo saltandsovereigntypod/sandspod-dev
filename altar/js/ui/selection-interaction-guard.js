@@ -25,64 +25,144 @@
       ? window.captureAltarSnapshot
       : null;
 
+  async function getValidInstance(instanceId) {
+    if (!instanceId || typeof window.getObjectInstance !== "function") return null;
+    return window.getObjectInstance(instanceId);
+  }
+
+  async function createMissingApothecaryInstance(object, item) {
+    if (!object || !item || typeof window.createObjectInstance !== "function") {
+      return null;
+    }
+
+    const livingState = item.livingState || {};
+    const tendingEnabled = livingState.tending_enabled !== false;
+    const tendingIntervalDays = Number(livingState.tending_interval_days || 30);
+    const expirationEnabled = Boolean(livingState.expiration_enabled);
+    const expirationDays = Number(livingState.expiration_days || 0);
+
+    const instance = await window.createObjectInstance({
+      entity_id: item.entityId || object.dataset.entityId || "",
+      source: "apothecary",
+      instance_type: "apothecary_item",
+      name: item.name || object.dataset.label || "Apothecary Item",
+      object_type: "apothecary",
+      subtype: item.typeLabel || item.type || object.dataset.apothecaryType || "",
+      apothecary_item_id: item.id || object.dataset.apothecaryItemId || "",
+      tending_enabled: tendingEnabled,
+      tending_interval_days: tendingEnabled ? tendingIntervalDays : null,
+      expiration_enabled: expirationEnabled,
+      expires_at:
+        expirationEnabled && expirationDays > 0
+          ? new Date(Date.now() + expirationDays * 86400000).toISOString()
+          : null,
+      metadata: {
+        intention: item.intention || object.dataset.apothecaryIntention || "",
+        notes: item.notes || object.dataset.apothecaryNotes || "",
+        details: item.details || {},
+        ingredients: item.ingredients || []
+      }
+    });
+
+    if (!instance?.id) return null;
+
+    if (typeof window.addObjectInstanceEvent === "function") {
+      await window.addObjectInstanceEvent(instance.id, "created", {
+        label: "Manifestation Created",
+        notes: `Restored as a ${item.typeLabel || item.type || "apothecary item"}.`,
+        metadata: { source: "living-state-repair" }
+      });
+    }
+
+    item.instanceId = instance.id;
+
+    if (
+      typeof window.getApothecaryItems === "function" &&
+      typeof window.saveApothecaryItems === "function"
+    ) {
+      const items = window.getApothecaryItems();
+      await window.saveApothecaryItems(items);
+    }
+
+    return instance;
+  }
+
   async function resolveMissingInstanceId(object) {
     if (!object) return null;
 
     const storedInstanceId = object.dataset.instanceId || "";
+    const storedInstance = await getValidInstance(storedInstanceId);
 
-    if (storedInstanceId && typeof window.getObjectInstance === "function") {
-      const storedInstance = await window.getObjectInstance(storedInstanceId);
-
-      if (storedInstance) {
-        return storedInstance;
-      }
-
-      object.dataset.instanceId = "";
-    }
-
-    const entityId = object.dataset.entityId || "";
-
-    if (!entityId || typeof window.getObjectInstancesByEntity !== "function") {
-      return null;
-    }
-
-    const instances = await window.getObjectInstancesByEntity(entityId);
-
-    if (!Array.isArray(instances) || instances.length === 0) {
-      return null;
-    }
+    if (storedInstance) return storedInstance;
+    if (storedInstanceId) object.dataset.instanceId = "";
 
     const apothecaryItemId = object.dataset.apothecaryItemId || "";
-    const altarObjectKey = object.dataset.altarObjectId || "";
+    const apothecaryItem =
+      apothecaryItemId && typeof window.getApothecaryItemById === "function"
+        ? window.getApothecaryItemById(apothecaryItemId)
+        : null;
 
-    const matchedInstance =
-      (apothecaryItemId
-        ? instances.find(
-            (instance) => instance.apothecary_item_id === apothecaryItemId
-          )
-        : null) ||
-      (altarObjectKey
-        ? instances.find(
-            (instance) => instance.altar_object_key === altarObjectKey
-          )
-        : null) ||
-      instances.find((instance) => instance.status === "active") ||
-      instances[0];
+    if (apothecaryItem?.instanceId) {
+      const itemInstance = await getValidInstance(apothecaryItem.instanceId);
 
-    if (!matchedInstance?.id) return null;
-
-    object.dataset.instanceId = matchedInstance.id;
-
-    if (typeof window.saveWorkingAltarDraft === "function") {
-      window.saveWorkingAltarDraft();
+      if (itemInstance) {
+        object.dataset.instanceId = itemInstance.id;
+        object.dataset.entityId =
+          object.dataset.entityId || apothecaryItem.entityId || itemInstance.entity_id || "";
+        window.saveWorkingAltarDraft?.();
+        return itemInstance;
+      }
     }
 
-    return matchedInstance;
+    const entityId = object.dataset.entityId || apothecaryItem?.entityId || "";
+
+    if (entityId && typeof window.getObjectInstancesByEntity === "function") {
+      const instances = await window.getObjectInstancesByEntity(entityId);
+
+      if (Array.isArray(instances) && instances.length > 0) {
+        const altarObjectKey = object.dataset.altarObjectId || "";
+
+        const matchedInstance =
+          (apothecaryItemId
+            ? instances.find(
+                (instance) => instance.apothecary_item_id === apothecaryItemId
+              )
+            : null) ||
+          (altarObjectKey
+            ? instances.find(
+                (instance) => instance.altar_object_key === altarObjectKey
+              )
+            : null) ||
+          instances.find((instance) => instance.status === "active") ||
+          instances[0];
+
+        if (matchedInstance?.id) {
+          object.dataset.instanceId = matchedInstance.id;
+          object.dataset.entityId = object.dataset.entityId || matchedInstance.entity_id || "";
+          window.saveWorkingAltarDraft?.();
+          return matchedInstance;
+        }
+      }
+    }
+
+    if (apothecaryItem) {
+      const createdInstance = await createMissingApothecaryInstance(
+        object,
+        apothecaryItem
+      );
+
+      if (createdInstance?.id) {
+        object.dataset.instanceId = createdInstance.id;
+        object.dataset.entityId =
+          object.dataset.entityId || apothecaryItem.entityId || createdInstance.entity_id || "";
+        window.saveWorkingAltarDraft?.();
+        return createdInstance;
+      }
+    }
+
+    return null;
   }
 
-  /* Repair older altar saves that retained the Library entity but lost the
-     physical object instance link. Resolve the best matching active instance
-     before the Companion renders so tending details appear immediately. */
   if (originalShowAltarCompanionPanel) {
     window.showAltarCompanionPanel = async function showCompanionWithLivingState(object) {
       if (!object) return;
@@ -92,8 +172,19 @@
     };
   }
 
-  /* Undo/redo snapshots previously omitted these identifiers. Add them back
-     from the live altar objects so restored objects keep their Living State. */
+  /* The original selection function calls its local Companion function binding,
+     so explicitly refresh the Companion after an altar-object click. */
+  document.addEventListener("click", (event) => {
+    const object = event.target.closest(".altar-object");
+    if (!object) return;
+
+    window.setTimeout(() => {
+      if (typeof window.showAltarCompanionPanel === "function") {
+        window.showAltarCompanionPanel(object);
+      }
+    }, 0);
+  });
+
   if (originalCaptureAltarSnapshot) {
     window.captureAltarSnapshot = function captureSnapshotWithLivingStateLinks() {
       const snapshot = originalCaptureAltarSnapshot();
@@ -120,8 +211,6 @@
     };
   }
 
-  /* Legacy pointerenter listeners still call this function.
-     Only allow the currently clicked object to update the Companion. */
   if (originalShowAltarInfoCard) {
     window.showAltarInfoCard = function showSelectedAltarInfoCardOnly(object) {
       if (!object) return;
@@ -131,7 +220,6 @@
     };
   }
 
-  /* Legacy pointerleave listeners must not clear an intentional selection. */
   if (originalHideAltarInfoCard) {
     window.hideAltarInfoCard = function preserveSelectedAltarInfoCard() {
       if (typeof selectedObject !== "undefined" && selectedObject) return;
@@ -139,9 +227,6 @@
     };
   }
 
-  /* The older global pointerdown listener deselects before a touch gesture
-     has a chance to become a scroll. Stop that listener only for harmless
-     touch scrolling outside interactive altar controls. */
   document.addEventListener(
     "pointerdown",
     (event) => {
