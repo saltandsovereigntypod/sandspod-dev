@@ -1,7 +1,7 @@
 /* =========================================================
    SELECTION INTERACTION GUARD
    Keeps the Companion click-driven, preserves mobile selection,
-   and repairs missing Living State links on older saved objects.
+   and integrates Living State into the unified Companion page.
    ========================================================= */
 
 (function initializeSelectionInteractionGuard() {
@@ -24,6 +24,39 @@
     typeof window.captureAltarSnapshot === "function"
       ? window.captureAltarSnapshot
       : null;
+
+  function formatCompanionDate(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    return date.toLocaleDateString(undefined, {
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    });
+  }
+
+  function formatDueLabel(value) {
+    if (!value) return "";
+
+    const dueDate = new Date(value);
+    if (Number.isNaN(dueDate.getTime())) return "";
+
+    const now = new Date();
+    const diffDays = Math.ceil((dueDate.getTime() - now.getTime()) / 86400000);
+
+    if (diffDays < 0) {
+      const days = Math.abs(diffDays);
+      return `${days} day${days === 1 ? "" : "s"} overdue`;
+    }
+
+    if (diffDays === 0) return "Due today";
+    if (diffDays === 1) return "Due tomorrow";
+
+    return `In ${diffDays} days`;
+  }
 
   async function getValidInstance(instanceId) {
     if (!instanceId || typeof window.getObjectInstance !== "function") return null;
@@ -80,8 +113,7 @@
       typeof window.getApothecaryItems === "function" &&
       typeof window.saveApothecaryItems === "function"
     ) {
-      const items = window.getApothecaryItems();
-      await window.saveApothecaryItems(items);
+      await window.saveApothecaryItems(window.getApothecaryItems());
     }
 
     return instance;
@@ -90,11 +122,10 @@
   async function resolveMissingInstanceId(object) {
     if (!object) return null;
 
-    const storedInstanceId = object.dataset.instanceId || "";
-    const storedInstance = await getValidInstance(storedInstanceId);
-
+    const storedInstance = await getValidInstance(object.dataset.instanceId || "");
     if (storedInstance) return storedInstance;
-    if (storedInstanceId) object.dataset.instanceId = "";
+
+    object.dataset.instanceId = "";
 
     const apothecaryItemId = object.dataset.apothecaryItemId || "";
     const apothecaryItem =
@@ -146,10 +177,7 @@
     }
 
     if (apothecaryItem) {
-      const createdInstance = await createMissingApothecaryInstance(
-        object,
-        apothecaryItem
-      );
+      const createdInstance = await createMissingApothecaryInstance(object, apothecaryItem);
 
       if (createdInstance?.id) {
         object.dataset.instanceId = createdInstance.id;
@@ -163,40 +191,76 @@
     return null;
   }
 
-  async function injectLivingStateIntoUnifiedCompanion(object, instance) {
-    if (!object || !instance || typeof window.renderLivingStateMarkup !== "function") {
-      return;
-    }
+  function buildCompactLivingStateMarkup(instance) {
+    const status = String(instance.status || "active");
+    const created = formatCompanionDate(instance.started_at);
+    const nextTending = instance.tending_enabled && instance.tending_due_at
+      ? formatCompanionDate(instance.tending_due_at)
+      : "";
+    const tendingDue = nextTending ? formatDueLabel(instance.tending_due_at) : "";
+    const expiration = instance.expiration_enabled && instance.expires_at
+      ? formatCompanionDate(instance.expires_at)
+      : "";
 
-    const events =
-      typeof window.getObjectInstanceEvents === "function"
-        ? await window.getObjectInstanceEvents(instance.id)
-        : [];
+    return `
+      <section class="companion-v3-glance companion-v3-living-state-summary" data-companion-living-state>
+        <div class="companion-v3-glance-group">
+          <p class="companion-v3-living-meta">
+            <strong>${status.toUpperCase()}</strong>
+            ${created ? `<span aria-hidden="true"> · </span><span>Created ${created}</span>` : ""}
+          </p>
 
+          ${
+            nextTending
+              ? `<p><strong>Next tending:</strong> ${nextTending}${tendingDue ? ` <span class="altar-info-muted">(${tendingDue})</span>` : ""}</p>`
+              : ""
+          }
+
+          ${expiration ? `<p><strong>Replace or review:</strong> ${expiration}</p>` : ""}
+        </div>
+      </section>
+    `;
+  }
+
+  function integrateLivingStateIntoCompanion(object, instance) {
+    if (!object || !instance) return;
     if (typeof selectedObject !== "undefined" && selectedObject !== object) return;
 
-    const companionPanel = document.querySelector(".altar-companion-panel");
-    const page = companionPanel?.querySelector(".companion-v3-page");
+    const page = document.querySelector(".altar-companion-panel .companion-v3-page");
     if (!page) return;
 
     page.querySelector("[data-companion-living-state]")?.remove();
 
-    const template = document.createElement("template");
-    template.innerHTML = window.renderLivingStateMarkup(instance, events);
-
-    const livingSection = template.content.querySelector(".living-state-section");
-    if (!livingSection) return;
-
-    const wrapper = document.createElement("section");
-    wrapper.className = "companion-v3-glance companion-v3-living-state";
-    wrapper.setAttribute("data-companion-living-state", "");
-    wrapper.innerHTML = livingSection.innerHTML;
-
     const knowledge = page.querySelector(".companion-v3-knowledge");
-    if (knowledge) {
-      page.insertBefore(wrapper, knowledge);
-    } else {
-      page.appendChild(wrapper);
+    const template = document.createElement("template");
+    template.innerHTML = buildCompactLivingStateMarkup(instance);
+    const summary = template.content.firstElementChild;
+
+    if (summary) {
+      if (knowledge) {
+        page.insertBefore(summary, knowledge);
+      } else {
+        page.prepend(summary);
+      }
+    }
+
+    let actions = page.querySelector(".companion-v3-actions");
+
+    if (!actions) {
+      actions = document.createElement("footer");
+      actions.className = "companion-v3-actions";
+      page.appendChild(actions);
+    }
+
+    actions.querySelector("[data-living-state-practice]")?.remove();
+
+    if (instance.status !== "retired" && instance.status !== "archived") {
+      const practiceButton = document.createElement("button");
+      practiceButton.type = "button";
+      practiceButton.className = "living-state-practice-button";
+      practiceButton.setAttribute("data-living-state-practice", "");
+      practiceButton.textContent = "✨ Begin Today’s Practice";
+      actions.prepend(practiceButton);
     }
   }
 
@@ -208,21 +272,17 @@
       originalShowAltarCompanionPanel(object);
 
       if (instance) {
-        await injectLivingStateIntoUnifiedCompanion(object, instance);
+        integrateLivingStateIntoCompanion(object, instance);
       }
     };
   }
 
-  /* The original selection function calls its local Companion function binding,
-     so explicitly refresh the Companion after an altar-object click. */
   document.addEventListener("click", (event) => {
     const object = event.target.closest(".altar-object");
     if (!object) return;
 
     window.setTimeout(() => {
-      if (typeof window.showAltarCompanionPanel === "function") {
-        window.showAltarCompanionPanel(object);
-      }
+      window.showAltarCompanionPanel?.(object);
     }, 0);
   });
 
@@ -238,7 +298,6 @@
 
       snapshot.objects = snapshot.objects.map((savedObject, index) => {
         const liveObject = liveObjects[index];
-
         if (!liveObject) return savedObject;
 
         return {
@@ -256,7 +315,6 @@
     window.showAltarInfoCard = function showSelectedAltarInfoCardOnly(object) {
       if (!object) return;
       if (typeof selectedObject !== "undefined" && selectedObject !== object) return;
-
       return originalShowAltarInfoCard(object);
     };
   }
@@ -281,7 +339,6 @@
       );
 
       if (interactiveTarget) return;
-
       event.stopPropagation();
     },
     true
