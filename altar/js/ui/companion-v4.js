@@ -5,6 +5,17 @@
 
 (function initializeCompanionV4() {
   const STYLE_ID = "companion-v4-runtime-styles";
+  const CRAFTED_IDENTITIES = new Set([
+    "spell-jar",
+    "oil",
+    "incense",
+    "sachet",
+    "spray",
+    "poppet",
+    "powder",
+    "tea",
+    "herb-blend"
+  ]);
 
   function escapeHtml(value = "") {
     return String(value ?? "")
@@ -36,6 +47,7 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-recipe,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions {
         margin: 0;
         border-radius: 0.8rem;
@@ -43,6 +55,7 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-recipe > summary,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions > summary {
         min-height: 42px;
         padding: 0.62rem 0.85rem;
@@ -56,29 +69,33 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary::-webkit-details-marker,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-recipe > summary::-webkit-details-marker,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions > summary::-webkit-details-marker {
         display: none;
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary::after,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-recipe > summary::after,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions > summary::after {
         content: "+";
         flex: 0 0 auto;
         opacity: 0.75;
-        font-size: 0.95rem;
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section[open] > summary::after,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-recipe[open] > summary::after,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions[open] > summary::after {
         content: "−";
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section-body,
+      .altar-companion-panel[data-companion-version="4"] .companion-v4-recipe-body,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions-body {
         padding: 0 0.85rem 0.75rem;
       }
 
       .companion-v4-current-state,
+      .companion-v4-recipe,
       .companion-v4-actions {
         border: 1px solid rgba(190, 157, 92, 0.34);
         background: rgba(18, 17, 14, 0.72);
@@ -93,6 +110,7 @@
       }
 
       .companion-v4-current-state-title,
+      .companion-v4-recipe > summary,
       .companion-v4-actions > summary {
         color: var(--gold, #c8a96b);
         font-family: Georgia, serif;
@@ -124,7 +142,8 @@
         min-width: 0;
       }
 
-      .companion-v4-state-row strong {
+      .companion-v4-state-row strong,
+      .companion-v4-recipe-label {
         color: rgba(238, 224, 194, 0.8);
         font-size: 0.66rem;
         letter-spacing: 0.04em;
@@ -149,6 +168,36 @@
         margin: 0.2rem 0 0;
       }
 
+      .companion-v4-recipe-body {
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      .companion-v4-recipe-group {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .companion-v4-recipe-group p {
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      .companion-v4-ingredient-list {
+        display: grid;
+        gap: 0.35rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .companion-v4-ingredient-list li {
+        padding: 0.5rem 0.65rem;
+        border: 1px solid rgba(190, 157, 92, 0.2);
+        border-radius: 0.65rem;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
       .companion-v4-actions-body {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -170,10 +219,6 @@
         .companion-v4-actions-body {
           grid-template-columns: 1fr;
         }
-
-        .companion-v4-state-row {
-          grid-template-columns: minmax(4.4rem, auto) minmax(0, 1fr);
-        }
       }
     `;
     document.head.appendChild(style);
@@ -190,9 +235,12 @@
     const raw = String(object?.dataset.apothecaryType || object?.dataset.type || "entry").toLowerCase();
 
     if (raw.includes("spell jar") || raw.includes("spell-jar")) return "spell-jar";
+    if (raw.includes("herb blend") || raw.includes("herb-blend")) return "herb-blend";
     if (raw.includes("candle")) return "candle";
     if (raw.includes("crystal")) return "crystal";
     if (raw.includes("herb")) return "herb";
+    if (raw.includes("powder")) return "powder";
+    if (raw.includes("tea")) return "tea";
     if (raw.includes("oil")) return "oil";
     if (raw.includes("incense")) return "incense";
     if (raw.includes("sachet")) return "sachet";
@@ -202,22 +250,20 @@
     return raw.replace(/[^a-z0-9]+/g, "-") || "entry";
   }
 
-  function formatIngredient(item = {}) {
-    const name = item.libraryName || item.label || item.name || "Ingredient";
-    const amount = String(item.amount || "").trim();
-    return amount ? `${name}: ${amount}` : name;
-  }
-
   function getApothecary(object) {
     return object && typeof getApothecaryDetailsForObject === "function"
       ? getApothecaryDetailsForObject(object)
       : null;
   }
 
+  function formatIngredient(item = {}) {
+    const name = item.libraryName || item.label || item.name || "Ingredient";
+    const amount = String(item.amount || "").trim();
+    return amount ? `${name}: ${amount}` : name;
+  }
+
   function getStateRows(identity, object) {
     const rows = [];
-    const apothecary = getApothecary(object);
-
     const add = (label, value) => {
       if (value === "" || value === null || value === undefined) return;
       if (Array.isArray(value) && !value.length) return;
@@ -228,26 +274,15 @@
       add("Flame", object?.classList.contains("is-lit") ? "Lit" : "Unlit");
       add("Color", object?.dataset.color || "");
       add("Dressed", object?.dataset.dressed === "true" ? "Yes" : "");
+    } else if (identity === "herb") {
+      add("Form", object?.dataset.form || "");
+    } else if (identity === "crystal") {
+      add("Form", object?.dataset.form || object?.dataset.crystalForm || "");
+    } else if (identity === "deity") {
+      add("Presence", "Placed on the altar");
+    } else if (CRAFTED_IDENTITIES.has(identity)) {
+      add("Status", object?.dataset.status || object?.dataset.activationState || "Active");
     }
-
-    if (identity === "spell-jar") {
-      add("Intention", apothecary?.intention || "");
-      add("Ingredients", Array.isArray(apothecary?.ingredients)
-        ? apothecary.ingredients.map(formatIngredient)
-        : []);
-      add("Activation", object?.dataset.activationState || object?.dataset.status || "");
-    }
-
-    if (["oil", "incense", "sachet", "spray", "poppet"].includes(identity)) {
-      add("Intention", apothecary?.intention || "");
-      add("Ingredients", Array.isArray(apothecary?.ingredients)
-        ? apothecary.ingredients.map(formatIngredient)
-        : []);
-    }
-
-    if (identity === "herb") add("Form", object?.dataset.form || "");
-    if (identity === "crystal") add("Form", object?.dataset.form || object?.dataset.crystalForm || "");
-    if (identity === "deity") add("Presence", "Placed on the altar");
 
     return rows;
   }
@@ -287,18 +322,80 @@
         <div class="companion-v4-current-state-body" data-companion-v4-current-state-body></div>
       `;
 
-      if (section) {
-        section.replaceWith(replacement);
-      } else {
-        page.prepend(replacement);
-      }
-
+      if (section) section.replaceWith(replacement);
+      else page.prepend(replacement);
       section = replacement;
     }
 
     const body = section.querySelector("[data-companion-v4-current-state-body]");
     body.innerHTML = rows.map(renderRow).join("");
     if (lifecycle) body.appendChild(lifecycle);
+  }
+
+  function ensureRecipeSection(panel, object) {
+    const page = panel.querySelector("[data-companion-content] .companion-v3-page");
+    if (!page) return;
+
+    const identity = getIdentity(panel, object);
+    const existing = page.querySelector("[data-companion-v4-recipe]");
+
+    if (!CRAFTED_IDENTITIES.has(identity)) {
+      existing?.remove();
+      return;
+    }
+
+    const apothecary = getApothecary(object);
+    const intention = String(apothecary?.intention || "").trim();
+    const ingredients = Array.isArray(apothecary?.ingredients)
+      ? apothecary.ingredients.filter(Boolean)
+      : [];
+    const preparation = String(
+      apothecary?.preparation ||
+      apothecary?.instructions ||
+      apothecary?.recipe ||
+      apothecary?.method ||
+      ""
+    ).trim();
+
+    if (!intention && !ingredients.length && !preparation) {
+      existing?.remove();
+      return;
+    }
+
+    const details = existing || document.createElement("details");
+    details.className = "companion-v4-recipe";
+    details.setAttribute("data-companion-v4-recipe", "");
+    details.innerHTML = `
+      <summary>Recipe</summary>
+      <div class="companion-v4-recipe-body">
+        ${intention ? `
+          <section class="companion-v4-recipe-group">
+            <strong class="companion-v4-recipe-label">Intention</strong>
+            <p>${escapeHtml(intention)}</p>
+          </section>
+        ` : ""}
+        ${ingredients.length ? `
+          <section class="companion-v4-recipe-group">
+            <strong class="companion-v4-recipe-label">Ingredients</strong>
+            <ul class="companion-v4-ingredient-list">
+              ${ingredients.map((item) => `<li>${escapeHtml(formatIngredient(item))}</li>`).join("")}
+            </ul>
+          </section>
+        ` : ""}
+        ${preparation ? `
+          <section class="companion-v4-recipe-group">
+            <strong class="companion-v4-recipe-label">Preparation</strong>
+            <p>${escapeHtml(preparation)}</p>
+          </section>
+        ` : ""}
+      </div>
+    `;
+
+    if (!existing) {
+      const currentState = page.querySelector("[data-companion-v4-current-state]");
+      if (currentState) currentState.insertAdjacentElement("afterend", details);
+      else page.prepend(details);
+    }
   }
 
   function normalizeActions(panel) {
@@ -314,23 +411,18 @@
     const footer = page?.querySelector(".companion-v3-actions");
     if (!page || !footer) return;
 
-    let details = page.querySelector("[data-companion-v4-actions]");
-
-    if (!details) {
-      details = document.createElement("details");
-      details.className = "companion-v4-actions";
-      details.setAttribute("data-companion-v4-actions", "");
-      details.innerHTML = `
-        <summary>Actions</summary>
-        <div class="companion-v4-actions-body" data-companion-v4-actions-body></div>
-      `;
-      footer.replaceWith(details);
-    }
+    const details = document.createElement("details");
+    details.className = "companion-v4-actions";
+    details.setAttribute("data-companion-v4-actions", "");
+    details.innerHTML = `
+      <summary>Actions</summary>
+      <div class="companion-v4-actions-body" data-companion-v4-actions-body></div>
+    `;
 
     const body = details.querySelector("[data-companion-v4-actions-body]");
     const buttons = Array.from(footer.querySelectorAll("button"));
-
-    if (buttons.length) body.replaceChildren(...buttons);
+    body.replaceChildren(...buttons);
+    footer.replaceWith(details);
   }
 
   function applyCompanionV4(object = null) {
@@ -345,6 +437,7 @@
     const target = object || (typeof selectedObject !== "undefined" ? selectedObject : null);
     normalizeActions(panel);
     ensureCurrentState(panel, target);
+    ensureRecipeSection(panel, target);
     ensureActionsDropdown(panel);
     return true;
   }
