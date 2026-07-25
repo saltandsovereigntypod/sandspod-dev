@@ -96,6 +96,22 @@
       .companion-v4-current-state .companion-v3-lifecycle-primary {
         margin-bottom: 0.65rem;
       }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-page {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .altar-companion-panel[data-companion-version="4"] .companion-v3-knowledge {
+        display: contents;
+      }
+
+      @media (max-width: 560px) {
+        .companion-v4-state-row {
+          grid-template-columns: 1fr;
+          gap: 0.3rem;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -156,6 +172,7 @@
     if (identity === "candle") {
       add("Flame", object?.classList.contains("is-lit") ? "Lit" : "Unlit");
       add("Color", object?.dataset.color || "");
+      add("Dressed", object?.dataset.dressed === "true" ? "Yes" : "");
     }
 
     if (identity === "spell-jar") {
@@ -163,6 +180,7 @@
       add("Ingredients", Array.isArray(apothecary?.ingredients)
         ? apothecary.ingredients.map(formatIngredient)
         : []);
+      add("Activation", object?.dataset.activationState || object?.dataset.status || "");
     }
 
     if (["oil", "incense", "sachet", "spray", "poppet"].includes(identity)) {
@@ -174,14 +192,17 @@
 
     if (identity === "herb") {
       add("Form", object?.dataset.form || "");
+      add("Herb", object?.dataset.herb || "");
     }
 
     if (identity === "crystal") {
       add("Form", object?.dataset.form || object?.dataset.crystalForm || "");
+      add("Crystal", object?.dataset.crystal || "");
     }
 
     if (identity === "deity") {
       add("Presence", "Placed on the altar");
+      add("Deity", object?.dataset.deity || "");
     }
 
     return rows;
@@ -197,10 +218,16 @@
     `;
   }
 
+  function removeLegacyGlance(page) {
+    page?.querySelector(".companion-v3-glance")?.remove();
+  }
+
   function ensureCurrentState(panel, object) {
     const content = getContent(panel);
     const page = content?.querySelector(".companion-v3-page");
     if (!page) return;
+
+    removeLegacyGlance(page);
 
     const identity = getIdentity(panel, object);
     const rows = getStateRows(identity, object);
@@ -237,10 +264,14 @@
 
   function normalizeActions(panel) {
     const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
-    if (apothecaryEdit) apothecaryEdit.textContent = "Edit Apothecary Item";
+    if (apothecaryEdit && apothecaryEdit.textContent !== "Edit Apothecary Item") {
+      apothecaryEdit.textContent = "Edit Apothecary Item";
+    }
 
     const libraryEdit = panel.querySelector('[data-library-edit-section="myPractice"]');
-    if (libraryEdit) libraryEdit.textContent = "Edit Library Entry";
+    if (libraryEdit && libraryEdit.textContent !== "Edit Library Entry") {
+      libraryEdit.textContent = "Edit Library Entry";
+    }
   }
 
   function removeLegacyEmphasis(panel) {
