@@ -163,12 +163,53 @@
     return null;
   }
 
+  async function injectLivingStateIntoUnifiedCompanion(object, instance) {
+    if (!object || !instance || typeof window.renderLivingStateMarkup !== "function") {
+      return;
+    }
+
+    const events =
+      typeof window.getObjectInstanceEvents === "function"
+        ? await window.getObjectInstanceEvents(instance.id)
+        : [];
+
+    if (typeof selectedObject !== "undefined" && selectedObject !== object) return;
+
+    const companionPanel = document.querySelector(".altar-companion-panel");
+    const page = companionPanel?.querySelector(".companion-v3-page");
+    if (!page) return;
+
+    page.querySelector("[data-companion-living-state]")?.remove();
+
+    const template = document.createElement("template");
+    template.innerHTML = window.renderLivingStateMarkup(instance, events);
+
+    const livingSection = template.content.querySelector(".living-state-section");
+    if (!livingSection) return;
+
+    const wrapper = document.createElement("section");
+    wrapper.className = "companion-v3-glance companion-v3-living-state";
+    wrapper.setAttribute("data-companion-living-state", "");
+    wrapper.innerHTML = livingSection.innerHTML;
+
+    const knowledge = page.querySelector(".companion-v3-knowledge");
+    if (knowledge) {
+      page.insertBefore(wrapper, knowledge);
+    } else {
+      page.appendChild(wrapper);
+    }
+  }
+
   if (originalShowAltarCompanionPanel) {
     window.showAltarCompanionPanel = async function showCompanionWithLivingState(object) {
       if (!object) return;
 
-      await resolveMissingInstanceId(object);
-      return originalShowAltarCompanionPanel(object);
+      const instance = await resolveMissingInstanceId(object);
+      originalShowAltarCompanionPanel(object);
+
+      if (instance) {
+        await injectLivingStateIntoUnifiedCompanion(object, instance);
+      }
     };
   }
 
