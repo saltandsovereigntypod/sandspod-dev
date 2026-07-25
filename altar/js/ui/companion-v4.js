@@ -36,7 +36,6 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section,
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions {
         margin: 0;
         border-radius: 0.8rem;
@@ -44,7 +43,6 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary,
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state > summary,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions > summary {
         min-height: 42px;
         padding: 0.62rem 0.85rem;
@@ -58,13 +56,11 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary::-webkit-details-marker,
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state > summary::-webkit-details-marker,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions > summary::-webkit-details-marker {
         display: none;
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section > summary::after,
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state > summary::after,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions > summary::after {
         content: "+";
         flex: 0 0 auto;
@@ -73,13 +69,11 @@
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section[open] > summary::after,
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state[open] > summary::after,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions[open] > summary::after {
         content: "−";
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v3-section-body,
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state-body,
       .altar-companion-panel[data-companion-version="4"] .companion-v4-actions-body {
         padding: 0 0.85rem 0.75rem;
       }
@@ -90,44 +84,69 @@
         background: rgba(18, 17, 14, 0.72);
       }
 
-      .companion-v4-current-state > summary,
+      .companion-v4-current-state {
+        margin: 0;
+        border-radius: 0.8rem;
+        padding: 0.7rem 0.85rem;
+        max-height: min(20vh, 10.5rem);
+        overflow: hidden;
+      }
+
+      .companion-v4-current-state-title,
       .companion-v4-actions > summary {
         color: var(--gold, #c8a96b);
         font-family: Georgia, serif;
         font-weight: 700;
       }
 
+      .companion-v4-current-state-title {
+        margin: 0 0 0.45rem;
+        font-size: 0.92rem;
+        line-height: 1.1;
+      }
+
       .companion-v4-current-state-body {
         display: grid;
-        gap: 0.45rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem 0.65rem;
+        max-height: calc(min(20vh, 10.5rem) - 2.2rem);
+        overflow-y: auto;
+        padding-right: 0.15rem;
       }
 
       .companion-v4-state-row {
         display: grid;
-        grid-template-columns: minmax(6.2rem, 0.38fr) minmax(0, 1fr);
-        gap: 0.65rem;
+        grid-template-columns: minmax(4.7rem, auto) minmax(0, 1fr);
+        gap: 0.4rem;
         align-items: start;
-        padding-top: 0.5rem;
-        border-top: 1px solid rgba(190, 157, 92, 0.14);
+        padding-top: 0.35rem;
+        border-top: 1px solid rgba(190, 157, 92, 0.12);
+        min-width: 0;
       }
 
       .companion-v4-state-row strong {
         color: rgba(238, 224, 194, 0.8);
-        font-size: 0.7rem;
-        letter-spacing: 0.05em;
+        font-size: 0.66rem;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
       }
 
       .companion-v4-state-row span {
         color: rgba(245, 237, 220, 0.94);
-        line-height: 1.35;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
       }
 
       .companion-v4-current-state .companion-v3-lifecycle {
+        grid-column: 1 / -1;
         margin: 0;
-        padding: 0.5rem 0 0;
+        padding: 0.4rem 0 0;
         border: 0;
         background: transparent;
+      }
+
+      .companion-v4-current-state .companion-v3-lifecycle p {
+        margin: 0.2rem 0 0;
       }
 
       .companion-v4-actions-body {
@@ -147,13 +166,13 @@
       }
 
       @media (max-width: 560px) {
-        .companion-v4-state-row,
+        .companion-v4-current-state-body,
         .companion-v4-actions-body {
           grid-template-columns: 1fr;
         }
 
         .companion-v4-state-row {
-          gap: 0.2rem;
+          grid-template-columns: minmax(4.4rem, auto) minmax(0, 1fr);
         }
       }
     `;
@@ -259,16 +278,22 @@
       return;
     }
 
-    if (!section) {
-      section = document.createElement("details");
-      section.className = "companion-v4-current-state";
-      section.setAttribute("data-companion-v4-current-state", "");
-      section.open = true;
-      section.innerHTML = `
-        <summary>Current State</summary>
+    if (!section || section.tagName === "DETAILS") {
+      const replacement = document.createElement("section");
+      replacement.className = "companion-v4-current-state";
+      replacement.setAttribute("data-companion-v4-current-state", "");
+      replacement.innerHTML = `
+        <h3 class="companion-v4-current-state-title">Current State</h3>
         <div class="companion-v4-current-state-body" data-companion-v4-current-state-body></div>
       `;
-      page.prepend(section);
+
+      if (section) {
+        section.replaceWith(replacement);
+      } else {
+        page.prepend(replacement);
+      }
+
+      section = replacement;
     }
 
     const body = section.querySelector("[data-companion-v4-current-state-body]");
@@ -305,9 +330,7 @@
     const body = details.querySelector("[data-companion-v4-actions-body]");
     const buttons = Array.from(footer.querySelectorAll("button"));
 
-    if (buttons.length) {
-      body.replaceChildren(...buttons);
-    }
+    if (buttons.length) body.replaceChildren(...buttons);
   }
 
   function applyCompanionV4(object = null) {
