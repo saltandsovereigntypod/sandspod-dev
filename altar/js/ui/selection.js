@@ -389,6 +389,156 @@ function renderLivingStateEventIcon(eventType = "") {
   return icons[eventType] || "✦";
 }
 
+function getLivingStateDisplaySettings() {
+  const settings =
+    typeof getLocalMySettings === "function"
+      ? getLocalMySettings()
+      : {};
+
+  return {
+    showStatus: settings.living_state_show_status !== false,
+    showCreated: settings.living_state_show_created !== false,
+    showSource: settings.living_state_show_source !== false,
+    showLastTended: settings.living_state_show_last_tended !== false,
+    showExpiration: settings.living_state_show_expiration !== false,
+    showFutureTending: settings.living_state_show_future_tending !== false,
+    showRemaining: settings.living_state_show_remaining !== false,
+    showRecentActivity: settings.living_state_show_recent_activity !== false
+  };
+}
+
+function formatLivingStateDue(value) {
+  if (!value) return "";
+
+  const dueDate = new Date(value);
+  const now = new Date();
+
+  if (Number.isNaN(dueDate.getTime())) return "";
+
+  const diffMs = dueDate.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    const overdueDays = Math.abs(diffDays);
+    return `${overdueDays} day${overdueDays === 1 ? "" : "s"} overdue`;
+  }
+
+  if (diffDays === 0) return "Due today";
+  return `In ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+}
+
+function renderLivingStateRecentActivity(events = []) {
+  const latestEvent = events[0];
+
+  if (!latestEvent) {
+    return `
+      <div class="altar-info-card-section living-state-history">
+        <p><strong>Recent Activity</strong></p>
+        <p>No activity recorded yet.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="altar-info-card-section living-state-history">
+      <p><strong>Recent Activity</strong></p>
+
+      <div class="living-state-event">
+        <p>
+          <span aria-hidden="true">${renderLivingStateEventIcon(latestEvent.event_type)}</span>
+          <strong>${latestEvent.event_label || latestEvent.event_type || "Event"}</strong>
+        </p>
+
+        <p>${formatLivingStateDate(latestEvent.occurred_at)}</p>
+
+        ${latestEvent.event_notes ? `<p>${latestEvent.event_notes}</p>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderLivingStateMarkup(instance, events = []) {
+  if (!instance) {
+    return `
+      <div class="altar-info-card-section living-state-section">
+        <h4>Living State</h4>
+        <p>No living state has been created for this object yet.</p>
+      </div>
+    `;
+  }
+
+  const displaySettings = getLivingStateDisplaySettings();
+
+  return `
+    <div class="living-state-section">
+      <div class="altar-info-card-section">
+        <h4>Living State</h4>
+        <p><strong>${instance.name || "Current Manifestation"}</strong></p>
+        <p class="altar-info-card-type">${instance.subtype || instance.object_type || "Living State"}</p>
+
+        ${displaySettings.showStatus ? `<p><strong>Status:</strong> ${instance.status || "active"}</p>` : ""}
+        ${displaySettings.showCreated && instance.started_at ? `<p><strong>Created:</strong> ${formatLivingStateDate(instance.started_at)}</p>` : ""}
+        ${displaySettings.showSource && instance.source ? `<p><strong>Source:</strong> ${instance.source}</p>` : ""}
+        ${displaySettings.showLastTended && instance.metadata?.last_tended_at ? `<p><strong>Last Tended:</strong> ${formatLivingStateDate(instance.metadata.last_tended_at)}</p>` : ""}
+      </div>
+
+      ${
+        displaySettings.showExpiration && instance.expiration_enabled && instance.expires_at
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Expiration Reminder:</strong> ${formatLivingStateDate(instance.expires_at)}</p>
+              <p><strong>Reminder Timing:</strong> ${formatLivingStateDue(instance.expires_at)}</p>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        displaySettings.showFutureTending && instance.tending_enabled && instance.tending_due_at
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Future Tending:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
+              <p><strong>Reminder Date:</strong> ${formatLivingStateDate(instance.tending_due_at)}</p>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        displaySettings.showRemaining &&
+        instance.remaining_amount !== null &&
+        instance.remaining_amount !== undefined
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Remaining:</strong> ${instance.remaining_amount} ${instance.amount_unit || ""}</p>
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        displaySettings.showRemaining &&
+        instance.remaining_burn_seconds !== null &&
+        instance.remaining_burn_seconds !== undefined
+          ? `
+            <div class="altar-info-card-section">
+              <p><strong>Burn Time Remaining:</strong> ${Math.round(instance.remaining_burn_seconds / 60)} minutes</p>
+            </div>
+          `
+          : ""
+      }
+
+      <div class="altar-info-card-section altar-info-card-actions">
+        <button type="button" class="living-state-practice-button" data-living-state-practice>
+          ✨ Begin Today's Practice
+        </button>
+      </div>
+
+      ${displaySettings.showRecentActivity ? renderLivingStateRecentActivity(events) : ""}
+    </div>
+  `;
+}
+
 function renderEntityActivityTimeline(events = []) {
   if (!events.length) {
     return `
@@ -985,18 +1135,44 @@ function buildObjectInfoMarkup(object, mode = "compact") {
   `;
 }
 
-function showAltarCompanionPanel(object) {
+async function showAltarCompanionPanel(object) {
   if (!altarCompanionPanel || !object) return;
 
   const companionContent = altarCompanionPanel.querySelector("[data-companion-content]");
   if (!companionContent) return;
 
-  companionContent.innerHTML = buildObjectInfoMarkup(object, "panel");
+  const baseMarkup = buildObjectInfoMarkup(object, "panel");
+  const instanceId = object.dataset.instanceId || "";
+
+  companionContent.innerHTML = `${baseMarkup}${
+    instanceId
+      ? `<div class="altar-info-card-section living-state-loading"><p>Loading living state...</p></div>`
+      : ""
+  }`;
 
   const entity = getLibraryEntityForObject(object);
 
   if (entity?.id && typeof hydrateCompanionLibraryExtras === "function") {
     hydrateCompanionLibraryExtras(entity.id);
+  }
+
+  if (instanceId) {
+    const [instance, events] = await Promise.all([
+      typeof getObjectInstance === "function"
+        ? getObjectInstance(instanceId)
+        : Promise.resolve(null),
+      typeof getObjectInstanceEvents === "function"
+        ? getObjectInstanceEvents(instanceId)
+        : Promise.resolve([])
+    ]);
+
+    if (selectedObject !== object) return;
+
+    companionContent.querySelector(".living-state-loading")?.remove();
+    companionContent.insertAdjacentHTML(
+      "beforeend",
+      renderLivingStateMarkup(instance, events)
+    );
   }
 
   if (!document.body.classList.contains("altar-companion-minimized")) {
