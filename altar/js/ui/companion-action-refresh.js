@@ -6,6 +6,49 @@
 (function initializeCompanionActionRefreshBridge() {
   let queuedRefresh = null;
 
+  function getCompanionPanel() {
+    return (
+      (typeof altarCompanionPanel !== "undefined" ? altarCompanionPanel : null) ||
+      document.querySelector(".altar-companion-panel")
+    );
+  }
+
+  function polishCompanionMarkup() {
+    const panel = getCompanionPanel();
+    if (!panel) return;
+
+    // These labels described information that is already shown directly in
+    // the Companion, so keeping them created a second, non-interactive copy.
+    panel.querySelector("[data-companion-emphasis]")?.remove();
+
+    // Apothecary and Living Library editing are separate destinations. Their
+    // labels should make that distinction clear when both actions are present.
+    const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
+    if (apothecaryEdit) apothecaryEdit.textContent = "Edit Apothecary Item";
+
+    const libraryEdit = panel.querySelector(
+      '[data-library-edit-section="myPractice"]'
+    );
+    if (libraryEdit) libraryEdit.textContent = "Edit Library Entry";
+  }
+
+  function observeCompanionMarkup() {
+    const panel = getCompanionPanel();
+    if (!panel || panel.__companionPolishObserver) return;
+
+    const observer = new MutationObserver(() => {
+      polishCompanionMarkup();
+    });
+
+    observer.observe(panel, {
+      childList: true,
+      subtree: true
+    });
+
+    panel.__companionPolishObserver = observer;
+    polishCompanionMarkup();
+  }
+
   function getSelectedCompanionTarget(object = null) {
     return (
       object ||
@@ -22,6 +65,7 @@
 
     return Promise.resolve(window.showAltarCompanionPanel(target))
       .then(() => {
+        polishCompanionMarkup();
         document.dispatchEvent(
           new CustomEvent("companion:refreshed", {
             detail: { object: target }
@@ -74,6 +118,7 @@
 
   wrapLifecycleSubmitHandler("submitLivingStateTendForm");
   wrapLifecycleSubmitHandler("submitLivingStateActivityForm");
+  observeCompanionMarkup();
 
   document.addEventListener("companion:refresh", (event) => {
     refreshSelectedCompanion(event.detail?.object || null);
