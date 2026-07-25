@@ -24,29 +24,33 @@
     // Apothecary and Living Library editing are separate destinations. Their
     // labels should make that distinction clear when both actions are present.
     const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
-    if (apothecaryEdit) apothecaryEdit.textContent = "Edit Apothecary Item";
+    if (apothecaryEdit && apothecaryEdit.textContent !== "Edit Apothecary Item") {
+      apothecaryEdit.textContent = "Edit Apothecary Item";
+    }
 
     const libraryEdit = panel.querySelector(
       '[data-library-edit-section="myPractice"]'
     );
-    if (libraryEdit) libraryEdit.textContent = "Edit Library Entry";
+    if (libraryEdit && libraryEdit.textContent !== "Edit Library Entry") {
+      libraryEdit.textContent = "Edit Library Entry";
+    }
   }
 
-  function observeCompanionMarkup() {
-    const panel = getCompanionPanel();
-    if (!panel || panel.__companionPolishObserver) return;
+  function wrapCompanionRenderer(functionName) {
+    const originalRenderer = window[functionName];
 
-    const observer = new MutationObserver(() => {
-      polishCompanionMarkup();
-    });
+    if (typeof originalRenderer !== "function" || originalRenderer.__companionPolishWrapped) {
+      return;
+    }
 
-    observer.observe(panel, {
-      childList: true,
-      subtree: true
-    });
+    function companionAwareRenderer(...args) {
+      const result = originalRenderer.apply(this, args);
+      queueMicrotask(polishCompanionMarkup);
+      return result;
+    }
 
-    panel.__companionPolishObserver = observer;
-    polishCompanionMarkup();
+    companionAwareRenderer.__companionPolishWrapped = true;
+    window[functionName] = companionAwareRenderer;
   }
 
   function getSelectedCompanionTarget(object = null) {
@@ -116,9 +120,11 @@
 
   window.refreshAltarCompanion = refreshSelectedCompanion;
 
+  wrapCompanionRenderer("showAltarCompanionPanel");
+  wrapCompanionRenderer("showLibraryEntityInCompanion");
   wrapLifecycleSubmitHandler("submitLivingStateTendForm");
   wrapLifecycleSubmitHandler("submitLivingStateActivityForm");
-  observeCompanionMarkup();
+  polishCompanionMarkup();
 
   document.addEventListener("companion:refresh", (event) => {
     refreshSelectedCompanion(event.detail?.object || null);
