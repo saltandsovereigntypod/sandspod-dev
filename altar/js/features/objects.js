@@ -294,16 +294,6 @@ function toggleGlow(object) {
 }
 
 function makeDraggable(object) {
-  object.addEventListener("pointerenter", () => {
-    showAltarInfoCard(object);
-  });
-
-  object.addEventListener("pointerleave", () => {
-    if (selectedObject !== object) {
-      hideAltarInfoCard();
-    }
-  });
-
   object.addEventListener("pointerdown", (event) => {
     if (event.target.closest(".altar-toolbar")) return;
 
