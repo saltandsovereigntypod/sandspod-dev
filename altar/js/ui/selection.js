@@ -2,8 +2,6 @@
    8. SELECTION, INFO CARD, AND COMPANION PANEL
    ========================================================= */
 
-let altarCompanionMinimized = false;
-let altarLivingStateMinimized = false;
 
 function getObjectIcon(object) {
   const type = object.dataset.type;
@@ -358,6 +356,39 @@ function renderConnectedEntityList(entityId, options = {}) {
   `;
 }
 
+function formatLivingStateDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+function renderLivingStateEventIcon(eventType = "") {
+  const icons = {
+    created: "✦",
+    tended: "🌿",
+    charged: "🌙",
+    ritual: "🕯️",
+    journal: "📖",
+    fed: "🌿",
+    used: "✧",
+    moved: "↝",
+    lit: "🔥",
+    extinguished: "💨",
+    retired: "☾",
+    archived: "✶",
+    replaced: "↻"
+  };
+
+  return icons[eventType] || "✦";
+}
+
 function renderEntityActivityTimeline(events = []) {
   if (!events.length) {
     return `
@@ -444,7 +475,7 @@ function showLibraryEntityInCompanion(entityId) {
 
   hydrateCompanionLibraryExtras(entity.id);
 
-  if (!altarCompanionMinimized) {
+  if (!document.body.classList.contains("altar-companion-minimized")) {
     altarCompanionPanel.classList.add("is-visible");
     altarCompanionPanel.classList.remove("is-minimized");
   }
@@ -968,7 +999,7 @@ function showAltarCompanionPanel(object) {
     hydrateCompanionLibraryExtras(entity.id);
   }
 
-  if (!altarCompanionMinimized) {
+  if (!document.body.classList.contains("altar-companion-minimized")) {
     altarCompanionPanel.classList.add("is-visible");
     altarCompanionPanel.classList.remove("is-minimized");
   }
@@ -983,255 +1014,6 @@ function hideAltarCompanionPanel() {
   companionContent.innerHTML = `<p>Select an object to see its details.</p>`;
 }
 
-function getLivingStateDisplaySettings() {
-  const settings =
-    typeof getLocalMySettings === "function"
-      ? getLocalMySettings()
-      : {};
-
-  return {
-    showStatus: settings.living_state_show_status !== false,
-    showCreated: settings.living_state_show_created !== false,
-    showSource: settings.living_state_show_source !== false,
-    showLastTended: settings.living_state_show_last_tended !== false,
-    showExpiration: settings.living_state_show_expiration !== false,
-    showFutureTending: settings.living_state_show_future_tending !== false,
-    showRemaining: settings.living_state_show_remaining !== false,
-    showRecentActivity: settings.living_state_show_recent_activity !== false
-  };
-}
-
-function formatLivingStateDate(value) {
-  if (!value) return "";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  });
-}
-
-function formatLivingStateDue(value) {
-  if (!value) return "";
-
-  const dueDate = new Date(value);
-  const now = new Date();
-
-  if (Number.isNaN(dueDate.getTime())) return "";
-
-  const diffMs = dueDate.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return `${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? "" : "s"} overdue`;
-  if (diffDays === 0) return "Due today";
-  return `In ${diffDays} day${diffDays === 1 ? "" : "s"}`;
-}
-
-function renderLivingStateEventIcon(eventType = "") {
-  const icons = {
-    created: "✦",
-    tended: "🌿",
-    charged: "🌙",
-    ritual: "🕯️",
-    journal: "📖",
-    fed: "🌿",
-    used: "✧",
-    moved: "↝",
-    lit: "🔥",
-    extinguished: "💨",
-    retired: "☾",
-    archived: "✶",
-    replaced: "↻"
-  };
-
-  return icons[eventType] || "✦";
-}
-
-function renderLivingStateRecentActivity(events = []) {
-  const latestEvent = events[0];
-
-  if (!latestEvent) {
-    return `
-      <div class="altar-info-card-section living-state-history">
-        <p><strong>Recent Activity</strong></p>
-        <p>No activity recorded yet.</p>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="altar-info-card-section living-state-history">
-      <p><strong>Recent Activity</strong></p>
-
-      <div class="living-state-event">
-        <p>
-          <span aria-hidden="true">${renderLivingStateEventIcon(latestEvent.event_type)}</span>
-          <strong>${latestEvent.event_label || latestEvent.event_type || "Event"}</strong>
-        </p>
-
-        <p>${formatLivingStateDate(latestEvent.occurred_at)}</p>
-
-        ${
-          latestEvent.event_notes
-            ? `<p>${latestEvent.event_notes}</p>`
-            : ""
-        }
-      </div>
-    </div>
-  `;
-}
-
-function renderLivingStateMarkup(instance, events = []) {
-  if (!instance) {
-    return `<p>No living state has been created for this object yet.</p>`;
-  }
-
-  const displaySettings = getLivingStateDisplaySettings();
-
-  return `
-    <div class="altar-info-card-inner is-panel-view">
-      <h3>${instance.name || "Current Manifestation"}</h3>
-      <p class="altar-info-card-type">${instance.subtype || instance.object_type || "Living State"}</p>
-
-      <div class="altar-info-card-section">
-        ${
-          displaySettings.showStatus
-            ? `<p><strong>Status:</strong> ${instance.status || "active"}</p>`
-            : ""
-        }
-
-        ${
-          displaySettings.showCreated && instance.started_at
-            ? `<p><strong>Created:</strong> ${formatLivingStateDate(instance.started_at)}</p>`
-            : ""
-        }
-
-        ${
-          displaySettings.showSource && instance.source
-            ? `<p><strong>Source:</strong> ${instance.source}</p>`
-            : ""
-        }
-
-        ${
-          displaySettings.showLastTended && instance.metadata?.last_tended_at
-            ? `<p><strong>Last Tended:</strong> ${formatLivingStateDate(instance.metadata.last_tended_at)}</p>`
-            : ""
-        }
-      </div>
-
-      ${
-        displaySettings.showExpiration && instance.expiration_enabled && instance.expires_at
-          ? `
-            <div class="altar-info-card-section">
-              <p><strong>Expiration Reminder:</strong> ${formatLivingStateDate(instance.expires_at)}</p>
-              <p><strong>Reminder Timing:</strong> ${formatLivingStateDue(instance.expires_at)}</p>
-            </div>
-          `
-          : ""
-      }
-
-      ${
-        displaySettings.showFutureTending && instance.tending_enabled && instance.tending_due_at
-          ? `
-            <div class="altar-info-card-section">
-              <p><strong>Future Tending:</strong> ${formatLivingStateDue(instance.tending_due_at)}</p>
-              <p><strong>Reminder Date:</strong> ${formatLivingStateDate(instance.tending_due_at)}</p>
-            </div>
-          `
-          : ""
-      }
-
-      ${
-        displaySettings.showRemaining &&
-        instance.remaining_amount !== null &&
-        instance.remaining_amount !== undefined
-          ? `
-            <div class="altar-info-card-section">
-              <p><strong>Remaining:</strong> ${instance.remaining_amount} ${instance.amount_unit || ""}</p>
-            </div>
-          `
-          : ""
-      }
-
-      ${
-        displaySettings.showRemaining &&
-        instance.remaining_burn_seconds !== null &&
-        instance.remaining_burn_seconds !== undefined
-          ? `
-            <div class="altar-info-card-section">
-              <p><strong>Burn Time Remaining:</strong> ${Math.round(instance.remaining_burn_seconds / 60)} minutes</p>
-            </div>
-          `
-          : ""
-      }
-
-      <div class="altar-info-card-section altar-info-card-actions">
-        <button type="button" class="living-state-practice-button" data-living-state-practice>
-          ✨ Begin Today's Practice
-        </button>
-      </div>
-
-      ${
-        displaySettings.showRecentActivity
-          ? renderLivingStateRecentActivity(events)
-          : ""
-      }
-    </div>
-  `;
-}
-
-async function showLivingStatePanel(object) {
-  if (!altarLivingStatePanel || !object) return;
-
-  const livingStateContent = altarLivingStatePanel.querySelector("[data-living-state-content]");
-  if (!livingStateContent) return;
-
-  const instanceId = object.dataset.instanceId || "";
-
-  if (!instanceId) {
-    altarLivingStatePanel.classList.remove("is-visible");
-    altarLivingStatePanel.classList.add("is-minimized");
-    return;
-  }
-
-  livingStateContent.innerHTML = `<p>Loading living state...</p>`;
-
-  if (!altarLivingStateMinimized) {
-    altarLivingStatePanel.classList.add("is-visible");
-    altarLivingStatePanel.classList.remove("is-minimized");
-  }
-
-  const instance =
-    typeof getObjectInstance === "function"
-      ? await getObjectInstance(instanceId)
-      : null;
-
-  const events =
-    typeof getObjectInstanceEvents === "function"
-      ? await getObjectInstanceEvents(instanceId)
-      : [];
-
-  if (selectedObject !== object) return;
-
-  livingStateContent.innerHTML = renderLivingStateMarkup(instance, events);
-}
-
-function hideLivingStatePanel() {
-  if (!altarLivingStatePanel) return;
-
-  const livingStateContent = altarLivingStatePanel.querySelector("[data-living-state-content]");
-
-  if (livingStateContent) {
-    livingStateContent.innerHTML = `<p>Select an object with a living state.</p>`;
-  }
-
-  altarLivingStatePanel.classList.remove("is-visible");
-  altarLivingStatePanel.classList.add("is-minimized");
-}
-
 function showAltarInfoCard(object) {
   if (!altarInfoCard || !object) return;
 
@@ -1241,7 +1023,6 @@ function showAltarInfoCard(object) {
   altarInfoCard.classList.add("is-visible");
 
   showAltarCompanionPanel(object);
-  showLivingStatePanel(object);
 }
 
 function hideAltarInfoCard() {
@@ -1256,7 +1037,6 @@ function hideAltarInfoCard() {
   }, 180);
 
   hideAltarCompanionPanel();
-  hideLivingStatePanel();
 }
 
 function updateToolbarNotes(object) {
@@ -1317,56 +1097,6 @@ function deselectObject() {
   hideAltarInfoCard();
   updateSelectedGroupVisuals(null);
 }
-
-document.addEventListener("click", (event) => {
-  const companionToggleButton = event.target.closest("[data-companion-toggle], [data-companion-minimize]");
-  const livingStateToggleButton = event.target.closest("[data-living-state-minimize]");
-
-  if (!companionToggleButton && !livingStateToggleButton) return;
-
-  if (companionToggleButton && altarCompanionPanel) {
-    altarCompanionMinimized = !altarCompanionMinimized;
-
-    altarCompanionPanel.classList.toggle("is-minimized", altarCompanionMinimized);
-    document.body.classList.toggle("altar-companion-minimized", altarCompanionMinimized);
-
-    if (altarLivingStatePanel) {
-      altarLivingStateMinimized = altarCompanionMinimized;
-      altarLivingStatePanel.classList.toggle("is-minimized", altarLivingStateMinimized);
-      document.body.classList.toggle("altar-living-state-minimized", altarLivingStateMinimized);
-    }
-
-    document.querySelectorAll("[data-companion-toggle], [data-companion-minimize]").forEach((button) => {
-      button.textContent = altarCompanionMinimized ? "☰" : "−";
-      button.setAttribute(
-        "aria-label",
-        altarCompanionMinimized ? "Open panels" : "Minimize panels"
-      );
-    });
-
-    if (selectedObject && !altarCompanionMinimized) {
-      showAltarCompanionPanel(selectedObject);
-      showLivingStatePanel(selectedObject);
-    }
-
-    showAltarToast(altarCompanionMinimized ? "Panels minimized" : "Panels opened");
-  }
-
-  if (livingStateToggleButton && altarLivingStatePanel) {
-    altarLivingStateMinimized = !altarLivingStateMinimized;
-
-    altarLivingStatePanel.classList.toggle("is-minimized", altarLivingStateMinimized);
-    document.body.classList.toggle("altar-living-state-minimized", altarLivingStateMinimized);
-
-    showAltarToast(altarLivingStateMinimized ? "Living State minimized" : "Living State opened");
-  }
-
-  requestAnimationFrame(() => {
-    repositionAllObjectsFromPercent();
-    resizeLightingCanvas();
-    renderLighting();
-  });
-});
 
 function openLibrarySectionEditor(entityId, section) {
   if (typeof Library === "undefined") return;
