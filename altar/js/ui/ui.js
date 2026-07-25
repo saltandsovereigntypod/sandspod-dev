@@ -91,31 +91,12 @@ altarCompanionPanel.innerHTML = `
   </div>
 `;
 
-const altarLivingStatePanel = document.createElement("section");
-altarLivingStatePanel.className = "altar-companion-panel altar-living-state-panel altar-workspace-module is-visible";
-altarLivingStatePanel.setAttribute("aria-live", "polite");
-altarLivingStatePanel.innerHTML = `
-  <div class="altar-companion-inner">
-    <div class="altar-companion-header">
-      <div>
-        <p class="eyebrow">Living State</p>
-        <h2>Current Manifestation</h2>
-      </div>
-    </div>
-
-    <div class="altar-companion-content" data-living-state-content>
-      <p>Select an object with a living state.</p>
-    </div>
-  </div>
-`;
-
 const altarWorkspacePanel = document.createElement("aside");
 altarWorkspacePanel.className = "altar-workspace-panel";
-altarWorkspacePanel.setAttribute("aria-label", "Altar companion and manifestation panel");
+altarWorkspacePanel.setAttribute("aria-label", "Altar companion panel");
 altarWorkspacePanel.innerHTML = `<div class="altar-workspace-panel-inner"></div>`;
 altarWorkspacePanel.querySelector(".altar-workspace-panel-inner").append(
-  altarCompanionPanel,
-  altarLivingStatePanel
+  altarCompanionPanel
 );
 
 const mobileCabinetToggle = document.createElement("button");
