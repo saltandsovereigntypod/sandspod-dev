@@ -1,0 +1,130 @@
+/* =========================================================
+   MOBILE ALTAR CONTROLS
+   Integrates selected-object controls into the existing action bar
+   and gives the landscape Companion room to breathe.
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .altar-action-bar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.7rem;
+    overflow: visible;
+  }
+
+  .altar-action-bar .altar-toolbar.is-in-action-bar {
+    position: static;
+    inset: auto;
+    z-index: auto;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(2.5rem, 1fr));
+    order: -1;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0.65rem;
+    border: 1px solid rgba(185, 160, 93, 0.32);
+    border-radius: 1rem;
+    background:
+      radial-gradient(circle at top, rgba(185, 160, 93, 0.14), transparent 70%),
+      rgba(10, 8, 6, 0.72);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .altar-action-bar .altar-toolbar.is-in-action-bar[hidden] {
+    display: none;
+  }
+
+  .altar-action-bar .altar-toolbar.is-in-action-bar button {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    aspect-ratio: auto;
+    border-radius: 0.75rem;
+    font-size: 0.92rem;
+  }
+
+  .altar-action-bar .altar-toolbar.is-in-action-bar .altar-toolbar-notes {
+    grid-column: 1 / -1;
+    padding: 0.35rem 0.4rem 0;
+  }
+
+  .altar-action-bar > .altar-action-group {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .altar-action-bar > .altar-action-divider {
+    display: none;
+  }
+
+  .altar-action-bar > .altar-action-group button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) and (orientation: portrait) {
+  .altar-action-bar .altar-toolbar.is-in-action-bar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .altar-action-bar > .altar-action-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .altar-workspace {
+    grid-template-columns: minmax(330px, 44vw) minmax(0, 1fr) !important;
+    column-gap: 1.15rem !important;
+  }
+
+  .altar-workspace-panel {
+    min-width: 0;
+  }
+
+  .altar-workspace-panel .altar-companion-header {
+    padding: 1.15rem 1.15rem 1rem;
+  }
+
+  .altar-workspace-panel .companion-v3-glance,
+  .altar-workspace-panel .companion-v3-knowledge,
+  .altar-workspace-panel .companion-v3-actions {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .altar-workspace-panel .companion-v3-journal-fields {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .altar-workspace-panel .companion-v3-section summary {
+    font-size: 1.08rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .altar-workspace-panel .companion-v3-journal-field > div,
+  .altar-workspace-panel .companion-v3-section-body p,
+  .altar-workspace-panel .companion-v3-glance-group p {
+    font-size: 0.98rem;
+    line-height: 1.62;
+  }
+
+  .altar-workspace-panel .companion-v3-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .altar-workspace-panel .companion-v3-actions button {
+    grid-column: 1 !important;
+    min-height: 2.9rem;
+  }
+
+  .altar-action-bar .altar-toolbar.is-in-action-bar {
+    grid-template-columns: repeat(7, minmax(2.35rem, 1fr));
+  }
+}
