@@ -1,7 +1,6 @@
 /* =========================================================
    COMPANION ACTION REFRESH BRIDGE
-   Keeps lifecycle actions focused on the unified Companion page
-   while older action handlers are gradually renamed and cleaned up.
+   Keeps lifecycle actions focused on the unified Companion page.
    ========================================================= */
 
 (function initializeCompanionActionRefreshBridge() {
@@ -54,12 +53,27 @@
     });
   }
 
+  function wrapLifecycleSubmitHandler(functionName) {
+    const originalHandler = window[functionName];
+
+    if (typeof originalHandler !== "function" || originalHandler.__companionRefreshWrapped) {
+      return;
+    }
+
+    async function companionAwareSubmitHandler(...args) {
+      const result = await originalHandler.apply(this, args);
+      await refreshSelectedCompanion();
+      return result;
+    }
+
+    companionAwareSubmitHandler.__companionRefreshWrapped = true;
+    window[functionName] = companionAwareSubmitHandler;
+  }
+
   window.refreshAltarCompanion = refreshSelectedCompanion;
 
-  // Temporary compatibility alias for lifecycle action handlers that still
-  // call the former Living State refresh function. Remove after those callers
-  // have been migrated to refreshAltarCompanion or the companion:refresh event.
-  window.showLivingStatePanel = refreshSelectedCompanion;
+  wrapLifecycleSubmitHandler("submitLivingStateTendForm");
+  wrapLifecycleSubmitHandler("submitLivingStateActivityForm");
 
   document.addEventListener("companion:refresh", (event) => {
     refreshSelectedCompanion(event.detail?.object || null);
