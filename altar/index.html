@@ -8,4 +8,274 @@
       name="description"
       content="A quiet digital altar space for reflection, ritual, and intentional practice."
     />
-    <link rel="stylesheet" href
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="altar.css" />
+    <link rel="stylesheet" href="companion-module.css">
+    <link rel="stylesheet" href="companion-layout.css">
+    <link rel="stylesheet" href="companion-v3.css">
+    <link rel="stylesheet" href="mobile-toolbar.css">
+    <link rel="stylesheet" href="ritual-system.css" />
+    <link rel="stylesheet" href="ritual-template-editor.css" />
+    <link rel="stylesheet" href="ritual-journal.css" />
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
+    <meta name="theme-color" content="#1b1914">
+  </head>
+
+  <body class="altar-page">
+
+    <header class="site-header" data-header>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#hero" aria-label="Salt & Sovereignty home">
+          <span class="brand-mark" aria-hidden="true">S&S</span>
+          <span>Salt & Sovereignty</span>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+          <span class="sr-only">Toggle navigation</span>
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-menu">
+          <a href="../index.html#about">About</a>
+          <a href="../index.html#podcast">Podcast</a>
+          <a href="../index.html#books">Books</a>
+          <a href="../index.html#blog">Blog</a>
+          <a href="../index.html#contact">Contact</a>
+
+          <button class="nav-sanctuary-button" type="button" data-my-sanctuary-open>
+            My Sanctuary
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="altar-main" class="altar-main">
+      <section class="altar-hero">
+        <p class="eyebrow">The Sanctuary</p>
+        <h1>The Altar</h1>
+        <p>
+          Build a quiet ritual space that reflects your own practice. Nothing here is required.
+          Everything here is an invitation.
+        </p>
+      </section>
+
+      <section class="altar-workspace" aria-label="Digital altar workspace">
+        <div class="altar-workspace-tools" aria-label="Altar tools">
+          <button class="altar-workspace-tool" type="button" data-open-cabinet-overlay>
+            🗄 Cabinet
+          </button>
+      
+          <button class="altar-workspace-tool" type="button" data-open-apothecary-overlay>
+            🧪 My Apothecary
+          </button>
+        </div>
+      
+        <div class="altar-stage-wrap">
+          <div class="altar-stage" data-altar-stage aria-label="Your altar">
+            <canvas
+              class="altar-lighting-layer"
+              data-lighting-layer
+              aria-hidden="true">
+            </canvas>
+            <p class="altar-empty-message" data-empty-message>
+              The altar is empty. Choose what belongs here.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="altar-cabinet-overlay" data-altar-cabinet-overlay hidden>
+      <button class="altar-cabinet-backdrop" type="button" data-close-cabinet-overlay aria-label="Close cabinet"></button>
+    
+      <aside class="altar-cabinet" data-altar-cabinet>
+        <button class="altar-cabinet-close" type="button" data-close-cabinet-overlay aria-label="Close cabinet">
+          ×
+        </button>
+    
+        <div class="altar-cabinet-header">
+          <div>
+            <p class="eyebrow">The Cabinet</p>
+            <h2>Choose What Belongs</h2>
+            <p>Search, choose a category, then place what belongs on your altar.</p>
+          </div>
+    
+          <label class="altar-cabinet-search">
+            <span class="sr-only">Search cabinet</span>
+            <input
+              type="search"
+              placeholder="Search cabinet..."
+              data-cabinet-search
+            />
+          </label>
+        </div>
+    
+        <div class="altar-cabinet-tabs" data-cabinet-tabs></div>
+    
+        <div class="altar-cabinet-content" data-cabinet-content></div>
+    
+        <p class="altar-note">
+          Click an object to place it. Some items include forms like sprig, loose, powder, oil, point, or polished.
+        </p>
+      </aside>
+    </div>
+
+    <div class="altar-cabinet-overlay altar-apothecary-overlay" data-altar-apothecary-overlay hidden>
+      <button class="altar-cabinet-backdrop" type="button" data-close-apothecary-overlay aria-label="Close apothecary"></button>
+    
+      <aside class="altar-cabinet altar-apothecary" data-altar-apothecary>
+        <button class="altar-cabinet-close" type="button" data-close-apothecary-overlay aria-label="Close apothecary">
+          ×
+        </button>
+    
+        <div class="altar-cabinet-header">
+          <div>
+            <p class="eyebrow">My Apothecary</p>
+            <h2>Your Created Workings</h2>
+            <p>Oils, blends, spell jars, powders, incense, and teas you create will live here.</p>
+          </div>
+    
+          <button class="altar-workspace-tool" type="button">
+            ✦ Create Item
+          </button>
+        </div>
+    
+        <div class="apothecary-placeholder">
+          <p class="book-divider">✦ ☽ ✦ ☾ ✦</p>
+          <h3>Your apothecary is waiting.</h3>
+          <p>Next, we’ll build the recipe system so your saved oils, herb blends, and spell jars appear here as placeable altar objects.</p>
+        </div>
+      </aside>
+    </div>
+    
+    <div class="sanctuary-modal" data-sanctuary-modal hidden>
+      <div class="sanctuary-modal-card" role="dialog" aria-modal="true" aria-labelledby="sanctuary-modal-title">
+        <button class="sanctuary-modal-close" type="button" data-sanctuary-close aria-label="Close">
+          ×
+        </button>
+    
+        <div data-sanctuary-signed-out>
+          <p class="eyebrow">The Sanctuary</p>
+    
+          <h2 id="sanctuary-modal-title">Enter Your Sanctuary</h2>
+    
+          <p>
+            Whether you're here to build an altar, write in your Book of Shadows, or simply explore,
+            this space belongs to you.
+          </p>
+    
+          <p>
+            Continue as a guest, or create a free Sanctuary account to safely keep your practice
+            across all of your devices.
+          </p>
+    
+          <form class="altar-auth-form sanctuary-auth-form" data-auth-form>
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="email" />
+            </label>
+    
+            <label>
+              Password
+              <input type="password" name="password" autocomplete="current-password" />
+            </label>
+    
+            <div class="altar-auth-actions sanctuary-auth-actions">
+              <button class="button button--primary" type="submit" data-auth-action="signin">
+                Open My Sanctuary
+              </button>
+    
+              <button class="button" type="button" data-auth-action="signup">
+                Create Sanctuary
+              </button>
+    
+              <button class="button button--ghost" type="button" data-sanctuary-guest>
+                Continue as Guest →
+              </button>
+            </div>
+    
+            <p class="altar-auth-status" data-auth-status role="status" aria-live="polite">
+              Your private practice always belongs to you. Nothing is shared publicly unless you choose to share it.
+            </p>
+          </form>
+        </div>
+    
+        <div data-sanctuary-signed-in hidden>
+          <p class="eyebrow">The Sanctuary</p>
+    
+          <h2>Welcome back.</h2>
+    
+          <p>
+            Your sanctuary is open. Your altar, grimoire, rituals, notes, and saved practice can follow
+            you across your devices.
+          </p>
+    
+          <p class="sanctuary-signed-in-email">
+            Signed in as <strong data-sanctuary-email></strong>
+          </p>
+    
+          <div class="altar-auth-actions sanctuary-auth-actions">
+            <button class="button button--primary" type="button" data-sanctuary-continue>
+              Continue
+            </button>
+    
+            <button class="button button--ghost" type="button" data-auth-action="signout">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/sanctuary-modal.js"></script>
+  <script src="../js/my-settings.js"></script>
+  <script src="../js/my-rituals.js"></script>
+  <script src="../js/submissions.js"></script>  
+  <script src="../js/my-sanctuary.js"></script>
+  
+  <!-- Website -->
+  <script src="../script.js"></script>
+  
+  <!-- Altar Core -->
+  <script src="js/core/state.js"></script>
+  <script src="../js/library.js"></script>
+  <script src="../js/traditional-library.js"></script>
+  <script src="../js/living-library-sync.js"></script>
+  <script src="../js/object-instances.js"></script>
+  <script src="js/ui/ui.js"></script>
+  <script src="js/features/auth-helpers.js"></script>
+  
+  <!-- Altar Features -->
+  <script src="js/features/candles.js"></script>
+  <script src="js/features/groups.js"></script>
+  <script src="js/ui/selection.js"></script>
+  <script src="js/features/objects.js"></script>
+  <script src="js/features/cabinet.js"></script>
+  <script src="js/features/custom-images.js"></script>
+  <script src="js/features/custom-cabinet-items.js"></script>
+  <script src="js/features/apothecary.js"></script>
+  <script src="js/features/living-state-actions.js"></script>
+  <script src="js/ui/companion-v2.js"></script>
+  <script src="js/ui/companion-v4.js"></script>
+  <script src="js/ui/companion-action-refresh.js"></script>
+  
+  <!-- Altar Storage + Events -->
+  <script src="js/core/storage.js"></script>
+  <script src="js/features/ritual-system.js"></script>
+  <script src="js/features/ritual-automation.js"></script>
+  <script src="js/features/ritual-template-editor.js"></script>
+  <script src="js/features/ritual-template-start-bridge.js"></script>
+  <script src="js/features/ritual-journal.js"></script>
+  <script src="js/core/events.js"></script>
+
+  <!-- Interaction refinements -->
+  <script src="js/ui/selection-interaction-guard.js"></script>
+  <script src="js/ui/mobile-toolbar.js"></script>
+
+  <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f6b1922840414fb58931479f84817975"}'></script><!-- End Cloudflare Web Analytics -->
+  </body>
+</html>
