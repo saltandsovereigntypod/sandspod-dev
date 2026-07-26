@@ -22,19 +22,16 @@
 
   function ensureObjectId(object) {
     if (!object) return "";
-
     if (!object.dataset.altarObjectId) {
       object.dataset.altarObjectId = crypto.randomUUID
         ? crypto.randomUUID()
         : String(Date.now() + Math.random());
     }
-
     return object.dataset.altarObjectId;
   }
 
   function defaultState(object) {
     const createdAt = object?.dataset.createdAt || nowIso();
-
     return {
       version: STATE_VERSION,
       createdAt,
@@ -43,9 +40,7 @@
       currentRitualId: "",
       currentRitualName: "",
       notes: "",
-      lifecycle: {
-        status: "active"
-      },
+      lifecycle: { status: "active" },
       candle: {
         totalBurnMs: 0,
         currentBurnStartedAt: "",
@@ -76,43 +71,25 @@
     return {
       ...base,
       ...(incoming || {}),
-      lifecycle: {
-        ...base.lifecycle,
-        ...(incoming?.lifecycle || {})
-      },
-      candle: {
-        ...base.candle,
-        ...(incoming?.candle || {})
-      },
-      crystal: {
-        ...base.crystal,
-        ...(incoming?.crystal || {})
-      },
-      deity: {
-        ...base.deity,
-        ...(incoming?.deity || {})
-      },
-      apothecary: {
-        ...base.apothecary,
-        ...(incoming?.apothecary || {})
-      }
+      lifecycle: { ...base.lifecycle, ...(incoming?.lifecycle || {}) },
+      candle: { ...base.candle, ...(incoming?.candle || {}) },
+      crystal: { ...base.crystal, ...(incoming?.crystal || {}) },
+      deity: { ...base.deity, ...(incoming?.deity || {}) },
+      apothecary: { ...base.apothecary, ...(incoming?.apothecary || {}) }
     };
   }
 
   function getLivingState(object) {
     if (!object) return null;
-
     ensureObjectId(object);
+
     const state = mergeState(
       defaultState(object),
       safeParse(object.dataset.livingState || "", {})
     );
 
     const existingDressings = safeParse(object.dataset.dressings || "[]", []);
-    if (Array.isArray(existingDressings) && existingDressings.length) {
-      state.candle.dressings = existingDressings;
-    }
-
+    if (Array.isArray(existingDressings)) state.candle.dressings = existingDressings;
     return state;
   }
 
@@ -128,6 +105,7 @@
     object.dataset.accumulatedBurnMs = String(state.candle?.totalBurnMs || 0);
     object.dataset.currentBurnStartedAt = state.candle?.currentBurnStartedAt || "";
     object.dataset.lastLitAt = state.candle?.lastLitAt || "";
+    object.dataset.dressings = JSON.stringify(state.candle?.dressings || []);
 
     object.dataset.lastChargedAt = state.crystal?.lastChargedAt || "";
     object.dataset.lastCleansedAt = state.crystal?.lastCleansedAt || "";
@@ -158,9 +136,7 @@
     if (!options.silent) {
       if (typeof saveWorkingAltarDraft === "function") saveWorkingAltarDraft();
       if (typeof scheduleCompanionV4 === "function") scheduleCompanionV4(object);
-      if (typeof scheduleCompanionCurrentState === "function") {
-        scheduleCompanionCurrentState(object);
-      }
+      if (typeof scheduleCompanionCurrentState === "function") scheduleCompanionCurrentState(object);
     }
 
     document.dispatchEvent(new CustomEvent("living-object-state:changed", {
@@ -173,7 +149,6 @@
   function updateLivingState(object, updater, options = {}) {
     const current = getLivingState(object);
     if (!current) return null;
-
     const draft = mergeState(defaultState(object), current);
     const result = typeof updater === "function" ? updater(draft) : updater;
     return saveLivingState(object, result || draft, options);
@@ -183,6 +158,12 @@
     if (!object?.classList?.contains("altar-object")) return null;
 
     const state = getLivingState(object);
+    if (object.dataset.type === "candle" && object.dataset.lit === "true" && !state.candle.currentBurnStartedAt) {
+      const time = nowIso();
+      state.candle.currentBurnStartedAt = time;
+      state.candle.lastLitAt = state.candle.lastLitAt || time;
+    }
+
     if (!object.dataset.livingState) {
       return saveLivingState(object, state, {
         silent: true,
@@ -196,9 +177,10 @@
   }
 
   function startCandleBurn(object) {
-    if (!object || object.dataset.type !== "candle") return;
+    if (!object || object.dataset.type !== "candle") return null;
 
-    updateLivingState(object, (state) => {
+    return updateLivingState(object, (state) => {
+      if (state.candle.currentBurnStartedAt) return state;
       const time = nowIso();
       state.lastUsedAt = time;
       state.candle.lastLitAt = time;
@@ -208,33 +190,34 @@
   }
 
   function stopCandleBurn(object) {
-    if (!object || object.dataset.type !== "candle") return;
+    if (!object || object.dataset.type !== "candle") return null;
 
-    updateLivingState(object, (state) => {
-      const startedAt = new Date(state.candle.currentBurnStartedAt || "").getTime();
+    return updateLivingState(object, (state) => {
+      const startedAt = Date.parse(state.candle.currentBurnStartedAt || "");
       if (Number.isFinite(startedAt)) {
         state.candle.totalBurnMs = Math.max(0, Number(state.candle.totalBurnMs) || 0)
           + Math.max(0, Date.now() - startedAt);
       }
-
       state.lastUsedAt = nowIso();
       state.candle.currentBurnStartedAt = "";
       return state;
     });
   }
 
-  function syncCandleDressings(object) {
-    if (!object || object.dataset.type !== "candle") return;
+  function syncCandleDressings(object, dressings = null) {
+    if (!object || object.dataset.type !== "candle") return null;
 
-    updateLivingState(object, (state) => {
-      state.candle.dressings = safeParse(object.dataset.dressings || "[]", []);
+    return updateLivingState(object, (state) => {
+      state.candle.dressings = Array.isArray(dressings)
+        ? dressings
+        : safeParse(object.dataset.dressings || "[]", []);
       state.lastUsedAt = nowIso();
       return state;
     });
   }
 
   function setObjectRitual(object, ritual = null) {
-    updateLivingState(object, (state) => {
+    return updateLivingState(object, (state) => {
       state.currentRitualId = ritual?.id || "";
       state.currentRitualName = ritual?.name || ritual?.title || "";
       state.lastUsedAt = ritual ? nowIso() : state.lastUsedAt;
@@ -243,7 +226,7 @@
   }
 
   function setCrystalCare(object, care = {}) {
-    updateLivingState(object, (state) => {
+    return updateLivingState(object, (state) => {
       if (care.cleansedAt) state.crystal.lastCleansedAt = care.cleansedAt;
       if (care.chargedAt) state.crystal.lastChargedAt = care.chargedAt;
       if (care.dedication !== undefined) state.crystal.dedication = care.dedication;
@@ -253,70 +236,37 @@
   }
 
   function setDeityState(object, deityState = {}) {
-    updateLivingState(object, (state) => {
+    return updateLivingState(object, (state) => {
       if (deityState.lastOfferingAt) state.deity.lastOfferingAt = deityState.lastOfferingAt;
-      if (deityState.offeringStatus !== undefined) {
-        state.deity.offeringStatus = deityState.offeringStatus;
-      }
-      if (deityState.reasonForPresence !== undefined) {
-        state.deity.reasonForPresence = deityState.reasonForPresence;
-      }
+      if (deityState.offeringStatus !== undefined) state.deity.offeringStatus = deityState.offeringStatus;
+      if (deityState.reasonForPresence !== undefined) state.deity.reasonForPresence = deityState.reasonForPresence;
       state.lastUsedAt = nowIso();
       return state;
     });
   }
 
   function setApothecaryState(object, apothecaryState = {}) {
-    updateLivingState(object, (state) => {
-      state.apothecary = {
-        ...state.apothecary,
-        ...apothecaryState
-      };
+    return updateLivingState(object, (state) => {
+      state.apothecary = { ...state.apothecary, ...apothecaryState };
       state.lastUsedAt = nowIso();
       return state;
     });
   }
 
-  function wrapExistingFunctions() {
-    if (typeof window.toggleLight === "function" && !window.toggleLight.__livingStateWrapped) {
-      const originalToggleLight = window.toggleLight;
-      const wrappedToggleLight = function wrappedToggleLight(object) {
-        const wasLit = object?.dataset.lit === "true";
-        const result = originalToggleLight.apply(this, arguments);
-        const isLit = object?.dataset.lit === "true";
-
-        if (!wasLit && isLit) startCandleBurn(object);
-        if (wasLit && !isLit) stopCandleBurn(object);
-        return result;
-      };
-      wrappedToggleLight.__livingStateWrapped = true;
-      window.toggleLight = wrappedToggleLight;
-    }
-
-    if (typeof window.dressCandle === "function" && !window.dressCandle.__livingStateWrapped) {
-      const originalDressCandle = window.dressCandle;
-      const wrappedDressCandle = function wrappedDressCandle(candle) {
-        const result = originalDressCandle.apply(this, arguments);
-        syncCandleDressings(candle);
-        return result;
-      };
-      wrappedDressCandle.__livingStateWrapped = true;
-      window.dressCandle = wrappedDressCandle;
-    }
-
+  function wrapStorageFunctions() {
     if (typeof window.createAltarSnapshot === "function" && !window.createAltarSnapshot.__livingStateWrapped) {
       const originalCreateSnapshot = window.createAltarSnapshot;
       const wrappedCreateSnapshot = function wrappedCreateSnapshot() {
-        document.querySelectorAll(".altar-object").forEach((object) => initializeObject(object));
+        const objects = Array.from(document.querySelectorAll(".altar-object"));
+        objects.forEach((object) => initializeObject(object));
         const snapshot = originalCreateSnapshot.apply(this, arguments);
         if (!snapshot?.objects) return snapshot;
 
         snapshot.objects.forEach((savedObject, index) => {
-          const object = document.querySelectorAll(".altar-object")[index];
+          const object = objects[index];
           savedObject.livingState = object?.dataset.livingState || "";
           savedObject.createdAt = object?.dataset.createdAt || "";
         });
-
         return snapshot;
       };
       wrappedCreateSnapshot.__livingStateWrapped = true;
@@ -328,7 +278,6 @@
       const wrappedCreateSavedObject = function wrappedCreateSavedObject(savedObject) {
         const object = originalCreateSavedObject.apply(this, arguments);
         if (!object) return object;
-
         object.dataset.livingState = savedObject?.livingState || "";
         object.dataset.createdAt = savedObject?.createdAt || "";
         initializeObject(object, { preserveUpdatedAt: true });
@@ -354,7 +303,6 @@
         });
       });
     });
-
     stageObserver.observe(stage, { childList: true, subtree: true });
   }
 
@@ -362,15 +310,14 @@
   window.saveLivingObjectState = saveLivingState;
   window.updateLivingObjectState = updateLivingState;
   window.initializeLivingObjectState = initializeObject;
+  window.startLivingCandleBurn = startCandleBurn;
+  window.stopLivingCandleBurn = stopCandleBurn;
+  window.syncLivingCandleDressings = syncCandleDressings;
   window.setLivingObjectRitual = setObjectRitual;
   window.setLivingCrystalCare = setCrystalCare;
   window.setLivingDeityState = setDeityState;
   window.setLivingApothecaryState = setApothecaryState;
 
-  wrapExistingFunctions();
+  wrapStorageFunctions();
   initializeExistingObjects();
-  window.setTimeout(() => {
-    wrapExistingFunctions();
-    initializeExistingObjects();
-  }, 0);
 })();
