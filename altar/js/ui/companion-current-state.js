@@ -1,7 +1,7 @@
 /* =========================================================
    COMPANION CURRENT STATE
-   Adds identity-aware live details to the V4 Current State card
-   without changing Living Library data or Sanctuary settings.
+   Authoritative identity-aware renderer for the V4 Current State card.
+   It runs after Companion V4 and reapplies whenever that card is rebuilt.
    ========================================================= */
 
 (function initializeCompanionCurrentState() {
@@ -16,6 +16,10 @@
     "tea",
     "herb-blend"
   ]);
+
+  let observedBody = null;
+  let observer = null;
+  let isRendering = false;
 
   function escapeHtml(value = "") {
     return String(value ?? "")
@@ -81,7 +85,7 @@
   function getRows(identity, object) {
     const rows = [];
     const data = object?.dataset || {};
-    const apothecary = getApothecary(object);
+    const apothecary = getApothecary(object) || {};
 
     const add = (label, value, formatter = null) => {
       if (value === "" || value === null || value === undefined) return;
@@ -91,27 +95,42 @@
     };
 
     if (identity === "candle") {
-      add("Color", firstValue(data.color, apothecary?.color), humanize);
+      add("Color", firstValue(data.color, apothecary.color), humanize);
       add("Dressed", data.dressed === "true" ? "Yes" : data.dressed === "false" ? "No" : "");
-      add("Last Lit", firstValue(data.lastLitAt, data.lastLit, apothecary?.lastLitAt), formatDate);
+      add("Last Lit", firstValue(data.lastLitAt, data.lastLit, apothecary.lastLitAt, apothecary.lastLit), formatDate);
     } else if (identity === "herb") {
-      add("Form", firstValue(data.form, apothecary?.form), humanize);
+      add("Form", firstValue(data.form, apothecary.form), humanize);
     } else if (identity === "crystal") {
-      add("Form", firstValue(data.form, data.crystalForm, apothecary?.form), humanize);
-      add("Last Cleansed", firstValue(data.lastCleansedAt, data.lastCleansed, apothecary?.lastCleansedAt), formatDate);
-      add("Last Charged", firstValue(data.lastChargedAt, data.lastCharged, apothecary?.lastChargedAt), formatDate);
+      add("Form", firstValue(data.form, data.crystalForm, apothecary.form), humanize);
+      add("Last Cleansed", firstValue(data.lastCleansedAt, data.lastCleansed, apothecary.lastCleansedAt, apothecary.lastCleansed), formatDate);
+      add("Last Charged", firstValue(data.lastChargedAt, data.lastCharged, apothecary.lastChargedAt, apothecary.lastCharged), formatDate);
     } else if (identity === "deity") {
       add("Reason for Presence", firstValue(
         data.reasonForPresence,
         data.altarPurpose,
         data.devotionalPurpose,
-        apothecary?.reasonForPresence
+        apothecary.reasonForPresence,
+        apothecary.altarPurpose,
+        apothecary.devotionalPurpose
       ));
-      add("Offering", firstValue(data.offeringStatus, data.currentOffering, apothecary?.offeringStatus), humanize);
-      add("Last Offering", firstValue(data.lastOfferingAt, data.lastOffering, apothecary?.lastOfferingAt), formatDate);
+      add("Offering Status", firstValue(data.offeringStatus, data.currentOffering, apothecary.offeringStatus, apothecary.currentOffering), humanize);
+      add("Last Offering", firstValue(data.lastOfferingAt, data.lastOffering, apothecary.lastOfferingAt, apothecary.lastOffering), formatDate);
     } else if (CRAFTED_IDENTITIES.has(identity)) {
-      add("Status", firstValue(data.status, apothecary?.status, "Active"), humanize);
-      add("Activation", firstValue(data.activationState, apothecary?.activationState), humanize);
+      add("Status", firstValue(data.status, apothecary.status, "Active"), humanize);
+      add("Created", firstValue(data.createdAt, data.creationDate, apothecary.createdAt, apothecary.creationDate), formatDate);
+      add("Remaining", firstValue(data.remainingAmount, data.amountRemaining, apothecary.remainingAmount, apothecary.amountRemaining));
+      add("Next Tending", firstValue(data.nextTendingAt, data.nextTending, apothecary.nextTendingAt, apothecary.nextTending), formatDate);
+      add("Review / Expiration", firstValue(
+        data.expiresAt,
+        data.expirationDate,
+        data.reviewAt,
+        data.reviewDate,
+        apothecary.expiresAt,
+        apothecary.expirationDate,
+        apothecary.reviewAt,
+        apothecary.reviewDate
+      ), formatDate);
+      add("Activation", firstValue(data.activationState, apothecary.activationState), humanize);
     }
 
     return rows;
@@ -126,43 +145,74 @@
     `;
   }
 
-  function expandCurrentState(object = null) {
+  function getSelectedObject(object = null) {
+    if (object) return object;
+    return typeof selectedObject !== "undefined" ? selectedObject : null;
+  }
+
+  function renderCurrentState(object = null) {
+    if (isRendering) return false;
+
     const panel = document.querySelector(".altar-companion-panel");
     const body = panel?.querySelector("[data-companion-v4-current-state-body]");
-    if (!panel || !body) return false;
-
-    const target = object || (typeof selectedObject !== "undefined" ? selectedObject : null);
-    const identity = getIdentity(panel, target);
-    const rows = getRows(identity, target);
-    const lifecycle = body.querySelector("[data-companion-lifecycle]");
-
-    body.querySelectorAll(".companion-v4-state-row").forEach((row) => row.remove());
-
-    if (rows.length) {
-      body.insertAdjacentHTML("afterbegin", rows.map(renderRow).join(""));
+    if (!panel || !body) {
+      observeCurrentStateBody();
+      return false;
     }
 
-    if (!rows.length && !lifecycle) {
-      panel.querySelector("[data-companion-v4-current-state]")?.remove();
+    isRendering = true;
+
+    try {
+      const target = getSelectedObject(object);
+      const identity = getIdentity(panel, target);
+      const rows = getRows(identity, target);
+      const lifecycle = body.querySelector("[data-companion-lifecycle]");
+
+      body.querySelectorAll(".companion-v4-state-row").forEach((row) => row.remove());
+
+      if (rows.length) {
+        body.insertAdjacentHTML("afterbegin", rows.map(renderRow).join(""));
+      }
+
+      const section = panel.querySelector("[data-companion-v4-current-state]");
+      if (!rows.length && !lifecycle) section?.remove();
+
+      observeCurrentStateBody();
+      return true;
+    } finally {
+      isRendering = false;
     }
-
-    return true;
   }
 
-  function scheduleCurrentStateExpansion(object = null) {
-    queueMicrotask(() => expandCurrentState(object));
-    requestAnimationFrame(() => expandCurrentState(object));
-    window.setTimeout(() => expandCurrentState(object), 140);
-    window.setTimeout(() => expandCurrentState(object), 520);
+  function observeCurrentStateBody() {
+    const nextBody = document.querySelector("[data-companion-v4-current-state-body]");
+    if (!nextBody || nextBody === observedBody) return;
+
+    observer?.disconnect();
+    observedBody = nextBody;
+    observer = new MutationObserver(() => {
+      if (isRendering) return;
+      queueMicrotask(() => renderCurrentState());
+    });
+    observer.observe(nextBody, { childList: true, subtree: false });
   }
 
-  window.expandCompanionCurrentState = expandCurrentState;
-  window.scheduleCompanionCurrentStateExpansion = scheduleCurrentStateExpansion;
+  function scheduleCurrentState(object = null) {
+    queueMicrotask(() => renderCurrentState(object));
+    requestAnimationFrame(() => renderCurrentState(object));
+    window.setTimeout(() => renderCurrentState(object), 160);
+    window.setTimeout(() => renderCurrentState(object), 560);
+    window.setTimeout(() => renderCurrentState(object), 900);
+  }
+
+  window.getCompanionCurrentStateRows = getRows;
+  window.renderCompanionCurrentState = renderCurrentState;
+  window.scheduleCompanionCurrentState = scheduleCurrentState;
 
   document.addEventListener("companion:refreshed", (event) => {
-    scheduleCurrentStateExpansion(event.detail?.object || null);
+    scheduleCurrentState(event.detail?.object || null);
   });
 
-  window.addEventListener("saltSettingsChanged", () => scheduleCurrentStateExpansion());
-  scheduleCurrentStateExpansion();
+  window.addEventListener("saltSettingsChanged", () => scheduleCurrentState());
+  scheduleCurrentState();
 })();
