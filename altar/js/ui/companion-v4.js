@@ -1,21 +1,14 @@
 /* =========================================================
    COMPANION V4
    Compact identity-aware Companion presentation layer.
-   Owns Current State, Recipe, Actions, and field-guide styling.
+   Current State data is supplied by companion-current-state.js.
    ========================================================= */
 
 (function initializeCompanionV4() {
   const STYLE_ID = "companion-v4-runtime-styles";
   const CRAFTED_IDENTITIES = new Set([
-    "spell-jar",
-    "oil",
-    "incense",
-    "sachet",
-    "spray",
-    "poppet",
-    "powder",
-    "tea",
-    "herb-blend"
+    "spell-jar", "oil", "incense", "sachet", "spray",
+    "poppet", "powder", "tea", "herb-blend"
   ]);
   const ACTION_SELECTOR = [
     "[data-living-state-practice]",
@@ -120,7 +113,7 @@
 
       .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state {
         padding: 0.7rem 0.85rem;
-        max-height: min(20vh, 10.5rem);
+        max-height: min(24vh, 13rem);
       }
 
       .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state-title {
@@ -136,7 +129,7 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.35rem 0.65rem;
-        max-height: calc(min(20vh, 10.5rem) - 2.2rem);
+        max-height: calc(min(24vh, 13rem) - 2.2rem);
         overflow-y: auto;
         padding-right: 0.15rem;
         color: rgba(245, 237, 220, 0.94);
@@ -265,11 +258,6 @@
         background: rgba(200, 169, 107, 0.08);
       }
 
-      .altar-companion-panel[data-companion-version="4"] .companion-v4-actions-body > button:focus-visible {
-        outline: 2px solid rgba(200, 169, 107, 0.8);
-        outline-offset: 2px;
-      }
-
       .altar-companion-panel[data-companion-version="4"] .companion-v3-actions,
       .altar-companion-panel[data-companion-version="4"] .companion-v3-secondary-actions:empty {
         display: none !important;
@@ -295,7 +283,6 @@
     if (preset && preset !== "empty") return preset;
 
     const raw = String(object?.dataset.apothecaryType || object?.dataset.type || "entry").toLowerCase();
-
     if (raw.includes("spell jar") || raw.includes("spell-jar")) return "spell-jar";
     if (raw.includes("herb blend") || raw.includes("herb-blend")) return "herb-blend";
     if (raw.includes("candle")) return "candle";
@@ -324,7 +311,7 @@
     return amount ? `${name}: ${amount}` : name;
   }
 
-  function getStateRows(identity, object) {
+  function getFallbackStateRows(identity, object) {
     const rows = [];
     const add = (label, value) => {
       if (value === "" || value === null || value === undefined) return;
@@ -333,20 +320,24 @@
     };
 
     if (identity === "candle") {
-      add("Flame", object?.classList.contains("is-lit") ? "Lit" : "Unlit");
       add("Color", object?.dataset.color || "");
       add("Dressed", object?.dataset.dressed === "true" ? "Yes" : "");
     } else if (identity === "herb") {
       add("Form", object?.dataset.form || "");
     } else if (identity === "crystal") {
       add("Form", object?.dataset.form || object?.dataset.crystalForm || "");
-    } else if (identity === "deity") {
-      add("Presence", "Placed on the altar");
     } else if (CRAFTED_IDENTITIES.has(identity)) {
-      add("Status", object?.dataset.status || object?.dataset.activationState || "Active");
+      add("Status", object?.dataset.status || "Active");
     }
 
     return rows;
+  }
+
+  function getStateRows(identity, object) {
+    if (typeof window.getCompanionCurrentStateRows === "function") {
+      return window.getCompanionCurrentStateRows(identity, object);
+    }
+    return getFallbackStateRows(identity, object);
   }
 
   function renderRow(row) {
@@ -413,11 +404,8 @@
       ? apothecary.ingredients.filter(Boolean)
       : [];
     const preparation = String(
-      apothecary?.preparation ||
-      apothecary?.instructions ||
-      apothecary?.recipe ||
-      apothecary?.method ||
-      ""
+      apothecary?.preparation || apothecary?.instructions ||
+      apothecary?.recipe || apothecary?.method || ""
     ).trim();
 
     if (!intention && !ingredients.length && !preparation) {
