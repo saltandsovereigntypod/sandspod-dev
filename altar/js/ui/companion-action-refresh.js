@@ -1,59 +1,40 @@
 /* =========================================================
    COMPANION ACTION REFRESH BRIDGE
-   Keeps lifecycle actions focused on the unified Companion page.
+   Keeps lifecycle actions focused on the unified Companion page and
+   hands each completed render to the single V4 presentation layer.
    ========================================================= */
 
 (function initializeCompanionActionRefreshBridge() {
   let queuedRefresh = null;
+  let refreshInProgress = false;
 
-  function getCompanionPanel() {
-    return (
-      (typeof altarCompanionPanel !== "undefined" ? altarCompanionPanel : null) ||
-      document.querySelector(".altar-companion-panel")
-    );
-  }
-
-  function polishCompanionMarkup() {
-    const panel = getCompanionPanel();
-    if (!panel) return;
-
-    panel.querySelector("[data-companion-emphasis]")?.remove();
-
-    const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
-    if (apothecaryEdit && apothecaryEdit.textContent !== "Edit Apothecary Item") {
-      apothecaryEdit.textContent = "Edit Apothecary Item";
-    }
-
-    const libraryEdit = panel.querySelector(
-      '[data-library-edit-section="myPractice"]'
-    );
-    if (libraryEdit && libraryEdit.textContent !== "Edit Library Entry") {
-      libraryEdit.textContent = "Edit Library Entry";
-    }
-  }
-
-  function applyActiveCompanionLayer(object = null) {
-    polishCompanionMarkup();
-
+  function applyCompanionPresentation(target = null) {
     if (typeof window.scheduleCompanionV4 === "function") {
-      window.scheduleCompanionV4(object);
+      window.scheduleCompanionV4(target);
     }
   }
 
   function wrapCompanionRenderer(functionName) {
     const originalRenderer = window[functionName];
 
-    if (typeof originalRenderer !== "function" || originalRenderer.__companionPolishWrapped) {
+    if (
+      typeof originalRenderer !== "function" ||
+      originalRenderer.__companionPresentationWrapped
+    ) {
       return;
     }
 
     function companionAwareRenderer(...args) {
       const result = originalRenderer.apply(this, args);
-      queueMicrotask(() => applyActiveCompanionLayer(args[0] || null));
+
+      if (!refreshInProgress) {
+        queueMicrotask(() => applyCompanionPresentation(args[0] || null));
+      }
+
       return result;
     }
 
-    companionAwareRenderer.__companionPolishWrapped = true;
+    companionAwareRenderer.__companionPresentationWrapped = true;
     window[functionName] = companionAwareRenderer;
   }
 
@@ -71,9 +52,10 @@
       return Promise.resolve(false);
     }
 
+    refreshInProgress = true;
+
     return Promise.resolve(window.showAltarCompanionPanel(target))
       .then(() => {
-        applyActiveCompanionLayer(target);
         document.dispatchEvent(
           new CustomEvent("companion:refreshed", {
             detail: { object: target }
@@ -84,6 +66,9 @@
       .catch((error) => {
         console.error("Unable to refresh the Altar Companion.", error);
         return false;
+      })
+      .finally(() => {
+        refreshInProgress = false;
       });
   }
 
@@ -108,7 +93,10 @@
   function wrapLifecycleSubmitHandler(functionName) {
     const originalHandler = window[functionName];
 
-    if (typeof originalHandler !== "function" || originalHandler.__companionRefreshWrapped) {
+    if (
+      typeof originalHandler !== "function" ||
+      originalHandler.__companionRefreshWrapped
+    ) {
       return;
     }
 
@@ -128,7 +116,7 @@
   wrapCompanionRenderer("showLibraryEntityInCompanion");
   wrapLifecycleSubmitHandler("submitLivingStateTendForm");
   wrapLifecycleSubmitHandler("submitLivingStateActivityForm");
-  applyActiveCompanionLayer();
+  applyCompanionPresentation();
 
   document.addEventListener("companion:refresh", (event) => {
     refreshSelectedCompanion(event.detail?.object || null);
