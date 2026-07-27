@@ -283,6 +283,7 @@
 
     const raw = String(object?.dataset.apothecaryType || object?.dataset.type || "entry").toLowerCase();
     if (raw.includes("spell jar") || raw.includes("spell-jar")) return "spell-jar";
+    if (raw.includes("herb mix") || raw.includes("herb-mix")) return "herb-blend";
     if (raw.includes("herb blend") || raw.includes("herb-blend")) return "herb-blend";
     if (raw.includes("candle")) return "candle";
     if (raw.includes("crystal")) return "crystal";
@@ -503,7 +504,9 @@
     panel.dataset.companionVersion = "4";
     panel.querySelector("[data-companion-emphasis]")?.remove();
 
-    const target = object || (typeof selectedObject !== "undefined" ? selectedObject : null);
+    const target = object === false
+      ? null
+      : object || (typeof selectedObject !== "undefined" ? selectedObject : null);
     ensureCurrentState(panel, target);
     ensureRecipeSection(panel, target);
     ensureActionsDropdown(panel);
@@ -525,9 +528,8 @@
   window.scheduleCompanionV4 = scheduleCompanionV4;
 
   document.addEventListener("companion:refreshed", (event) => {
-    scheduleCompanionV4(event.detail?.object || null);
+    scheduleCompanionV4(event.detail?.entityOnly ? false : event.detail?.object || null);
   });
 
-  window.addEventListener("saltSettingsChanged", () => scheduleCompanionV4());
   scheduleCompanionV4();
 })();

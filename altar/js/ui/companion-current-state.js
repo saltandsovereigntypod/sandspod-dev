@@ -67,6 +67,7 @@
 
     const raw = String(object?.dataset.apothecaryType || object?.dataset.type || "entry").toLowerCase();
     if (raw.includes("spell jar") || raw.includes("spell-jar")) return "spell-jar";
+    if (raw.includes("herb mix") || raw.includes("herb-mix")) return "herb-blend";
     if (raw.includes("herb blend") || raw.includes("herb-blend")) return "herb-blend";
     if (raw.includes("candle")) return "candle";
     if (raw.includes("crystal")) return "crystal";
@@ -148,12 +149,12 @@
 
   function getRows(identity, object) {
     const rows = [];
-    const data = object?.dataset || {};
     const livingState = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
     const apothecary = getApothecary(object) || {};
     const hasLifecycle = Boolean(
       document.querySelector(".altar-companion-panel [data-companion-lifecycle]")
     );
+    const ritualName = livingState?.currentRitualName || "";
 
     const add = (label, value, formatter = null) => {
       if (value === "" || value === null || value === undefined) return;
@@ -166,32 +167,37 @@
       getDressingRows(object).forEach((row) => rows.push(row));
       add("Burning Time", getBurnTime(object), formatDuration);
       add("Last Burned", livingState?.candle?.lastLitAt, formatDateTime);
-      add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
+      add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (identity === "herb") {
-      add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
+      add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (identity === "crystal") {
-      add("Last Cleansed", firstValue(data.lastCleansedAt, data.lastCleansed, apothecary.lastCleansedAt), formatDate);
-      add("Last Charged", firstValue(data.lastChargedAt, data.lastCharged, apothecary.lastChargedAt), formatDate);
-      add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
+      add("Last Cleansed", livingState?.crystal?.lastCleansedAt, formatDate);
+      add("Last Charged", livingState?.crystal?.lastChargedAt, formatDate);
+      add("Dedication", livingState?.crystal?.dedication);
+      add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (identity === "deity") {
-      add("Reason for Presence", firstValue(data.reasonForPresence, data.altarPurpose, data.devotionalPurpose));
-      add("Offering Status", firstValue(data.offeringStatus, data.currentOffering), humanize);
-      add("Last Offering", firstValue(data.lastOfferingAt, data.lastOffering), formatDate);
-      add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
+      add("Reason for Presence", livingState?.deity?.reasonForPresence);
+      add("Offering Status", livingState?.deity?.offeringStatus, humanize);
+      add("Last Offering", livingState?.deity?.lastOfferingAt, formatDate);
+      add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (CRAFTED_IDENTITIES.has(identity)) {
+      const craftedState = livingState?.apothecary || {};
       if (!hasLifecycle) {
-        add("Status", firstValue(data.status, apothecary.status, "Active"), humanize);
-        add("Created", firstValue(data.createdAt, data.creationDate, apothecary.createdAt), formatDate);
-        add("Remaining", firstValue(data.remainingAmount, data.amountRemaining, apothecary.remainingAmount));
-        add("Next Tending", firstValue(data.nextTendingAt, data.nextTending, apothecary.nextTendingAt), formatDate);
-        add("Review / Expiration", firstValue(data.expiresAt, data.expirationDate, data.reviewAt, data.reviewDate), formatDate);
+        add("Status", craftedState.status, humanize);
+        add("Created", firstValue(livingState?.createdAt, apothecary.createdAt), formatDate);
+        add("Remaining", firstValue(craftedState.remainingAmount, apothecary.remainingAmount));
+        add("Next Tending", firstValue(craftedState.nextTendingAt, apothecary.nextTendingAt), formatDate);
+        add("Review / Expiration", craftedState.reviewAt, formatDate);
       }
-      add("Activation", firstValue(data.activationState, apothecary.activationState), humanize);
-      add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
+      add("Activation", firstValue(craftedState.activationState, apothecary.activationState), humanize);
+      add("Current Ritual", ritualName);
+      add("Group", getGroupName(object));
+    } else {
+      add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     }
 
@@ -199,10 +205,12 @@
   }
 
   function renderRow(row) {
-    return `<div class="companion-v4-state-row" data-companion-expanded-state-row><strong>${escapeHtml(row.label)}</strong><span>${escapeHtml(row.value)}</span></div>`;
+    const key = String(row.label || "state").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    return `<div class="companion-v4-state-row" data-companion-expanded-state-row data-companion-state-key="${key}"><strong>${escapeHtml(row.label)}</strong><span>${escapeHtml(row.value)}</span></div>`;
   }
 
   function getSelectedObject(object = null) {
+    if (object === false) return null;
     if (object) return object;
     return typeof selectedObject !== "undefined" ? selectedObject : null;
   }
@@ -246,11 +254,16 @@
   window.renderCompanionCurrentState = renderCurrentState;
   window.scheduleCompanionCurrentState = scheduleCurrentState;
 
-  document.addEventListener("companion:refreshed", (event) => scheduleCurrentState(event.detail?.object || null));
-  window.addEventListener("saltSettingsChanged", () => scheduleCurrentState());
+  document.addEventListener("companion:refreshed", (event) => {
+    scheduleCurrentState(event.detail?.entityOnly ? false : event.detail?.object || null);
+  });
   window.setInterval(() => {
     const target = getSelectedObject();
-    if (target?.dataset.type === "candle" && target.dataset.lit === "true") renderCurrentState(target);
+    if (target?.dataset.type !== "candle" || target.dataset.lit !== "true") return;
+    const value = document.querySelector(
+      '[data-companion-v4-current-state-body] [data-companion-state-key="burning-time"] span'
+    );
+    if (value) value.textContent = formatDuration(getBurnTime(target));
   }, 1000);
   scheduleCurrentState();
 })();
