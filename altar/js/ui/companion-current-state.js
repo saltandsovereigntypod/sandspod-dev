@@ -9,9 +9,9 @@
     "poppet", "powder", "tea", "herb-blend"
   ]);
 
-  let observedBody = null;
-  let observer = null;
   let isRendering = false;
+  let renderFrame = null;
+  let pendingObject = null;
 
   function escapeHtml(value = "") {
     return String(value ?? "")
@@ -88,17 +88,9 @@
       : null;
   }
 
-  function parseDressings(object) {
-    try {
-      const parsed = JSON.parse(object?.dataset.dressings || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
   function getDressingRows(object) {
-    const dressings = parseDressings(object);
+    const state = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
+    const dressings = Array.isArray(state?.candle?.dressings) ? state.candle.dressings : [];
     const herbs = [];
     const oils = [];
 
@@ -123,15 +115,17 @@
   }
 
   function getBurnTime(object) {
-    const saved = Number(object?.dataset.accumulatedBurnMs || 0);
+    const state = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
+    const saved = Number(state?.candle?.totalBurnMs || 0);
     if (object?.dataset.lit !== "true") return saved;
-    const started = new Date(object.dataset.currentBurnStartedAt || "").getTime();
+    const started = new Date(state?.candle?.currentBurnStartedAt || "").getTime();
     return saved + (Number.isFinite(started) ? Math.max(0, Date.now() - started) : 0);
   }
 
   function getRows(identity, object) {
     const rows = [];
     const data = object?.dataset || {};
+    const livingState = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
     const apothecary = getApothecary(object) || {};
 
     const add = (label, value, formatter = null) => {
@@ -145,7 +139,7 @@
       add("Type", firstValue(data.candleType, data.form, data.candleStyle), humanize);
       getDressingRows(object).forEach((row) => rows.push(row));
       add("Burning Time", getBurnTime(object), formatDuration);
-      add("Last Lit", firstValue(data.lastLitAt, data.lastLit), formatDateTime);
+      add("Last Burned", livingState?.candle?.lastLitAt, formatDateTime);
       add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
       add("Group", getGroupName(object));
     } else if (identity === "herb") {
@@ -192,7 +186,6 @@
     const panel = document.querySelector(".altar-companion-panel");
     const body = panel?.querySelector("[data-companion-v4-current-state-body]");
     if (!panel || !body) {
-      observeCurrentStateBody();
       return false;
     }
 
@@ -206,30 +199,21 @@
       if (rows.length) body.insertAdjacentHTML("afterbegin", rows.map(renderRow).join(""));
       const section = panel.querySelector("[data-companion-v4-current-state]");
       if (!rows.length && !lifecycle) section?.remove();
-      observeCurrentStateBody();
       return true;
     } finally {
       isRendering = false;
     }
   }
 
-  function observeCurrentStateBody() {
-    const nextBody = document.querySelector("[data-companion-v4-current-state-body]");
-    if (!nextBody || nextBody === observedBody) return;
-    observer?.disconnect();
-    observedBody = nextBody;
-    observer = new MutationObserver(() => {
-      if (isRendering) return;
-      queueMicrotask(() => renderCurrentState());
-    });
-    observer.observe(nextBody, { childList: true, subtree: false });
-  }
-
   function scheduleCurrentState(object = null) {
-    queueMicrotask(() => renderCurrentState(object));
-    requestAnimationFrame(() => renderCurrentState(object));
-    window.setTimeout(() => renderCurrentState(object), 160);
-    window.setTimeout(() => renderCurrentState(object), 560);
+    pendingObject = object;
+    if (renderFrame) return;
+    renderFrame = requestAnimationFrame(() => {
+      renderFrame = null;
+      const target = pendingObject;
+      pendingObject = null;
+      renderCurrentState(target);
+    });
   }
 
   window.getCompanionCurrentStateRows = getRows;
@@ -241,6 +225,6 @@
   window.setInterval(() => {
     const target = getSelectedObject();
     if (target?.dataset.type === "candle" && target.dataset.lit === "true") renderCurrentState(target);
-  }, 60000);
+  }, 1000);
   scheduleCurrentState();
 })();
