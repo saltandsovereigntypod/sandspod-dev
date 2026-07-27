@@ -17,7 +17,7 @@
     inset: auto;
     z-index: auto;
     display: grid;
-    grid-template-columns: repeat(7, minmax(2.5rem, 1fr));
+    grid-template-columns: 1fr;
     order: -1;
     width: 100%;
     max-width: none;
@@ -45,6 +45,24 @@
     font-size: 0.92rem;
   }
 
+  .altar-object-actions-visible {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .altar-object-actions-more-wrap {
+    margin-left: 0;
+  }
+
+  .altar-object-actions-more-wrap > button {
+    width: 100% !important;
+  }
+
+  .altar-object-actions-overflow {
+    left: 0;
+    right: auto;
+    grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
+  }
+
   .altar-action-bar .altar-toolbar.is-in-action-bar .altar-toolbar-notes {
     grid-column: 1 / -1;
     padding: 0.35rem 0.4rem 0;
@@ -68,7 +86,7 @@
 
 @media (max-width: 560px) and (orientation: portrait) {
   .altar-action-bar .altar-toolbar.is-in-action-bar {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .altar-action-bar > .altar-action-group {
@@ -125,6 +143,6 @@
   }
 
   .altar-action-bar .altar-toolbar.is-in-action-bar {
-    grid-template-columns: repeat(7, minmax(2.35rem, 1fr));
+    grid-template-columns: 1fr;
   }
 }

@@ -15,6 +15,13 @@ function saveDressings(candle, dressings) {
   syncLivingCandleDressings(candle, dressings);
 }
 
+function clearCandleDressings(candle) {
+  if (!candle || candle.dataset.type !== "candle") return;
+  saveDressings(candle, []);
+  updateCandleDressingVisuals(candle);
+  if (typeof updateToolbarNotes === "function") updateToolbarNotes(candle);
+}
+
 function formatDressingName(dressing) {
   const herb = dressing.herb || "Unknown";
   const form = dressing.form || "";

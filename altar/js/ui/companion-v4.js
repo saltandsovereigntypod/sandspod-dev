@@ -10,13 +10,6 @@
     "spell-jar", "oil", "incense", "sachet", "spray",
     "poppet", "powder", "tea", "herb-blend"
   ]);
-  const ACTION_SELECTOR = [
-    "[data-living-state-practice]",
-    "[data-apothecary-edit]",
-    "[data-library-edit-section]",
-    "[data-manage-library-relationships]",
-    "[data-open-living-history]"
-  ].join(",");
 
   function escapeHtml(value = "") {
     return String(value ?? "")
@@ -449,52 +442,6 @@
     }
   }
 
-  function createActionsDropdown() {
-    const details = document.createElement("details");
-    details.className = "companion-v4-actions";
-    details.setAttribute("data-companion-v4-actions", "");
-    details.innerHTML = `
-      <summary>Actions</summary>
-      <div class="companion-v4-actions-body" data-companion-v4-actions-body></div>
-    `;
-    return details;
-  }
-
-  function normalizeActionLabels(panel) {
-    const apothecaryEdit = panel.querySelector("[data-apothecary-edit]");
-    if (apothecaryEdit) apothecaryEdit.textContent = "Edit Apothecary Item";
-
-    const libraryEdit = panel.querySelector('[data-library-edit-section="myPractice"]');
-    if (libraryEdit) libraryEdit.textContent = "Edit Library Entry";
-  }
-
-  function ensureActionsDropdown(panel) {
-    const page = panel.querySelector("[data-companion-content] .companion-v3-page");
-    if (!page) return;
-
-    normalizeActionLabels(panel);
-
-    let details = page.querySelector("[data-companion-v4-actions]");
-    if (!details) {
-      details = createActionsDropdown();
-      page.appendChild(details);
-    }
-
-    const body = details.querySelector("[data-companion-v4-actions-body]");
-    if (!body) return;
-
-    const actionButtons = Array.from(page.querySelectorAll(ACTION_SELECTOR))
-      .filter((button) => !body.contains(button));
-
-    actionButtons.forEach((button) => body.appendChild(button));
-
-    page.querySelectorAll(".companion-v3-actions, .companion-v3-secondary-actions").forEach((container) => {
-      if (!container.querySelector("button")) container.remove();
-    });
-
-    if (!body.querySelector("button")) details.remove();
-  }
-
   function applyCompanionV4(object = null) {
     installStyles();
 
@@ -509,7 +456,6 @@
       : object || (typeof selectedObject !== "undefined" ? selectedObject : null);
     ensureCurrentState(panel, target);
     ensureRecipeSection(panel, target);
-    ensureActionsDropdown(panel);
     return true;
   }
 

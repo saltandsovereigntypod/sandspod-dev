@@ -184,8 +184,8 @@ function groupSelectedRitualItems() {
   showAltarToast("Group created");
 }
 
-function ungroupCurrentItems() {
-  const activeGroup = chooseActiveGroup();
+function ungroupCurrentItems(groupId = "") {
+  const activeGroup = groupId ? getGroupById(groupId) : chooseActiveGroup();
   if (!activeGroup) return;
 
   getGroupObjects(activeGroup.id).forEach((object) => {

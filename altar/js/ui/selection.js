@@ -241,15 +241,6 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
       ${renderConnectedEntityList(entity.id, { allowedRelations: ["contains"] })}
       <div data-library-activity-timeline="${entity.id}"></div>
 
-      <div class="altar-info-card-section altar-info-card-actions">
-        <button type="button" data-open-living-history="${entity.id}">
-          View Full Living History
-        </button>
-
-        <button type="button" data-manage-library-relationships="${entity.id}">
-          Manage Relationships
-        </button>
-      </div>
     </div>
   `;
 }
@@ -527,12 +518,6 @@ function renderLivingStateMarkup(instance, events = []) {
           `
           : ""
       }
-
-      <div class="altar-info-card-section altar-info-card-actions">
-        <button type="button" class="living-state-practice-button" data-living-state-practice>
-          ✨ Begin Today's Practice
-        </button>
-      </div>
 
       ${displaySettings.showRecentActivity ? renderLivingStateRecentActivity(events) : ""}
     </div>
@@ -1028,10 +1013,6 @@ function buildObjectInfoMarkup(object, mode = "compact") {
       }
     </div>
 
-    <div class="altar-info-card-section altar-info-card-actions">
-      <button type="button" data-apothecary-edit="${apothecaryDetails.itemId}">Edit</button>
-      <button type="button" data-apothecary-delete="${apothecaryDetails.itemId}">Delete</button>
-    </div>
   `
   : "";
 
@@ -1095,11 +1076,6 @@ function buildObjectInfoMarkup(object, mode = "compact") {
                   : `<p class="altar-info-empty">Nothing added yet.</p>`
               }
 
-              ${
-                entity?.id
-                  ? `<button type="button" class="altar-companion-edit-button" data-library-edit-section="myPractice" data-library-entity-id="${entity.id}">Edit My Practice</button>`
-                  : ""
-              }
             </div>
           `
           : ""
@@ -1257,6 +1233,7 @@ function selectObject(object) {
   toolbar.hidden = false;
 
   updateToolbarNotes(selectedObject);
+  if (typeof renderSelectedObjectActions === "function") renderSelectedObjectActions(selectedObject);
   showAltarInfoCard(selectedObject);
   updateSelectedGroupVisuals(selectedObject);
 }
@@ -1270,6 +1247,7 @@ function deselectObject() {
   toolbar.hidden = true;
 
   updateToolbarNotes(null);
+  if (typeof renderSelectedObjectActions === "function") renderSelectedObjectActions(null);
   hideAltarInfoCard();
   updateSelectedGroupVisuals(null);
 }

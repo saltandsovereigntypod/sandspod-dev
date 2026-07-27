@@ -581,55 +581,6 @@
     );
   }
 
-  function renderActions(object, entity, instance) {
-    const primaryActions = [];
-    const secondaryActions = [];
-
-    if (
-      object?.dataset.instanceId &&
-      instance &&
-      !["retired", "archived"].includes(instance.status) &&
-      typeof openLivingStatePracticeMenu === "function"
-    ) {
-      primaryActions.push(`
-        <button type="button" class="companion-v3-primary-action" data-living-state-practice>
-          <span aria-hidden="true">✦</span> Begin Today’s Practice
-        </button>
-      `);
-    }
-
-    const apothecary = object && typeof getApothecaryDetailsForObject === "function"
-      ? getApothecaryDetailsForObject(object)
-      : null;
-
-    if (apothecary?.itemId && typeof openCreateApothecaryModal === "function") {
-      secondaryActions.push(`<button type="button" data-apothecary-edit="${escapeCompanionHtml(apothecary.itemId)}">Edit Selected Item</button>`);
-    }
-
-    if (entity?.id && typeof openLibrarySectionEditor === "function") {
-      secondaryActions.push(`
-        <button type="button" class="altar-companion-edit-button" data-library-edit-section="myPractice" data-library-entity-id="${escapeCompanionHtml(entity.id)}">
-          Edit My Practice Entry
-        </button>
-      `);
-    }
-    if (entity?.id && typeof openRelationshipManagerModal === "function") {
-      secondaryActions.push(`<button type="button" data-manage-library-relationships="${escapeCompanionHtml(entity.id)}">Manage Relationships</button>`);
-    }
-    if (entity?.id && typeof openLivingHistoryModal === "function") {
-      secondaryActions.push(`<button type="button" data-open-living-history="${escapeCompanionHtml(entity.id)}">View Full History</button>`);
-    }
-
-    if (!primaryActions.length && !secondaryActions.length) return "";
-
-    return `
-      <footer class="companion-v3-actions">
-        ${primaryActions.join("")}
-        ${secondaryActions.length ? `<div class="companion-v3-secondary-actions">${secondaryActions.join("")}</div>` : ""}
-      </footer>
-    `;
-  }
-
   function renderKnowledge(entity, settings) {
     if (!entity) return "";
 
@@ -734,7 +685,6 @@
           ${renderRelationships(entity)}
           ${renderHistory(object, entity, events, entityEvents)}
         </div>
-        ${renderActions(object, entity, instance)}
       </div>
     `;
 
