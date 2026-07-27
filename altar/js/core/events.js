@@ -559,9 +559,11 @@ altarActionBar.addEventListener("click", (event) => {
           candle.dataset.lit = "true";
           candle.classList.add("is-lit");
           startFlame(candle);
+          startLivingCandleBurn(candle);
         });
 
       renderLighting();
+      saveWorkingAltarDraft();
       return;
 
     case "extinguish-all":
@@ -575,6 +577,7 @@ altarActionBar.addEventListener("click", (event) => {
 
           stopFlame(candle);
           extinguishFlame(candle);
+          stopLivingCandleBurn(candle);
 
           candle.querySelectorAll(".candle-flame, .candle-glow, .flame-glow").forEach((effect) => {
             effect.remove();
@@ -582,6 +585,7 @@ altarActionBar.addEventListener("click", (event) => {
         });
 
       renderLighting();
+      saveWorkingAltarDraft();
       return;
   }
 });

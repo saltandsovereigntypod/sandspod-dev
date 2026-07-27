@@ -12,6 +12,7 @@
   }
 
   function safeParse(value, fallback) {
+    if (value && typeof value === "object") return value;
     try {
       const parsed = JSON.parse(value);
       return parsed && typeof parsed === "object" ? parsed : fallback;
@@ -45,6 +46,7 @@
         totalBurnMs: 0,
         currentBurnStartedAt: "",
         lastLitAt: "",
+        burnHistory: [],
         dressings: []
       },
       crystal: {
@@ -88,8 +90,17 @@
       safeParse(object.dataset.livingState || "", {})
     );
 
-    const existingDressings = safeParse(object.dataset.dressings || "[]", []);
-    if (Array.isArray(existingDressings)) state.candle.dressings = existingDressings;
+    // Import legacy candle fields once when loading an altar saved before
+    // Living Object State. Once livingState exists it is the sole authority.
+    if (!object.dataset.livingState) {
+      const existingDressings = safeParse(object.dataset.dressings || "[]", []);
+      if (Array.isArray(existingDressings)) state.candle.dressings = existingDressings;
+      state.candle.totalBurnMs = Math.max(0, Number(object.dataset.accumulatedBurnMs) || 0);
+      state.candle.currentBurnStartedAt = object.dataset.currentBurnStartedAt || "";
+      state.candle.lastLitAt = object.dataset.lastLitAt || "";
+    }
+    if (!Array.isArray(state.candle.burnHistory)) state.candle.burnHistory = [];
+    if (!Array.isArray(state.candle.dressings)) state.candle.dressings = [];
     return state;
   }
 
@@ -101,11 +112,6 @@
     object.dataset.currentRitualId = state.currentRitualId || "";
     object.dataset.currentRitualName = state.currentRitualName || "";
     object.dataset.status = state.lifecycle?.status || "active";
-
-    object.dataset.accumulatedBurnMs = String(state.candle?.totalBurnMs || 0);
-    object.dataset.currentBurnStartedAt = state.candle?.currentBurnStartedAt || "";
-    object.dataset.lastLitAt = state.candle?.lastLitAt || "";
-    object.dataset.dressings = JSON.stringify(state.candle?.dressings || []);
 
     object.dataset.lastChargedAt = state.crystal?.lastChargedAt || "";
     object.dataset.lastCleansedAt = state.crystal?.lastCleansedAt || "";
@@ -131,17 +137,20 @@
       : nowIso();
 
     object.dataset.livingState = JSON.stringify(nextState);
+    delete object.dataset.accumulatedBurnMs;
+    delete object.dataset.currentBurnStartedAt;
+    delete object.dataset.lastLitAt;
+    delete object.dataset.dressings;
     mirrorStateToDataset(object, nextState);
 
     if (!options.silent) {
       if (typeof saveWorkingAltarDraft === "function") saveWorkingAltarDraft();
       if (typeof scheduleCompanionV4 === "function") scheduleCompanionV4(object);
       if (typeof scheduleCompanionCurrentState === "function") scheduleCompanionCurrentState(object);
+      document.dispatchEvent(new CustomEvent("living-object-state:changed", {
+        detail: { object, state: nextState }
+      }));
     }
-
-    document.dispatchEvent(new CustomEvent("living-object-state:changed", {
-      detail: { object, state: nextState }
-    }));
 
     return nextState;
   }
@@ -158,13 +167,15 @@
     if (!object?.classList?.contains("altar-object")) return null;
 
     const state = getLivingState(object);
+    let repaired = false;
     if (object.dataset.type === "candle" && object.dataset.lit === "true" && !state.candle.currentBurnStartedAt) {
       const time = nowIso();
       state.candle.currentBurnStartedAt = time;
       state.candle.lastLitAt = state.candle.lastLitAt || time;
+      repaired = true;
     }
 
-    if (!object.dataset.livingState) {
+    if (!object.dataset.livingState || repaired) {
       return saveLivingState(object, state, {
         silent: true,
         preserveUpdatedAt: true,
@@ -178,9 +189,10 @@
 
   function startCandleBurn(object) {
     if (!object || object.dataset.type !== "candle") return null;
+    const current = getLivingState(object);
+    if (current?.candle?.currentBurnStartedAt) return current;
 
     return updateLivingState(object, (state) => {
-      if (state.candle.currentBurnStartedAt) return state;
       const time = nowIso();
       state.lastUsedAt = time;
       state.candle.lastLitAt = time;
@@ -191,12 +203,20 @@
 
   function stopCandleBurn(object) {
     if (!object || object.dataset.type !== "candle") return null;
+    const current = getLivingState(object);
+    if (!Number.isFinite(Date.parse(current?.candle?.currentBurnStartedAt || ""))) return current;
 
     return updateLivingState(object, (state) => {
       const startedAt = Date.parse(state.candle.currentBurnStartedAt || "");
       if (Number.isFinite(startedAt)) {
-        state.candle.totalBurnMs = Math.max(0, Number(state.candle.totalBurnMs) || 0)
-          + Math.max(0, Date.now() - startedAt);
+        const endedAt = nowIso();
+        const durationMs = Math.max(0, Date.parse(endedAt) - startedAt);
+        state.candle.totalBurnMs = Math.max(0, Number(state.candle.totalBurnMs) || 0) + durationMs;
+        state.candle.burnHistory.push({
+          startedAt: state.candle.currentBurnStartedAt,
+          endedAt,
+          durationMs
+        });
       }
       state.lastUsedAt = nowIso();
       state.candle.currentBurnStartedAt = "";
@@ -206,11 +226,12 @@
 
   function syncCandleDressings(object, dressings = null) {
     if (!object || object.dataset.type !== "candle") return null;
+    const nextDressings = Array.isArray(dressings) ? dressings : [];
+    const current = getLivingState(object);
+    if (JSON.stringify(current?.candle?.dressings || []) === JSON.stringify(nextDressings)) return current;
 
     return updateLivingState(object, (state) => {
-      state.candle.dressings = Array.isArray(dressings)
-        ? dressings
-        : safeParse(object.dataset.dressings || "[]", []);
+      state.candle.dressings = nextDressings;
       state.lastUsedAt = nowIso();
       return state;
     });
@@ -253,41 +274,6 @@
     });
   }
 
-  function wrapStorageFunctions() {
-    if (typeof window.createAltarSnapshot === "function" && !window.createAltarSnapshot.__livingStateWrapped) {
-      const originalCreateSnapshot = window.createAltarSnapshot;
-      const wrappedCreateSnapshot = function wrappedCreateSnapshot() {
-        const objects = Array.from(document.querySelectorAll(".altar-object"));
-        objects.forEach((object) => initializeObject(object));
-        const snapshot = originalCreateSnapshot.apply(this, arguments);
-        if (!snapshot?.objects) return snapshot;
-
-        snapshot.objects.forEach((savedObject, index) => {
-          const object = objects[index];
-          savedObject.livingState = object?.dataset.livingState || "";
-          savedObject.createdAt = object?.dataset.createdAt || "";
-        });
-        return snapshot;
-      };
-      wrappedCreateSnapshot.__livingStateWrapped = true;
-      window.createAltarSnapshot = wrappedCreateSnapshot;
-    }
-
-    if (typeof window.createSavedObject === "function" && !window.createSavedObject.__livingStateWrapped) {
-      const originalCreateSavedObject = window.createSavedObject;
-      const wrappedCreateSavedObject = function wrappedCreateSavedObject(savedObject) {
-        const object = originalCreateSavedObject.apply(this, arguments);
-        if (!object) return object;
-        object.dataset.livingState = savedObject?.livingState || "";
-        object.dataset.createdAt = savedObject?.createdAt || "";
-        initializeObject(object, { preserveUpdatedAt: true });
-        return object;
-      };
-      wrappedCreateSavedObject.__livingStateWrapped = true;
-      window.createSavedObject = wrappedCreateSavedObject;
-    }
-  }
-
   function initializeExistingObjects() {
     document.querySelectorAll(".altar-object").forEach((object) => initializeObject(object));
   }
@@ -318,6 +304,5 @@
   window.setLivingDeityState = setDeityState;
   window.setLivingApothecaryState = setApothecaryState;
 
-  wrapStorageFunctions();
   initializeExistingObjects();
 })();

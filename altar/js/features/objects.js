@@ -64,7 +64,7 @@ function captureAltarSnapshot() {
       locked: object.dataset.locked || "false",
       glowing: object.dataset.glowing || "false",
       lit: object.dataset.lit || "false",
-      dressings: object.dataset.dressings || "[]",
+      livingState: object.dataset.livingState || "",
       plaqueText: object.dataset.plaqueText || "",
       altarObjectId: object.dataset.altarObjectId || "",
       groupId: object.dataset.groupId || "",
@@ -159,6 +159,7 @@ function undoAltarChange() {
   }
 
   restoreAltarSnapshot(previousSnapshot);
+  saveWorkingAltarDraft();
   showAltarToast("Undone");
 }
 
@@ -176,6 +177,7 @@ function redoAltarChange() {
   }
 
   restoreAltarSnapshot(nextSnapshot);
+  saveWorkingAltarDraft();
   showAltarToast("Redone");
 }
 
@@ -519,8 +521,6 @@ function placeObject(options) {
   object.dataset.locked = "false";
   object.dataset.glowing = "false";
   object.dataset.lit = "false";
-  object.dataset.dressings = "[]";
-
   highestLayer += 1;
   object.style.zIndex = highestLayer;
 
@@ -581,6 +581,20 @@ function duplicateObject(object) {
    pushAltarUndoSnapshot();
 
   const clone = object.cloneNode(true);
+
+  clone.dataset.altarObjectId = crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Date.now() + Math.random());
+
+  if (typeof getLivingObjectState === "function" && typeof saveLivingObjectState === "function") {
+    const clonedState = getLivingObjectState(clone);
+    if (clonedState?.candle?.currentBurnStartedAt) {
+      const time = new Date().toISOString();
+      clonedState.candle.currentBurnStartedAt = time;
+      clonedState.candle.lastLitAt = time;
+    }
+    saveLivingObjectState(clone, clonedState, { silent: true, preserveUpdatedAt: true });
+  }
 
   highestLayer += 1;
 
