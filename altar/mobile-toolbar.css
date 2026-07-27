@@ -17,7 +17,7 @@
     inset: auto;
     z-index: auto;
     display: grid;
-    grid-template-columns: repeat(7, minmax(2.5rem, 1fr));
+    grid-template-columns: 1fr;
     order: -1;
     width: 100%;
     max-width: none;
@@ -43,7 +43,51 @@
     aspect-ratio: auto;
     border-radius: 0.75rem;
     font-size: 0.92rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
+
+  .altar-object-actions-visible > button,
+  .altar-object-actions-more-wrap > button {
+    flex-direction: column;
+    gap: 0.2rem !important;
+    min-height: 3.5rem !important;
+    line-height: 1.05 !important;
+    text-align: center;
+  }
+
+  .altar-object-actions-visible {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .altar-object-actions-more-wrap {
+    margin-left: 0;
+  }
+
+  .altar-object-actions-more-wrap > button {
+    width: 100% !important;
+  }
+
+  .altar-object-actions-overflow {
+    position: fixed;
+    left: max(0.75rem, env(safe-area-inset-left));
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    z-index: 10002;
+    grid-template-columns: 1fr;
+    width: auto;
+    max-width: none;
+    max-height: min(70vh, 32rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.75rem;
+  }
+
+  .altar-object-actions-overflow-title { display: block; padding: .25rem .25rem .55rem; color: var(--gold); }
+  .altar-object-actions-overflow button { flex-direction: row; justify-content: flex-start !important; min-height: 3rem !important; }
+  .altar-object-actions-backdrop { position: fixed !important; inset: 0; z-index: 10001; width: 100vw !important; height: 100vh; min-width: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: rgba(0,0,0,.62) !important; }
+  body.altar-action-sheet-open { overflow: hidden; }
 
   .altar-action-bar .altar-toolbar.is-in-action-bar .altar-toolbar-notes {
     grid-column: 1 / -1;
@@ -68,7 +112,7 @@
 
 @media (max-width: 560px) and (orientation: portrait) {
   .altar-action-bar .altar-toolbar.is-in-action-bar {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .altar-action-bar > .altar-action-group {
@@ -125,6 +169,6 @@
   }
 
   .altar-action-bar .altar-toolbar.is-in-action-bar {
-    grid-template-columns: repeat(7, minmax(2.35rem, 1fr));
+    grid-template-columns: 1fr;
   }
 }

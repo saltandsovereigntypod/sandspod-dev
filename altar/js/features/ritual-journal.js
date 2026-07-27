@@ -7,6 +7,19 @@ let pendingRitualJournalSession = null;
 let pendingRitualJournalSteps = [];
 let pendingRitualJournalMode = "completed_session";
 
+function getRitualJournalDressings(object = {}) {
+  try {
+    if (object.livingState) {
+      const state = JSON.parse(object.livingState);
+      return JSON.stringify(Array.isArray(state?.candle?.dressings) ? state.candle.dressings : []);
+    }
+    const legacyDressings = JSON.parse(object.dressings || "[]");
+    return JSON.stringify(Array.isArray(legacyDressings) ? legacyDressings : []);
+  } catch {
+    return "[]";
+  }
+}
+
 function getRitualJournalObjects(snapshot = {}) {
   const seen = new Set();
   return (Array.isArray(snapshot.objects) ? snapshot.objects : [])
@@ -17,7 +30,7 @@ function getRitualJournalObjects(snapshot = {}) {
       instanceId: object.instanceId || "",
       apothecaryItemId: object.apothecaryItemId || "",
       color: object.color || "",
-      dressings: object.dressings || "[]"
+      dressings: getRitualJournalDressings(object)
     }))
     .filter((object) => {
       const key = `${object.type}|${object.label}|${object.entityId}|${object.instanceId}`;
