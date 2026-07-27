@@ -512,10 +512,14 @@
   }
 
   function scheduleCompanionV4(object = null) {
-    queueMicrotask(() => applyCompanionV4(object));
-    requestAnimationFrame(() => applyCompanionV4(object));
-    window.setTimeout(() => applyCompanionV4(object), 120);
-    window.setTimeout(() => applyCompanionV4(object), 500);
+    scheduleCompanionV4.pendingObject = object;
+    if (scheduleCompanionV4.frame) return;
+    scheduleCompanionV4.frame = requestAnimationFrame(() => {
+      scheduleCompanionV4.frame = null;
+      const target = scheduleCompanionV4.pendingObject;
+      scheduleCompanionV4.pendingObject = null;
+      applyCompanionV4(target);
+    });
   }
 
   window.applyCompanionV4 = applyCompanionV4;

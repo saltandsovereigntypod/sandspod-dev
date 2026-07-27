@@ -180,6 +180,7 @@ function groupSelectedRitualItems() {
 
   syncGroupObjectClasses();
   updateGroupIndicator();
+  saveWorkingAltarDraft();
   showAltarToast("Group created");
 }
 
@@ -196,6 +197,7 @@ function ungroupCurrentItems() {
 
   syncGroupObjectClasses();
   updateGroupIndicator();
+  saveWorkingAltarDraft();
   showAltarToast("Group removed");
 }
 
@@ -207,7 +209,9 @@ function altarObjectToRitualItem(object) {
     herb: object.dataset.herb || "",
     form: object.dataset.form || "",
     color: object.dataset.color || "",
-    dressings: object.dataset.dressings || "[]"
+    dressings: JSON.stringify(
+      typeof getDressings === "function" ? getDressings(object) : []
+    )
   };
 }
 
