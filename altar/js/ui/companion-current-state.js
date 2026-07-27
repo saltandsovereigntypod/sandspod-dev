@@ -9,9 +9,9 @@
     "poppet", "powder", "tea", "herb-blend"
   ]);
 
-  let observedBody = null;
-  let observer = null;
   let isRendering = false;
+  let renderFrame = null;
+  let pendingObject = null;
 
   function escapeHtml(value = "") {
     return String(value ?? "")
@@ -88,31 +88,19 @@
       : null;
   }
 
-  function parseDressings(object) {
-    try {
-      const parsed = JSON.parse(object?.dataset.dressings || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
   function getDressingRows(object) {
-    const dressings = parseDressings(object);
-    const herbs = [];
-    const oils = [];
+    const state = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
+    const dressings = Array.isArray(state?.candle?.dressings) ? state.candle.dressings : [];
+    const labels = dressings
+      .map((dressing) => {
+        if (typeof formatDressingName === "function") return formatDressingName(dressing);
+        return humanize(dressing.label || dressing.herb || dressing.name || dressing.type || "");
+      })
+      .filter(Boolean);
 
-    dressings.forEach((dressing) => {
-      const label = dressing.label || dressing.herb || dressing.name || "";
-      if (!label) return;
-      if (dressing.type === "oil") oils.push(humanize(label));
-      else if (dressing.type === "herb") herbs.push(humanize(dressing.herb || label));
-    });
-
-    const rows = [];
-    if (herbs.length) rows.push({ label: "Herbs", value: [...new Set(herbs)].join(", ") });
-    if (oils.length) rows.push({ label: "Oil", value: [...new Set(oils)].join(", ") });
-    return rows;
+    return labels.length
+      ? [{ label: "Dressed With", value: [...new Set(labels)].join(", ") }]
+      : [];
   }
 
   function getGroupName(object) {
@@ -123,16 +111,21 @@
   }
 
   function getBurnTime(object) {
-    const saved = Number(object?.dataset.accumulatedBurnMs || 0);
+    const state = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
+    const saved = Number(state?.candle?.totalBurnMs || 0);
     if (object?.dataset.lit !== "true") return saved;
-    const started = new Date(object.dataset.currentBurnStartedAt || "").getTime();
+    const started = new Date(state?.candle?.currentBurnStartedAt || "").getTime();
     return saved + (Number.isFinite(started) ? Math.max(0, Date.now() - started) : 0);
   }
 
   function getRows(identity, object) {
     const rows = [];
     const data = object?.dataset || {};
+    const livingState = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
     const apothecary = getApothecary(object) || {};
+    const hasLifecycle = Boolean(
+      document.querySelector(".altar-companion-panel [data-companion-lifecycle]")
+    );
 
     const add = (label, value, formatter = null) => {
       if (value === "" || value === null || value === undefined) return;
@@ -142,18 +135,15 @@
     };
 
     if (identity === "candle") {
-      add("Type", firstValue(data.candleType, data.form, data.candleStyle), humanize);
       getDressingRows(object).forEach((row) => rows.push(row));
       add("Burning Time", getBurnTime(object), formatDuration);
-      add("Last Lit", firstValue(data.lastLitAt, data.lastLit), formatDateTime);
+      add("Last Burned", livingState?.candle?.lastLitAt, formatDateTime);
       add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
       add("Group", getGroupName(object));
     } else if (identity === "herb") {
-      add("Form", firstValue(data.form, apothecary.form), humanize);
       add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
       add("Group", getGroupName(object));
     } else if (identity === "crystal") {
-      add("Form", firstValue(data.form, data.crystalForm, apothecary.form), humanize);
       add("Last Cleansed", firstValue(data.lastCleansedAt, data.lastCleansed, apothecary.lastCleansedAt), formatDate);
       add("Last Charged", firstValue(data.lastChargedAt, data.lastCharged, apothecary.lastChargedAt), formatDate);
       add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
@@ -165,11 +155,13 @@
       add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
       add("Group", getGroupName(object));
     } else if (CRAFTED_IDENTITIES.has(identity)) {
-      add("Status", firstValue(data.status, apothecary.status, "Active"), humanize);
-      add("Created", firstValue(data.createdAt, data.creationDate, apothecary.createdAt), formatDate);
-      add("Remaining", firstValue(data.remainingAmount, data.amountRemaining, apothecary.remainingAmount));
-      add("Next Tending", firstValue(data.nextTendingAt, data.nextTending, apothecary.nextTendingAt), formatDate);
-      add("Review / Expiration", firstValue(data.expiresAt, data.expirationDate, data.reviewAt, data.reviewDate), formatDate);
+      if (!hasLifecycle) {
+        add("Status", firstValue(data.status, apothecary.status, "Active"), humanize);
+        add("Created", firstValue(data.createdAt, data.creationDate, apothecary.createdAt), formatDate);
+        add("Remaining", firstValue(data.remainingAmount, data.amountRemaining, apothecary.remainingAmount));
+        add("Next Tending", firstValue(data.nextTendingAt, data.nextTending, apothecary.nextTendingAt), formatDate);
+        add("Review / Expiration", firstValue(data.expiresAt, data.expirationDate, data.reviewAt, data.reviewDate), formatDate);
+      }
       add("Activation", firstValue(data.activationState, apothecary.activationState), humanize);
       add("Currently Part Of", firstValue(data.currentRitualName, data.ritualName));
       add("Group", getGroupName(object));
@@ -192,7 +184,6 @@
     const panel = document.querySelector(".altar-companion-panel");
     const body = panel?.querySelector("[data-companion-v4-current-state-body]");
     if (!panel || !body) {
-      observeCurrentStateBody();
       return false;
     }
 
@@ -206,30 +197,21 @@
       if (rows.length) body.insertAdjacentHTML("afterbegin", rows.map(renderRow).join(""));
       const section = panel.querySelector("[data-companion-v4-current-state]");
       if (!rows.length && !lifecycle) section?.remove();
-      observeCurrentStateBody();
       return true;
     } finally {
       isRendering = false;
     }
   }
 
-  function observeCurrentStateBody() {
-    const nextBody = document.querySelector("[data-companion-v4-current-state-body]");
-    if (!nextBody || nextBody === observedBody) return;
-    observer?.disconnect();
-    observedBody = nextBody;
-    observer = new MutationObserver(() => {
-      if (isRendering) return;
-      queueMicrotask(() => renderCurrentState());
-    });
-    observer.observe(nextBody, { childList: true, subtree: false });
-  }
-
   function scheduleCurrentState(object = null) {
-    queueMicrotask(() => renderCurrentState(object));
-    requestAnimationFrame(() => renderCurrentState(object));
-    window.setTimeout(() => renderCurrentState(object), 160);
-    window.setTimeout(() => renderCurrentState(object), 560);
+    pendingObject = object;
+    if (renderFrame) return;
+    renderFrame = requestAnimationFrame(() => {
+      renderFrame = null;
+      const target = pendingObject;
+      pendingObject = null;
+      renderCurrentState(target);
+    });
   }
 
   window.getCompanionCurrentStateRows = getRows;
@@ -241,6 +223,6 @@
   window.setInterval(() => {
     const target = getSelectedObject();
     if (target?.dataset.type === "candle" && target.dataset.lit === "true") renderCurrentState(target);
-  }, 60000);
+  }, 1000);
   scheduleCurrentState();
 })();
