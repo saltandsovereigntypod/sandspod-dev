@@ -241,15 +241,6 @@ function renderCompanionLibraryEntity(entity, settings = {}) {
       ${renderConnectedEntityList(entity.id, { allowedRelations: ["contains"] })}
       <div data-library-activity-timeline="${entity.id}"></div>
 
-      <div class="altar-info-card-section altar-info-card-actions">
-        <button type="button" data-open-living-history="${entity.id}">
-          View Full Living History
-        </button>
-
-        <button type="button" data-manage-library-relationships="${entity.id}">
-          Manage Relationships
-        </button>
-      </div>
     </div>
   `;
 }
@@ -528,12 +519,6 @@ function renderLivingStateMarkup(instance, events = []) {
           : ""
       }
 
-      <div class="altar-info-card-section altar-info-card-actions">
-        <button type="button" class="living-state-practice-button" data-living-state-practice>
-          ✨ Begin Today's Practice
-        </button>
-      </div>
-
       ${displaySettings.showRecentActivity ? renderLivingStateRecentActivity(events) : ""}
     </div>
   `;
@@ -706,7 +691,7 @@ function getLibraryEntityOptions(selectedEntityId = "", excludeEntityId = "") {
     .join("");
 }
 
-function openRelationshipManagerModal(entityId) {
+function openRelationshipManagerModal(entityId, editingConnectionId = "") {
   if (!entityId || typeof Library === "undefined") return;
 
   const entity = Library.getEntity(entityId);
@@ -764,14 +749,14 @@ function openRelationshipManagerModal(entityId) {
 
         ${
           connections.length
-            ? connections
+            ? `<div class="relationship-manager-table" role="table"><div class="relationship-manager-heading" role="row"><span>Connected Entity</span><span>Relationship Type</span><span>Actions</span></div>${connections
                 .map((connection) => {
                   const otherId = connection.from === entityId ? connection.to : connection.from;
                   const otherEntity = Library.getEntity(otherId);
                   if (!otherEntity) return "";
 
-                  return `
-                    <div class="relationship-manager-row" data-relationship-row="${connection.id}">
+                  return connection.id === editingConnectionId ? `
+                    <div class="relationship-manager-row is-editing" data-relationship-row="${connection.id}">
                       <form data-update-library-relationship="${connection.id}">
                         <label>
                           Relationship
@@ -789,15 +774,13 @@ function openRelationshipManagerModal(entityId) {
 
                         <div class="relationship-manager-actions">
                           <button type="submit">Save</button>
-                          <button type="button" data-delete-library-relationship="${connection.id}">
-                            Delete
-                          </button>
+                          <button type="button" data-cancel-library-relationship>Cancel</button>
                         </div>
                       </form>
                     </div>
-                  `;
+                  ` : `<div class="relationship-manager-row" role="row" data-relationship-row="${connection.id}"><span><strong>${otherEntity.name || "Untitled"}</strong><small>${otherEntity.type || "entry"}</small></span><span>${formatLibraryRelationLabel(connection.relation)}</span><span class="relationship-manager-actions"><button type="button" data-edit-library-relationship="${connection.id}">Edit</button><button type="button" data-delete-library-relationship="${connection.id}">Delete</button></span></div>`;
                 })
-                .join("")
+                .join("")}</div>`
             : `<p class="altar-info-empty">No relationships yet.</p>`
         }
       </div>
@@ -837,9 +820,14 @@ function closeRelationshipManagerModal() {
   document.body.classList.remove("altar-modal-open");
 }
 
-function refreshRelationshipManagerModal(entityId) {
+function refreshRelationshipManagerModal(entityId, editingConnectionId = "") {
   closeRelationshipManagerModal();
-  openRelationshipManagerModal(entityId);
+  openRelationshipManagerModal(entityId, editingConnectionId);
+}
+
+function editLibraryRelationship(connectionId) {
+  const modal = document.querySelector("[data-relationship-manager-modal]");
+  refreshRelationshipManagerModal(modal?.dataset.entityId || "", connectionId);
 }
 
 function addLibraryRelationshipFromForm(form) {
@@ -888,6 +876,16 @@ function updateLibraryRelationshipFromForm(form) {
   const connection = Library.getConnections(entityId).find((link) => link.id === connectionId);
   if (!connection || !relation || !targetEntityId) return;
 
+  const duplicatesAnother = Library.getConnections(entityId).some((link) => {
+    if (link.id === connectionId) return false;
+    const otherId = link.from === entityId ? link.to : link.from;
+    return link.relation === relation && otherId === targetEntityId;
+  });
+  if (duplicatesAnother) {
+    showAltarToast("That relationship already exists");
+    return;
+  }
+
   const changes =
     connection.from === entityId
       ? { relation, to: targetEntityId }
@@ -907,6 +905,7 @@ function deleteLibraryRelationship(connectionId) {
   const modal = document.querySelector("[data-relationship-manager-modal]");
   const entityId = modal?.dataset.entityId || "";
 
+  if (!window.confirm("Delete this relationship?")) return;
   if (typeof Library.removeConnection === "function") {
     Library.removeConnection(connectionId);
   }
@@ -1028,10 +1027,6 @@ function buildObjectInfoMarkup(object, mode = "compact") {
       }
     </div>
 
-    <div class="altar-info-card-section altar-info-card-actions">
-      <button type="button" data-apothecary-edit="${apothecaryDetails.itemId}">Edit</button>
-      <button type="button" data-apothecary-delete="${apothecaryDetails.itemId}">Delete</button>
-    </div>
   `
   : "";
 
@@ -1095,11 +1090,6 @@ function buildObjectInfoMarkup(object, mode = "compact") {
                   : `<p class="altar-info-empty">Nothing added yet.</p>`
               }
 
-              ${
-                entity?.id
-                  ? `<button type="button" class="altar-companion-edit-button" data-library-edit-section="myPractice" data-library-entity-id="${entity.id}">Edit My Practice</button>`
-                  : ""
-              }
             </div>
           `
           : ""
@@ -1257,6 +1247,7 @@ function selectObject(object) {
   toolbar.hidden = false;
 
   updateToolbarNotes(selectedObject);
+  if (typeof renderSelectedObjectActions === "function") renderSelectedObjectActions(selectedObject);
   showAltarInfoCard(selectedObject);
   updateSelectedGroupVisuals(selectedObject);
 }
@@ -1270,6 +1261,7 @@ function deselectObject() {
   toolbar.hidden = true;
 
   updateToolbarNotes(null);
+  if (typeof renderSelectedObjectActions === "function") renderSelectedObjectActions(null);
   hideAltarInfoCard();
   updateSelectedGroupVisuals(null);
 }
