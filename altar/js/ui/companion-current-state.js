@@ -88,15 +88,43 @@
       : null;
   }
 
+  function formatCandleDressingIdentity(dressing = {}) {
+    const identity = String(dressing.herb || dressing.name || "").trim();
+    if (identity) return humanize(identity);
+
+    const knownForms = [
+      "loose", "powder", "powdered", "oil", "whole", "dried", "fresh",
+      "leaf", "leaves", "root", "bark", "flower", "flowers", "petal",
+      "petals", "resin", "seed", "seeds", "crushed"
+    ];
+    const form = String(dressing.form || dressing.type || "").trim().toLowerCase();
+    const suffixes = [...new Set([form, ...knownForms].filter(Boolean))]
+      .sort((a, b) => b.length - a.length);
+    let label = String(dressing.label || "").trim();
+
+    suffixes.some((suffix) => {
+      const escaped = suffix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = new RegExp(`(?:\\s+|\\s*[·—–-]\\s*)${escaped}$`, "i");
+      if (!pattern.test(label)) return false;
+      label = label.replace(pattern, "").trim();
+      return true;
+    });
+
+    return humanize(label || dressing.type || "");
+  }
+
   function getDressingRows(object) {
     const state = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
     const dressings = Array.isArray(state?.candle?.dressings) ? state.candle.dressings : [];
-    const labels = dressings
-      .map((dressing) => {
-        if (typeof formatDressingName === "function") return formatDressingName(dressing);
-        return humanize(dressing.label || dressing.herb || dressing.name || dressing.type || "");
-      })
-      .filter(Boolean);
+    const seen = new Set();
+    const labels = dressings.reduce((names, dressing) => {
+      const name = formatCandleDressingIdentity(dressing);
+      const key = name.toLocaleLowerCase();
+      if (!name || seen.has(key)) return names;
+      seen.add(key);
+      names.push(name);
+      return names;
+    }, []);
 
     return labels.length
       ? [{ label: "Dressed With", value: [...new Set(labels)].join(", ") }]

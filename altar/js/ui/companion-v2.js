@@ -240,11 +240,26 @@
       headerHost.appendChild(tags);
     }
 
-    const titleKey = String(descriptor.label || "").trim().toLowerCase();
-    tags.innerHTML = [descriptor.typeLabel, descriptor.secondaryLabel]
+    const normalizeTag = (value) => String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const titleKey = normalizeTag(descriptor.label);
+    const primaryTag = String(descriptor.typeLabel || "").trim();
+    const primaryKey = normalizeTag(primaryTag);
+    const secondaryTag = String(descriptor.secondaryLabel || "").trim();
+    const secondaryKey = normalizeTag(secondaryTag);
+    const headerTags = [primaryTag];
+
+    if (secondaryKey && !` ${primaryKey} `.includes(` ${secondaryKey} `)) {
+      headerTags.push(secondaryTag);
+    }
+
+    tags.innerHTML = headerTags
       .filter(Boolean)
-      .filter((label) => String(label).trim().toLowerCase() !== titleKey)
-      .filter((label, index, labels) => labels.indexOf(label) === index)
+      .filter((label) => normalizeTag(label) !== titleKey)
+      .filter((label, index, labels) => labels.findIndex((item) => normalizeTag(item) === normalizeTag(label)) === index)
       .map((label) => `<span>${escapeCompanionHtml(label)}</span>`)
       .join("");
     tags.hidden = !tags.innerHTML;
@@ -421,9 +436,18 @@
   }
 
   function getRelationshipLabel(connection, entityId) {
+    const isOutgoing = connection.from === entityId;
+
+    if (connection.relation === "pairs_with") return "Pairs Well With";
+    if (connection.relation === "substitutes") {
+      return isOutgoing ? "Substituted By" : "Substitute For";
+    }
+    if (connection.relation === "substitute_for") {
+      return isOutgoing ? "Substitute For" : "Substituted By";
+    }
+
     if (typeof getReadableRelationLabel === "function") {
-      const label = getReadableRelationLabel(connection, entityId);
-      return label === "Pairs With" ? "Pairs Well With" : label;
+      return getReadableRelationLabel(connection, entityId);
     }
     return humanizeCompanionKey(connection.relation || "Related To");
   }
