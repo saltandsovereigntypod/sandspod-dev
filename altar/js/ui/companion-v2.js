@@ -9,11 +9,20 @@
 
   const companionHeader = altarCompanionPanel.querySelector(".altar-companion-header");
   const companionContent = altarCompanionPanel.querySelector("[data-companion-content]");
+  const NON_KNOWLEDGE_FIELDS = new Set([
+    "tags", "displayname", "name", "title", "category", "type",
+    "candledressings", "dressings", "group", "groups", "groupid",
+    "currentritual", "currentritualid", "currentritualname",
+    "burntime", "totalburnms", "currentburnstartedat",
+    "lastlit", "lastlitat", "lastburned", "lastburnedat", "burnhistory",
+    "status", "lifecyclestatus"
+  ]);
 
   let currentCompanionObject = null;
   let currentCompanionEntity = null;
   let currentCompanionInstance = null;
   let currentCompanionEvents = [];
+  let currentCompanionEntityEvents = [];
   let renderRequestId = 0;
 
   function escapeCompanionHtml(value = "") {
@@ -103,6 +112,7 @@
     ).toLowerCase();
 
     if (rawType.includes("spell jar") || rawType.includes("spell-jar")) return "spell-jar";
+    if (rawType.includes("herb mix") || rawType.includes("herb-mix")) return "herb-blend";
     if (rawType.includes("candle")) return "candle";
     if (rawType.includes("crystal")) return "crystal";
     if (rawType.includes("herb")) return "herb";
@@ -232,9 +242,26 @@
       headerHost.appendChild(tags);
     }
 
-    tags.innerHTML = [descriptor.typeLabel, descriptor.secondaryLabel]
+    const normalizeTag = (value) => String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const titleKey = normalizeTag(descriptor.label);
+    const primaryTag = String(descriptor.typeLabel || "").trim();
+    const primaryKey = normalizeTag(primaryTag);
+    const secondaryTag = String(descriptor.secondaryLabel || "").trim();
+    const secondaryKey = normalizeTag(secondaryTag);
+    const headerTags = [primaryTag];
+
+    if (secondaryKey && !` ${primaryKey} `.includes(` ${secondaryKey} `)) {
+      headerTags.push(secondaryTag);
+    }
+
+    tags.innerHTML = headerTags
       .filter(Boolean)
-      .filter((label, index, labels) => labels.indexOf(label) === index)
+      .filter((label) => normalizeTag(label) !== titleKey)
+      .filter((label, index, labels) => labels.findIndex((item) => normalizeTag(item) === normalizeTag(label)) === index)
       .map((label) => `<span>${escapeCompanionHtml(label)}</span>`)
       .join("");
     tags.hidden = !tags.innerHTML;
@@ -339,9 +366,28 @@
     return settings[`library_${layer}_${getFieldCategory(key)}`] !== false;
   }
 
-  function renderJournalFields(data = {}, layer, settings) {
+  function getRelationshipBackedFields(entity) {
+    const fields = new Set();
+    if (!entity?.id || typeof Library === "undefined" || typeof Library.getConnections !== "function") {
+      return fields;
+    }
+
+    (Library.getConnections(entity.id) || []).forEach((connection) => {
+      if (connection.from !== entity.id) return;
+      if (connection.relation === "pairs_with") fields.add("pairswith");
+      if (connection.relation === "substitutes") fields.add("substitutions");
+    });
+    return fields;
+  }
+
+  function renderJournalFields(data = {}, layer, settings, excludedFields = new Set()) {
     const entries = Object.entries(data).filter(([key, value]) => {
-      if (key === "tags" || value === "" || value === null || value === undefined) return false;
+      const normalizedKey = String(key).replaceAll("_", "").toLowerCase();
+      if (
+        NON_KNOWLEDGE_FIELDS.has(normalizedKey) ||
+        excludedFields.has(normalizedKey) ||
+        value === "" || value === null || value === undefined
+      ) return false;
       if (Array.isArray(value) && !value.length) return false;
       return shouldShowField(settings, layer, key);
     });
@@ -360,98 +406,50 @@
 
   function renderTraditional(entity, settings) {
     if (!entity || !shouldShowLayer(settings, "traditional")) return "";
-    const fields = renderJournalFields(entity.traditional || {}, "traditional", settings);
+    const fields = renderJournalFields(
+      entity.traditional || {},
+      "traditional",
+      settings,
+      getRelationshipBackedFields(entity)
+    );
     return fields ? createDetailsMarkup("Traditional", fields, true, "companion-v3-traditional") : "";
   }
 
   function renderMyPractice(entity, settings) {
     if (!entity || !shouldShowLayer(settings, "myPractice")) return "";
-    const fields = renderJournalFields(entity.myPractice || {}, "myPractice", settings);
+    const fields = renderJournalFields(
+      entity.myPractice || {},
+      "myPractice",
+      settings,
+      getRelationshipBackedFields(entity)
+    );
     return fields ? createDetailsMarkup("My Practice", fields, true, "companion-v3-my-practice") : "";
   }
 
   function renderCommunity(entity, settings) {
     if (!entity || !shouldShowLayer(settings, "community")) return "";
-    const fields = renderJournalFields(entity.community || {}, "community", settings);
-    return fields ? createDetailsMarkup("Community", fields, false, "companion-v3-community") : "";
-  }
-
-  function formatIngredient(ingredient = {}) {
-    const name = ingredient.libraryName || ingredient.label || ingredient.name || "Ingredient";
-    const amount = String(ingredient.amount || "").trim();
-    return amount ? `${name}: ${amount}` : name;
-  }
-
-  function renderObjectSummary(object, settings) {
-    if (!object) return "";
-    const groups = [];
-    const apothecary = typeof getApothecaryDetailsForObject === "function"
-      ? getApothecaryDetailsForObject(object)
-      : null;
-
-    if (apothecary?.intention && settings.companion_my_intentions !== false) {
-      groups.push(`<div class="companion-v3-glance-group"><h3>Intention</h3><p>${escapeCompanionHtml(apothecary.intention)}</p></div>`);
-    }
-
-    if (Array.isArray(apothecary?.ingredients) && apothecary.ingredients.length && settings.companion_my_ingredients !== false) {
-      groups.push(`
-        <div class="companion-v3-glance-group">
-          <h3>Ingredients</h3>
-          <ul>${apothecary.ingredients.map((item) => `<li>${escapeCompanionHtml(formatIngredient(item))}</li>`).join("")}</ul>
-        </div>
-      `);
-    }
-
-    const dressings = typeof getDressings === "function" ? getDressings(object) : [];
-    if (dressings.length && settings.companion_my_dressings !== false) {
-      groups.push(`
-        <div class="companion-v3-glance-group">
-          <h3>Dressed With</h3>
-          <ul>${dressings.map((dressing) => {
-            const label = typeof formatDressingName === "function"
-              ? formatDressingName(dressing)
-              : dressing.herb || dressing.label || dressing.type || "Dressing";
-            return `<li>${escapeCompanionHtml(label)}</li>`;
-          }).join("")}</ul>
-        </div>
-      `);
-    }
-
-    const group = object.dataset.groupId && typeof altarGroups !== "undefined"
-      ? altarGroups.find((item) => item.id === object.dataset.groupId)
-      : null;
-
-    if (group && settings.companion_my_groups !== false) {
-      const members = typeof getGroupObjects === "function"
-        ? getGroupObjects(group.id).map((item) => item.dataset.label || "Item")
-        : [];
-      groups.push(`
-        <div class="companion-v3-glance-group">
-          <h3>Ritual Group</h3>
-          <p>${escapeCompanionHtml(group.name || "Group")}</p>
-          ${members.length ? `<p>${members.map(escapeCompanionHtml).join(", ")}</p>` : ""}
-        </div>
-      `);
-    }
-
-    return groups.join("");
-  }
-
-  function renderStatus(object, settings) {
-    const objectSummary = renderObjectSummary(object, settings);
-    if (!objectSummary) return "";
-
-    return `
-      <section class="companion-v3-glance" aria-label="Object details">
-        ${objectSummary}
-      </section>
-    `;
+    const fields = renderJournalFields(
+      entity.community || {},
+      "community",
+      settings,
+      getRelationshipBackedFields(entity)
+    );
+    return fields ? createDetailsMarkup("Community Grimoire", fields, false, "companion-v3-community") : "";
   }
 
   function getRelationshipLabel(connection, entityId) {
+    const isOutgoing = connection.from === entityId;
+
+    if (connection.relation === "pairs_with") return "Pairs Well With";
+    if (connection.relation === "substitutes") {
+      return isOutgoing ? "Substituted By" : "Substitute For";
+    }
+    if (connection.relation === "substitute_for") {
+      return isOutgoing ? "Substitute For" : "Substituted By";
+    }
+
     if (typeof getReadableRelationLabel === "function") {
-      const label = getReadableRelationLabel(connection, entityId);
-      return label === "Pairs With" ? "Pairs Well With" : label;
+      return getReadableRelationLabel(connection, entityId);
     }
     return humanizeCompanionKey(connection.relation || "Related To");
   }
@@ -499,6 +497,83 @@
     return createDetailsMarkup("Relationships", body, false, "companion-v3-relationships");
   }
 
+  function getCandleBurnEvents(object) {
+    if (object?.dataset.type !== "candle" || typeof getLivingObjectState !== "function") return [];
+    const history = getLivingObjectState(object)?.candle?.burnHistory;
+    if (!Array.isArray(history)) return [];
+
+    return history.map((session) => {
+      const durationMs = Math.max(0, Number(session.durationMs) || 0);
+      const totalMinutes = Math.floor(durationMs / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const duration = hours
+        ? `${hours} hr${hours === 1 ? "" : "s"}${minutes ? ` ${minutes} min` : ""}`
+        : minutes
+          ? `${minutes} min`
+          : "Less than 1 minute";
+
+      return {
+        event_type: "candle_burn",
+        event_label: "Candle Burned",
+        event_notes: duration,
+        occurred_at: session.endedAt || session.startedAt || "",
+        metadata: { startedAt: session.startedAt || "", durationMs }
+      };
+    });
+  }
+
+  function getLivingWorkflowEvents(object) {
+    if (!object || typeof getLivingObjectState !== "function") return [];
+    const state = getLivingObjectState(object);
+    const readable = (value) => humanizeCompanionKey(value || "").replace(/\b\w/g, (letter, index) => index ? letter.toLowerCase() : letter.toUpperCase());
+    const convert = (records, type, label) => (records || []).map((record) => ({
+      id: record.id || "",
+      event_type: type,
+      event_label: label,
+      event_notes: [record.purpose && readable(record.purpose), record.dedicatedTo, ...(record.items || []).map((item) => item.label || item), ...(record.methods || []).map(readable), record.intention && `“${record.intention}”`, record.status && `Status: ${readable(record.status)}`, record.perceivedResponse && `Perceived response: ${readable(record.perceivedResponse)}`, record.intentionHandling && readable(record.intentionHandling)].filter(Boolean).join(" · "),
+      occurred_at: record.occurredAt || record.recordedAt || "",
+      metadata: record
+    }));
+    return [
+      ...convert(state?.crystal?.cleansingHistory, "crystal_cleansed", "Crystal Cleansed"),
+      ...convert(state?.crystal?.chargingHistory, "crystal_charged", "Crystal Charged"),
+      ...convert(state?.crystal?.dedicationDetails ? [state.crystal.dedicationDetails] : [], "crystal_dedicated", "Crystal Dedicated"),
+      ...convert(state?.deity?.offerings, "offering_recorded", "Offering Recorded"),
+      ...convert(state?.deity?.offeringStatusHistory, "offering_status_changed", "Offering Status Changed")
+    ];
+  }
+
+  function mergeHistoryEvents(...sources) {
+    const seenIds = new Set();
+    const seenContent = new Set();
+    const resolveEventTime = (event) => {
+      const values = [event.occurred_at, event.completedAt, event.completed_at, event.endedAt, event.created_at, event.metadata?.occurredAt, event.metadata?.recordedAt];
+      for (const value of values) { const time = Date.parse(value || ""); if (Number.isFinite(time)) return time; }
+      return 0;
+    };
+    return sources
+      .flat()
+      .filter(Boolean)
+      .filter((event) => {
+        const contentKey = [
+          event.event_type || "activity",
+          event.occurred_at || "",
+          event.event_label || "",
+          event.event_notes || ""
+        ].join("|");
+        if ((event.id && seenIds.has(event.id)) || seenContent.has(contentKey)) return false;
+        if (event.id) seenIds.add(event.id);
+        seenContent.add(contentKey);
+        return true;
+      })
+      .sort((a, b) => {
+        const timeDifference = resolveEventTime(b) - resolveEventTime(a);
+        if (timeDifference) return timeDifference;
+        return String(a.id || `${a.event_type}|${a.event_label}`).localeCompare(String(b.id || `${b.event_type}|${b.event_label}`));
+      });
+  }
+
   function renderInstanceEvents(events = []) {
     if (!Array.isArray(events) || !events.length) {
       return `<p class="altar-info-empty">No activity recorded yet.</p>`;
@@ -517,54 +592,20 @@
     `;
   }
 
-  function renderHistory(entity, instance, events = []) {
-    const instanceHistory = instance ? renderInstanceEvents(events) : "";
-    const libraryHistory = entity?.id
-      ? `<div class="companion-v3-library-history" data-library-activity-timeline="${escapeCompanionHtml(entity.id)}"><p class="altar-info-empty">Loading library history...</p></div>`
-      : "";
-
-    const timeline = [instanceHistory, libraryHistory].filter(Boolean).join("");
-    return timeline ? createDetailsMarkup("History & Activity", timeline, false, "companion-v3-history") : "";
-  }
-
-  function renderActions(object, entity, instance) {
-    const primaryActions = [];
-    const secondaryActions = [];
-
-    if (object?.dataset.instanceId && instance && !["retired", "archived"].includes(instance.status)) {
-      primaryActions.push(`
-        <button type="button" class="companion-v3-primary-action" data-living-state-practice>
-          <span aria-hidden="true">✦</span> Begin Today’s Practice
-        </button>
-      `);
-    }
-
-    const apothecary = object && typeof getApothecaryDetailsForObject === "function"
-      ? getApothecaryDetailsForObject(object)
-      : null;
-
-    if (apothecary?.itemId) {
-      secondaryActions.push(`<button type="button" data-apothecary-edit="${escapeCompanionHtml(apothecary.itemId)}">Edit Selected Item</button>`);
-    }
-
-    if (entity?.id) {
-      secondaryActions.push(`
-        <button type="button" class="altar-companion-edit-button" data-library-edit-section="myPractice" data-library-entity-id="${escapeCompanionHtml(entity.id)}">
-          Edit My Practice Entry
-        </button>
-      `);
-      secondaryActions.push(`<button type="button" data-manage-library-relationships="${escapeCompanionHtml(entity.id)}">Manage Relationships</button>`);
-      secondaryActions.push(`<button type="button" data-open-living-history="${escapeCompanionHtml(entity.id)}">View Full History</button>`);
-    }
-
-    if (!primaryActions.length && !secondaryActions.length) return "";
-
-    return `
-      <footer class="companion-v3-actions">
-        ${primaryActions.join("")}
-        ${secondaryActions.length ? `<div class="companion-v3-secondary-actions">${secondaryActions.join("")}</div>` : ""}
-      </footer>
-    `;
+  function renderHistory(object, entity, instanceEvents = [], entityEvents = []) {
+    const events = mergeHistoryEvents(
+      getCandleBurnEvents(object),
+      getLivingWorkflowEvents(object),
+      instanceEvents,
+      entityEvents
+    );
+    if (!events.length && !entity?.id) return "";
+    return createDetailsMarkup(
+      "History & Activity",
+      renderInstanceEvents(events),
+      false,
+      "companion-v3-history"
+    );
   }
 
   function renderKnowledge(entity, settings) {
@@ -591,21 +632,6 @@
       details.addEventListener("toggle", () => {
         saveSectionState(details.dataset.companionV3Section, details.open);
       });
-    });
-  }
-
-  function hydrateHistory(entityId) {
-    if (!entityId || typeof hydrateCompanionLibraryExtras !== "function") return;
-
-    hydrateCompanionLibraryExtras(entityId).then(() => {
-      const target = companionContent?.querySelector(
-        `[data-library-activity-timeline="${CSS.escape(entityId)}"]`
-      );
-      const nestedSection = target?.querySelector(".altar-info-card-section");
-      if (!target || !nestedSection) return;
-
-      nestedSection.querySelector(":scope > p:first-child")?.remove();
-      target.innerHTML = nestedSection.innerHTML;
     });
   }
 
@@ -655,7 +681,18 @@
     return getObjectInstanceEvents(instance.id);
   }
 
-  function renderCompanionPage({ object = null, entity = null, instance = null, events = [] } = {}) {
+  async function getEntityEvents(entity) {
+    if (!entity?.id || typeof getObjectInstanceEventsByEntity !== "function") return [];
+    return getObjectInstanceEventsByEntity(entity.id);
+  }
+
+  function renderCompanionPage({
+    object = null,
+    entity = null,
+    instance = null,
+    events = [],
+    entityEvents = []
+  } = {}) {
     if (!companionContent || (!object && !entity)) return;
 
     const settings = getSettings();
@@ -664,26 +701,28 @@
     currentCompanionEntity = entity;
     currentCompanionInstance = instance;
     currentCompanionEvents = events;
+    currentCompanionEntityEvents = entityEvents;
 
     renderHeader(object, entity, instance);
 
     companionContent.innerHTML = `
       <div class="companion-v3-page">
-        ${renderStatus(object, settings)}
         <div class="companion-v3-knowledge">
           ${renderKnowledge(entity, settings)}
           ${renderRelationships(entity)}
-          ${renderHistory(entity, instance, events)}
+          ${renderHistory(object, entity, events, entityEvents)}
         </div>
-        ${renderActions(object, entity, instance)}
       </div>
     `;
 
     bindSectionStateListeners();
-    if (entity?.id) hydrateHistory(entity.id);
 
     altarCompanionPanel.classList.add("is-visible");
     altarCompanionPanel.classList.remove("is-minimized");
+
+    document.dispatchEvent(new CustomEvent("companion:refreshed", {
+      detail: { object, entityOnly: !object }
+    }));
   }
 
   async function renderSelectedObject(object) {
@@ -698,27 +737,33 @@
     if (requestId !== renderRequestId) return;
     if (typeof selectedObject !== "undefined" && selectedObject !== object) return;
 
-    const events = await getInstanceEvents(instance);
+    const [events, entityEvents] = await Promise.all([
+      entity?.id ? Promise.resolve([]) : getInstanceEvents(instance),
+      getEntityEvents(entity)
+    ]);
     if (requestId !== renderRequestId) return;
     if (typeof selectedObject !== "undefined" && selectedObject !== object) return;
 
-    renderCompanionPage({ object, entity, instance, events });
+    renderCompanionPage({ object, entity, instance, events, entityEvents });
   }
 
-  function renderLibraryEntity(entityId) {
+  async function renderLibraryEntity(entityId) {
     if (!entityId || typeof Library === "undefined") return;
     const entity = Library.getEntity(entityId);
     if (!entity) return;
-    ++renderRequestId;
+    const requestId = ++renderRequestId;
     renderCompanionPage({ entity });
+    const entityEvents = await getEntityEvents(entity);
+    if (requestId !== renderRequestId) return;
+    renderCompanionPage({ entity, entityEvents });
   }
 
   window.showAltarCompanionPanel = function showUnifiedAltarCompanionPanel(object) {
-    renderSelectedObject(object);
+    return renderSelectedObject(object);
   };
 
   window.showLibraryEntityInCompanion = function showUnifiedLibraryEntityInCompanion(entityId) {
-    renderLibraryEntity(entityId);
+    return renderLibraryEntity(entityId);
   };
 
   window.hideAltarCompanionPanel = function hideUnifiedAltarCompanionPanel() {
@@ -727,6 +772,7 @@
     currentCompanionEntity = null;
     currentCompanionInstance = null;
     currentCompanionEvents = [];
+    currentCompanionEntityEvents = [];
 
     altarCompanionPanel.dataset.companionIdentity = "empty";
     altarCompanionPanel.dataset.companionDivider = "standard";
@@ -753,7 +799,8 @@
         object: currentCompanionObject,
         entity: currentCompanionEntity,
         instance: currentCompanionInstance,
-        events: currentCompanionEvents
+        events: currentCompanionEvents,
+        entityEvents: currentCompanionEntityEvents
       });
     } else if (currentCompanionEntity?.id) {
       renderLibraryEntity(currentCompanionEntity.id);
