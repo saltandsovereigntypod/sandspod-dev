@@ -2,133 +2,12 @@
    EVENTS
    ========================================================= */
 
-let toolbarHoldInterval = null;
-let toolbarHoldTimeout = null;
-
-function stopToolbarHoldAction() {
-  window.clearTimeout(toolbarHoldTimeout);
-  window.clearInterval(toolbarHoldInterval);
-
-  toolbarHoldTimeout = null;
-}
-
-function startToolbarHoldAction(action) {
-  stopToolbarHoldAction();
-
-  if (!selectedObject) return;
-
-  const holdActions = {
-    smaller: () => resizeObject(selectedObject, -0.04),
-    larger: () => resizeObject(selectedObject, 0.04),
-    "rotate-left": () => rotateObject(selectedObject, -3),
-    "rotate-right": () => rotateObject(selectedObject, 3)
-  };
-
-  const holdAction = holdActions[action];
-
-  if (!holdAction) return;
-
-  toolbarHoldTimeout = window.setTimeout(() => {
-    pushAltarUndoSnapshot();
-
-    toolbarHoldInterval = window.setInterval(() => {
-      if (!selectedObject) {
-        stopToolbarHoldAction();
-        return;
-      }
-
-      holdAction();
-      updateObjectPositionPercent(selectedObject);
-    }, 70);
-  }, 280);
-}
-
-toolbar.addEventListener("pointerdown", (event) => {
-  event.stopPropagation();
-
-  const button = event.target.closest("button");
-  if (!button || !selectedObject) return;
-
-  event.preventDefault();
-
-  startToolbarHoldAction(button.dataset.action);
-});
-
-toolbar.addEventListener("pointerup", stopToolbarHoldAction);
-toolbar.addEventListener("pointercancel", stopToolbarHoldAction);
-toolbar.addEventListener("pointerleave", stopToolbarHoldAction);
-
 toolbar.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button || !selectedObject) return;
 
-  stopToolbarHoldAction();
-
-  switch (button.dataset.action) {
-    case "smaller":
-      pushAltarUndoSnapshot();
-      resizeObject(selectedObject, -0.1);
-      break;
-
-    case "larger":
-      pushAltarUndoSnapshot();
-      resizeObject(selectedObject, 0.1);
-      break;
-
-    case "rotate-left":
-      pushAltarUndoSnapshot();
-      rotateObject(selectedObject, -15);
-      break;
-
-    case "rotate-right":
-      pushAltarUndoSnapshot();
-      rotateObject(selectedObject, 15);
-      break;
-
-    case "delete":
-      pushAltarUndoSnapshot();
-      deleteObject(selectedObject);
-      break;
-
-    case "forward":
-      pushAltarUndoSnapshot();
-      bringForward(selectedObject);
-      break;
-
-    case "backward":
-      pushAltarUndoSnapshot();
-      sendBackward(selectedObject);
-      break;
-
-    case "flip":
-      pushAltarUndoSnapshot();
-      flipObject(selectedObject);
-      break;
-
-    case "lock":
-      pushAltarUndoSnapshot();
-      toggleLock(selectedObject);
-      break;
-
-    case "duplicate":
-      pushAltarUndoSnapshot();
-      duplicateObject(selectedObject);
-      break;
-
-    case "glow":
-      pushAltarUndoSnapshot();
-      toggleGlow(selectedObject);
-      break;
-
-    case "light":
-      pushAltarUndoSnapshot();
-      toggleLight(selectedObject);
-      break;
-
-    case "dress-candle":
-      pushAltarUndoSnapshot();
-      beginCandleDressing(selectedObject);
-      break;
+  if (typeof executeSelectedObjectAction === "function") {
+    executeSelectedObjectAction(button.dataset.action, selectedObject);
   }
 });
 
@@ -559,9 +438,11 @@ altarActionBar.addEventListener("click", (event) => {
           candle.dataset.lit = "true";
           candle.classList.add("is-lit");
           startFlame(candle);
+          startLivingCandleBurn(candle);
         });
 
       renderLighting();
+      saveWorkingAltarDraft();
       return;
 
     case "extinguish-all":
@@ -575,6 +456,7 @@ altarActionBar.addEventListener("click", (event) => {
 
           stopFlame(candle);
           extinguishFlame(candle);
+          stopLivingCandleBurn(candle);
 
           candle.querySelectorAll(".candle-flame, .candle-glow, .flame-glow").forEach((effect) => {
             effect.remove();
@@ -582,6 +464,7 @@ altarActionBar.addEventListener("click", (event) => {
         });
 
       renderLighting();
+      saveWorkingAltarDraft();
       return;
   }
 });
