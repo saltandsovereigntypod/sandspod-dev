@@ -762,8 +762,8 @@
   display: none;
 }
 
-.altar-object-actions-backdrop[hidden],
-.altar-object-actions-overflow-title { display: none; }
+.altar-object-actions-backdrop[hidden] { display: none; }
+.altar-object-actions-overflow-title { display: block; grid-column: 1 / -1; padding: .2rem; color: var(--gold); }
 
 .altar-object-actions-overflow button {
   width: 100% !important;

@@ -741,6 +741,11 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
   document.body.classList.add("altar-modal-open");
 }
 
+function openApothecaryItemEditor(itemId) {
+  if (!itemId) return;
+  openCreateApothecaryModal("", itemId);
+}
+
 function closeCreateApothecaryModal() {
   const modal = document.querySelector("[data-apothecary-create-modal]");
   if (!modal) return;
@@ -1157,7 +1162,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (editButton) {
-    openCreateApothecaryModal("", editButton.dataset.apothecaryEdit);
+    openApothecaryItemEditor(editButton.dataset.apothecaryEdit);
   }
 
   if (deleteButton) {

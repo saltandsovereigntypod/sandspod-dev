@@ -547,6 +547,11 @@
   function mergeHistoryEvents(...sources) {
     const seenIds = new Set();
     const seenContent = new Set();
+    const resolveEventTime = (event) => {
+      const values = [event.occurred_at, event.completedAt, event.completed_at, event.endedAt, event.created_at, event.metadata?.occurredAt, event.metadata?.recordedAt];
+      for (const value of values) { const time = Date.parse(value || ""); if (Number.isFinite(time)) return time; }
+      return 0;
+    };
     return sources
       .flat()
       .filter(Boolean)
@@ -563,9 +568,9 @@
         return true;
       })
       .sort((a, b) => {
-        const right = Date.parse(b.occurred_at || "");
-        const left = Date.parse(a.occurred_at || "");
-        return (Number.isFinite(right) ? right : 0) - (Number.isFinite(left) ? left : 0);
+        const timeDifference = resolveEventTime(b) - resolveEventTime(a);
+        if (timeDifference) return timeDifference;
+        return String(a.id || `${a.event_type}|${a.event_label}`).localeCompare(String(b.id || `${b.event_type}|${b.event_label}`));
       });
   }
 

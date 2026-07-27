@@ -240,7 +240,43 @@
     });
   }
 
-  function openCrystalAction(object, kind) {
+  function getCrystalIntention(object) {
+    const crystal = livingState(object)?.crystal || {};
+    return String(crystal.intention?.text || crystal.currentIntention || crystal.dedicationDetails?.intention || crystal.dedicationDetails?.purpose || crystal.dedication || "").trim();
+  }
+
+  function openCrystalDecision(object, kind, initialTargets = null) {
+    const crystals = Array.from(altarStage?.querySelectorAll('.altar-object[data-type="crystal"]') || []);
+    const preselected = new Set((initialTargets || [object]).map((item) => item.dataset.altarObjectId));
+    const anyIntention = crystals.filter((item) => preselected.has(item.dataset.altarObjectId)).some(getCrystalIntention);
+    const choices = kind === "cleanse"
+      ? (anyIntention ? ["Keep all current intentions", "Cleanse and remove all current intentions", "Cleanse and prepare all for new intentions"] : ["General energetic cleansing"])
+      : (anyIntention ? ["Continue with existing intentions", "Cleanse selected crystals first"] : ["General energetic charge", "Charge with one shared new intention"]);
+    openWorkflowModal({
+      title: kind === "cleanse" ? "Prepare to Cleanse" : "Prepare to Charge",
+      intro: "Choose one or more crystal objects currently on the altar. Each crystal keeps its own state and history.",
+      submitLabel: "Continue",
+      content: `<section><h3>Current intention and targets</h3>${crystals.map((crystal) => { const state = livingState(crystal)?.crystal || {}; const intention = getCrystalIntention(crystal); return `<label class="offering-manager-choice"><input type="checkbox" name="crystalTarget" value="${escapeHtml(crystal.dataset.altarObjectId)}" ${preselected.has(crystal.dataset.altarObjectId) ? "checked" : ""}><span><strong>${escapeHtml(crystal.dataset.label || "Crystal")}</strong><small>Current intention: ${escapeHtml(intention || "No recorded intention")}${state.lastCleansedAt ? ` · Last cleansed ${escapeHtml(new Date(state.lastCleansedAt).toLocaleDateString())}` : ""}${state.lastChargedAt ? ` · Last charged ${escapeHtml(new Date(state.lastChargedAt).toLocaleDateString())}` : ""}</small></span></label>`; }).join("")}</section><section><h3>${kind === "cleanse" ? "Intention consequence" : "Charge direction"}</h3>${optionCards("crystalDecision", choices)}</section>`,
+      onSubmit(data) {
+        const ids = data.getAll("crystalTarget");
+        const targets = crystals.filter((crystal) => ids.includes(crystal.dataset.altarObjectId));
+        if (!targets.length) { showToast("Choose at least one crystal"); return false; }
+        const decision = data.get("crystalDecision");
+        if (kind === "charge" && decision === "charge-with-one-shared-new-intention" && targets.some(getCrystalIntention)) {
+          showToast("Cleanse crystals with existing intentions before assigning a shared new intention");
+          return false;
+        }
+        closeActionModal();
+        if (decision === "cleanse-selected-crystals-first") openCrystalDecision(targets[0], "cleanse", targets);
+        else openCrystalAction(targets[0], `${kind}-execute`, { targets, decision });
+        return false;
+      }
+    });
+  }
+
+  function openCrystalAction(object, kind, workflow = null) {
+    if (["cleanse", "charge"].includes(kind)) { openCrystalDecision(object, kind); return; }
+    const executeKind = kind.replace("-execute", "");
     const state = livingState(object)?.crystal || {};
     if (kind === "dedication") {
       const entities = typeof Library !== "undefined" && typeof Library.getAllEntitiesSorted === "function" ? Library.getAllEntitiesSorted() : [];
@@ -257,35 +293,34 @@
       });
       return;
     }
-    const isCleanse = kind === "cleanse";
+    const isCleanse = executeKind === "cleanse";
     const reasons = isCleanse ? ["General energetic cleansing", "Clearing a current intention", "Preparing for a new intention", "After ritual use", "After emotionally intense use", "Routine care", "Other"] : ["General recharge", "Strengthen current intention", "Prepare for ritual", "Prepare for meditation", "Protection", "Healing", "Divination", "Manifestation", "Devotional use", "Seasonal or lunar work", "Other"];
     const methods = isCleanse ? ["Moonlight", "Sunlight", "Water", "Salt", "Smoke", "Sound", "Selenite", "Earth", "Herbs", "Breath", "Visualization", "Prayer", "Intention", "Other"] : ["Moonlight", "Sunlight", "Crystal grid", "Another crystal", "Herbs", "Oil", "Candle", "Sound", "Breath", "Visualization", "Prayer", "Intention", "Altar placement", "Other"];
-    const currentIntention = state.dedicationDetails?.intention || state.dedication || "";
-    const handling = isCleanse ? ["Keep current intention", "Clear current intention", "Clear and replace after cleansing"] : ["Strengthen current intention", "Charge without changing it", "Cleanse and replace it", "Replace without cleansing"];
+    const currentIntention = getCrystalIntention(object);
     const recentCleanse = state.cleansingHistory?.[state.cleansingHistory.length - 1];
     const recentCharge = state.chargingHistory?.[state.chargingHistory.length - 1];
     const context = `<section class="object-workflow-current"><h3>Current recorded state</h3>${currentIntention ? `<p><strong>Current intention:</strong> ${escapeHtml(currentIntention)}</p>` : ""}${state.dedicationDetails?.dedicatedTo ? `<p><strong>Dedicated to:</strong> ${escapeHtml(state.dedicationDetails.dedicatedTo)}</p>` : ""}${state.lastCleansedAt ? `<p><strong>Last cleansed:</strong> ${escapeHtml(new Date(state.lastCleansedAt).toLocaleString())}${recentCleanse?.methods?.length ? ` · ${escapeHtml(recentCleanse.methods.map(humanizeActionValue).join(", "))}` : ""}</p>` : ""}${state.lastChargedAt ? `<p><strong>Last charged:</strong> ${escapeHtml(new Date(state.lastChargedAt).toLocaleString())}${recentCharge?.methods?.length ? ` · ${escapeHtml(recentCharge.methods.map(humanizeActionValue).join(", "))}` : ""}</p>` : ""}</section>`;
     openWorkflowModal({
       title: isCleanse ? "Cleanse Crystal" : "Charge Crystal", intro: isCleanse ? "Record the purpose, methods, and supports used in this cleansing." : "Shape and record the purpose of this crystal charge.", submitLabel: isCleanse ? "Complete Cleansing" : "Complete Charge",
-      content: `${context}<section><h3>1. ${isCleanse ? "Reason for cleansing" : "Purpose of the charge"}</h3>${optionCards("purpose", reasons)}</section><section><h3>2. ${isCleanse ? "Cleansing" : "Charging"} methods</h3>${optionCards("methods", methods, true)}</section><section><h3>3. Supports used</h3>${supportCards(object)}</section>${currentIntention ? `<section><h3>4. Intention consequence</h3>${optionCards("intentionHandling", handling)}</section>` : ""}${!isCleanse ? `<section data-new-intention ${currentIntention ? "hidden" : ""}><h3>${currentIntention ? "5" : "4"}. New or strengthened intention</h3><textarea name="newIntention" rows="3"></textarea></section>` : currentIntention ? `<section data-new-intention hidden><h3>5. Replacement intention</h3><textarea name="newIntention" rows="3"></textarea></section>` : ""}<section><h3>Reflection</h3><textarea name="notes" rows="3" placeholder="Optional notes or reflection"></textarea></section><label>Completed at<input type="datetime-local" name="occurredAt" value="${localDateTime()}"></label>`,
+      content: `${context}<section><h3>Selected consequence</h3><p>${escapeHtml(humanizeActionValue(workflow?.decision || "general"))}</p></section><section><h3>1. ${isCleanse ? "Reason for cleansing" : "Purpose of the charge"}</h3>${optionCards("purpose", reasons)}</section><section><h3>2. ${isCleanse ? "Cleansing" : "Charging"} methods</h3>${optionCards("methods", methods, true)}</section><section><h3>3. Supports used</h3>${supportCards(object)}</section>${!isCleanse && workflow?.decision === "charge-with-one-shared-new-intention" ? `<section data-new-intention><h3>Shared new intention</h3><textarea name="newIntention" rows="3" required></textarea></section>` : ""}<section><h3>Reflection</h3><textarea name="notes" rows="3" placeholder="Optional notes or reflection"></textarea></section><label>Completed at<input type="datetime-local" name="occurredAt" value="${localDateTime()}"></label>`,
       async onSubmit(formData, form) {
         const occurredAt = toIso(formData.get("occurredAt"));
         if (!occurredAt) return false;
         if (!formData.getAll("methods").length) { showToast("Choose at least one method"); return false; }
-        const record = { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), occurredAt, purpose: formData.get("purpose"), methods: selectedValues(formData, "methods"), supports: selectedSupportRecords(form), intentionHandling: formData.get("intentionHandling") || "", intention: String(formData.get("newIntention") || "").trim(), notes: String(formData.get("notes") || "").trim() };
+        const baseRecord = { occurredAt, purpose: formData.get("purpose"), methods: selectedValues(formData, "methods"), supports: selectedSupportRecords(form), intentionHandling: workflow?.decision || "", intention: String(formData.get("newIntention") || "").trim(), notes: String(formData.get("notes") || "").trim() };
         snapshot();
-        const clear = record.intentionHandling === "clear-current-intention";
-        const replace = record.intention && ["clear-and-replace-after-cleansing", "cleanse-and-replace-it", "replace-without-cleansing"].includes(record.intentionHandling);
-        const strengthen = record.intention && record.intentionHandling === "strengthen-current-intention";
-        const care = isCleanse ? { cleansedAt: occurredAt, cleansingRecord: record } : { chargedAt: occurredAt, chargingRecord: record };
-        if (clear) { care.dedication = ""; care.dedicationDetails = null; }
-        if (replace || strengthen) {
-          care.dedication = record.intention;
-          care.dedicationDetails = { ...(state.dedicationDetails || {}), intention: record.intention, updatedAt: occurredAt };
-        }
-        setLivingCrystalCare(object, care);
-        const methodSummary = record.methods.map(humanizeActionValue).join(", ");
-        const consequence = clear ? "Previous intention cleared." : replace ? "Intention replaced." : strengthen ? "Intention strengthened." : currentIntention ? "Current intention retained." : "";
+        const targets = workflow?.targets || [object];
+        const clear = ["cleanse-and-remove-all-current-intentions", "cleanse-and-prepare-all-for-new-intentions"].includes(workflow?.decision);
+        targets.forEach((target) => {
+          const targetState = livingState(target)?.crystal || {};
+          const record = { ...baseRecord, id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()) };
+          const care = isCleanse ? { cleansedAt: occurredAt, cleansingRecord: record } : { chargedAt: occurredAt, chargingRecord: record };
+          if (clear) { care.dedication = ""; care.dedicationDetails = null; }
+          if (!isCleanse && baseRecord.intention) { care.dedication = baseRecord.intention; care.dedicationDetails = { ...(targetState.dedicationDetails || {}), intention: baseRecord.intention, updatedAt: occurredAt }; }
+          setLivingCrystalCare(target, care);
+        });
+        const methodSummary = baseRecord.methods.map(humanizeActionValue).join(", ");
+        const consequence = clear ? "Previous intention cleared." : currentIntention ? "Current intention retained." : baseRecord.intention ? "New intention recorded." : "";
         showToast(`Crystal ${isCleanse ? "cleansed" : "charged"}${methodSummary ? ` with ${methodSummary}` : ""}. ${consequence}`.trim());
       }
     });
@@ -408,7 +443,7 @@
     { id: "dedicate", label: "Dedicate", icon: "✦", priority: 14, types: ["crystal"], handler: (o) => openCrystalAction(o, "dedication") },
     { id: "record-offering", label: "Offering", icon: "🎁", priority: 12, types: ["deity"], handler: (o) => openDeityAction(o, "offering") },
     { id: "reason-presence", label: "Reason", icon: "✎", priority: 14, types: ["deity"], handler: (o) => openDeityAction(o, "reason-presence") },
-    { id: "edit-apothecary", label: "Edit Recipe", icon: "⚗", priority: 11, types: ["apothecary"], available: (o) => Boolean(o.dataset.apothecaryItemId && typeof openCreateApothecaryModal === "function"), handler: (o) => openCreateApothecaryModal("", o.dataset.apothecaryItemId) },
+    { id: "edit-apothecary", label: "Edit Recipe", icon: "⚗", priority: 11, types: ["apothecary"], available: (o) => Boolean(o.dataset.apothecaryItemId && typeof openApothecaryItemEditor === "function"), handler: (o) => openApothecaryItemEditor(o.dataset.apothecaryItemId) },
     { id: "begin-practice", label: "Begin Practice", icon: "✨", priority: 16, types: ["*"], available: (o) => Boolean(o.dataset.instanceId && typeof openLivingStatePracticeMenu === "function"), handler: () => openLivingStatePracticeMenu() },
     { id: "edit-practice", label: "Edit Practice", icon: "📝", priority: 17, types: ["*"], available: (o) => Boolean(o.dataset.entityId && typeof openLibrarySectionEditor === "function"), handler: (o) => openLibrarySectionEditor(o.dataset.entityId, "myPractice") },
     { id: "relationships", label: "Relationships", icon: "⛓", priority: 18, types: ["*"], available: (o) => Boolean(o.dataset.entityId && typeof openRelationshipManagerModal === "function"), handler: (o) => openRelationshipManagerModal(o.dataset.entityId) },
@@ -433,9 +468,12 @@
   ];
 
   function actionApplies(action, object) {
+    if (!action || !String(action.id || "").trim() || typeof action.handler !== "function") return false;
     const type = objectType(object);
+    if (!Array.isArray(action.types)) return false;
     const typeMatches = action.types.includes("*") || action.types.includes(type) || (action.types.includes("crafted") && isCrafted(object));
-    return typeMatches && (!action.available || action.available(object));
+    const label = typeof action.label === "function" ? action.label(object) : action.label;
+    return typeMatches && String(label || "").trim() && (!action.available || action.available(object));
   }
 
   function getObjectActions(object = currentObject()) {
@@ -447,6 +485,13 @@
     const configuredLabel = MOBILE_QUERY.matches && action.mobileLabel ? action.mobileLabel : action.label;
     const label = typeof configuredLabel === "function" ? configuredLabel(object) : configuredLabel;
     return `<button type="button" data-action="${escapeHtml(action.id)}" ${overflow ? 'role="menuitem"' : ""} title="${escapeHtml(label)}"><span aria-hidden="true">${escapeHtml(action.icon)}</span><span>${escapeHtml(label)}</span></button>`;
+  }
+
+  function globalActionMarkup() {
+    return Array.from(altarActionBar.querySelectorAll(':scope > .altar-action-group [data-global-action]'))
+      .filter((button) => !button.disabled && String(button.textContent || "").trim())
+      .map((button) => `<button type="button" data-global-action="${escapeHtml(button.dataset.globalAction)}" role="menuitem">${escapeHtml(button.textContent.trim())}</button>`)
+      .join("");
   }
 
   function closeObjectActionOverflow() {
@@ -475,13 +520,14 @@
     const visibleCount = MOBILE_QUERY.matches ? 3 : 5;
     const visible = actions.slice(0, visibleCount);
     const overflow = actions.slice(visibleCount);
+    const altarActions = globalActionMarkup();
     toolbar.innerHTML = `
       <div class="altar-object-actions-visible">${visible.map((action) => buttonMarkup(action, object)).join("")}</div>
-      ${overflow.length ? `
+      ${overflow.length || altarActions ? `
         <div class="altar-object-actions-more-wrap">
           <button type="button" data-object-action-more aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">•••</span><span>See More</span></button>
-          <button type="button" class="altar-object-actions-backdrop" data-object-action-backdrop aria-label="Close more actions" hidden></button>
-          <div class="altar-object-actions-overflow" data-object-action-overflow role="menu" hidden><strong class="altar-object-actions-overflow-title">More Actions</strong>${overflow.map((action) => buttonMarkup(action, object, true)).join("")}</div>
+          <div class="altar-object-actions-backdrop" data-object-action-backdrop hidden></div>
+          <div class="altar-object-actions-overflow" data-object-action-overflow role="menu" hidden>${overflow.length ? `<strong class="altar-object-actions-overflow-title">Object Actions</strong>${overflow.map((action) => buttonMarkup(action, object, true)).join("")}` : ""}${altarActions ? `<strong class="altar-object-actions-overflow-title">Altar Actions</strong>${altarActions}` : ""}</div>
         </div>
       ` : ""}
     `;
@@ -517,6 +563,7 @@
       if (overflowOpen) popup.querySelector("button")?.focus();
       return;
     }
+    if (event.target.closest("[data-object-action-overflow] [data-global-action]")) closeObjectActionOverflow();
     if (event.target.closest("[data-object-action-backdrop]") || (overflowOpen && !event.target.closest(".altar-object-actions-more-wrap"))) closeObjectActionOverflow();
   });
 
