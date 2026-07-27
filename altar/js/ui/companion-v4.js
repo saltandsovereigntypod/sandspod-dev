@@ -127,8 +127,8 @@
 
       .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state-body {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.35rem 0.65rem;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.5rem;
         max-height: calc(min(24vh, 13rem) - 2.2rem);
         overflow-y: auto;
         padding-right: 0.15rem;
@@ -137,8 +137,8 @@
 
       .altar-companion-panel[data-companion-version="4"] .companion-v4-state-row {
         display: grid;
-        grid-template-columns: minmax(4.7rem, auto) minmax(0, 1fr);
-        gap: 0.4rem;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.2rem;
         align-items: start;
         padding-top: 0.35rem;
         border-top: 1px solid rgba(190, 157, 92, 0.12);
@@ -264,7 +264,6 @@
       }
 
       @media (max-width: 560px) {
-        .altar-companion-panel[data-companion-version="4"] .companion-v4-current-state-body,
         .altar-companion-panel[data-companion-version="4"] .companion-v4-actions-body {
           grid-template-columns: 1fr;
         }
@@ -512,10 +511,14 @@
   }
 
   function scheduleCompanionV4(object = null) {
-    queueMicrotask(() => applyCompanionV4(object));
-    requestAnimationFrame(() => applyCompanionV4(object));
-    window.setTimeout(() => applyCompanionV4(object), 120);
-    window.setTimeout(() => applyCompanionV4(object), 500);
+    scheduleCompanionV4.pendingObject = object;
+    if (scheduleCompanionV4.frame) return;
+    scheduleCompanionV4.frame = requestAnimationFrame(() => {
+      scheduleCompanionV4.frame = null;
+      const target = scheduleCompanionV4.pendingObject;
+      scheduleCompanionV4.pendingObject = null;
+      applyCompanionV4(target);
+    });
   }
 
   window.applyCompanionV4 = applyCompanionV4;
