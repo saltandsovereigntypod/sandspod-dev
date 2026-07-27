@@ -15,6 +15,12 @@ function getDressings(candle) {
 
 function saveDressings(candle, dressings) {
   candle.dataset.dressings = JSON.stringify(dressings);
+
+  if (typeof syncLivingCandleDressings === "function") {
+    syncLivingCandleDressings(candle, dressings);
+  } else if (typeof saveWorkingAltarDraft === "function") {
+    saveWorkingAltarDraft();
+  }
 }
 
 function formatDressingName(dressing) {
@@ -67,13 +73,25 @@ function toggleLight(object) {
     object.classList.remove("is-lit");
     stopFlame(object);
     extinguishFlame(object);
+
+    if (typeof stopLivingCandleBurn === "function") {
+      stopLivingCandleBurn(object);
+    } else if (typeof saveWorkingAltarDraft === "function") {
+      saveWorkingAltarDraft();
+    }
   } else {
     object.dataset.lit = "true";
     object.classList.add("is-lit");
     startFlame(object);
+
+    if (typeof startLivingCandleBurn === "function") {
+      startLivingCandleBurn(object);
+    } else if (typeof saveWorkingAltarDraft === "function") {
+      saveWorkingAltarDraft();
+    }
   }
 
-   renderLighting();
+  renderLighting();
 }
 
 function canDressCandle(object) {
@@ -270,5 +288,4 @@ function renderLighting() {
       lightingContext.fill();
 
     });
-
 }
