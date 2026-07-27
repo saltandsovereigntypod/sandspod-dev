@@ -283,6 +283,13 @@
           ...deityState.updateLatestOffering
         };
       }
+      if (deityState.updateOfferingId) {
+        state.deity.offerings = state.deity.offerings.map((offering) =>
+          offering.id === deityState.updateOfferingId
+            ? { ...offering, ...(deityState.updateOffering || {}) }
+            : offering
+        );
+      }
       state.lastUsedAt = nowIso();
       return state;
     });

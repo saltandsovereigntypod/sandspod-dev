@@ -171,14 +171,23 @@
     });
     modal.addEventListener("click", (event) => { if (event.target === modal || event.target.closest("[data-close-object-action]")) closeActionModal(); });
     modal.addEventListener("change", (event) => {
-      if (event.target.name !== "duration") return;
-      const review = modal.querySelector("[data-dedication-review]");
-      if (review) review.hidden = !["until-a-chosen-date", "ongoing-but-review-later"].includes(event.target.value);
+      if (event.target.name === "duration") {
+        const review = modal.querySelector("[data-dedication-review]");
+        if (review) review.hidden = !["until-a-chosen-date", "ongoing-but-review-later"].includes(event.target.value);
+      }
+      if (event.target.name === "intentionHandling") {
+        const intentionField = modal.querySelector("[data-new-intention]");
+        if (intentionField) intentionField.hidden = !["clear-and-replace-after-cleansing", "strengthen-current-intention", "cleanse-and-replace-it", "replace-without-cleansing"].includes(event.target.value);
+      }
     });
     document.body.appendChild(modal);
   }
 
   function selectedValues(data, name) { return data.getAll(name).map(String); }
+  function humanizeActionValue(value = "") {
+    const text = String(value || "").replaceAll("-", " ").replaceAll("_", " ");
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+  }
   function selectedSupportRecords(form) {
     return Array.from(form.querySelectorAll('input[name="supports"]:checked')).map((input) => ({ id: input.value, label: input.dataset.supportLabel || input.value }));
   }
@@ -252,19 +261,22 @@
     const reasons = isCleanse ? ["General energetic cleansing", "Clearing a current intention", "Preparing for a new intention", "After ritual use", "After emotionally intense use", "Routine care", "Other"] : ["General recharge", "Strengthen current intention", "Prepare for ritual", "Prepare for meditation", "Protection", "Healing", "Divination", "Manifestation", "Devotional use", "Seasonal or lunar work", "Other"];
     const methods = isCleanse ? ["Moonlight", "Sunlight", "Water", "Salt", "Smoke", "Sound", "Selenite", "Earth", "Herbs", "Breath", "Visualization", "Prayer", "Intention", "Other"] : ["Moonlight", "Sunlight", "Crystal grid", "Another crystal", "Herbs", "Oil", "Candle", "Sound", "Breath", "Visualization", "Prayer", "Intention", "Altar placement", "Other"];
     const currentIntention = state.dedicationDetails?.intention || state.dedication || "";
-    const handling = isCleanse ? ["Keep the current intention", "Clear the current intention", "Replace it after cleansing"] : ["Keep and strengthen the current intention", "Cleanse the current intention first", "Replace with a new intention", "Charge without changing the intention"];
+    const handling = isCleanse ? ["Keep current intention", "Clear current intention", "Clear and replace after cleansing"] : ["Strengthen current intention", "Charge without changing it", "Cleanse and replace it", "Replace without cleansing"];
+    const recentCleanse = state.cleansingHistory?.[state.cleansingHistory.length - 1];
+    const recentCharge = state.chargingHistory?.[state.chargingHistory.length - 1];
+    const context = `<section class="object-workflow-current"><h3>Current recorded state</h3>${currentIntention ? `<p><strong>Current intention:</strong> ${escapeHtml(currentIntention)}</p>` : ""}${state.dedicationDetails?.dedicatedTo ? `<p><strong>Dedicated to:</strong> ${escapeHtml(state.dedicationDetails.dedicatedTo)}</p>` : ""}${state.lastCleansedAt ? `<p><strong>Last cleansed:</strong> ${escapeHtml(new Date(state.lastCleansedAt).toLocaleString())}${recentCleanse?.methods?.length ? ` · ${escapeHtml(recentCleanse.methods.map(humanizeActionValue).join(", "))}` : ""}</p>` : ""}${state.lastChargedAt ? `<p><strong>Last charged:</strong> ${escapeHtml(new Date(state.lastChargedAt).toLocaleString())}${recentCharge?.methods?.length ? ` · ${escapeHtml(recentCharge.methods.map(humanizeActionValue).join(", "))}` : ""}</p>` : ""}</section>`;
     openWorkflowModal({
       title: isCleanse ? "Cleanse Crystal" : "Charge Crystal", intro: isCleanse ? "Record the purpose, methods, and supports used in this cleansing." : "Shape and record the purpose of this crystal charge.", submitLabel: isCleanse ? "Complete Cleansing" : "Complete Charge",
-      content: `<section><h3>1. ${isCleanse ? "Reason for cleansing" : "Purpose of the charge"}</h3>${optionCards("purpose", reasons)}</section><section><h3>2. ${isCleanse ? "Cleansing" : "Charging"} methods</h3>${optionCards("methods", methods, true)}</section><section><h3>3. Supports used</h3>${supportCards(object)}</section>${currentIntention ? `<section class="object-workflow-current"><h3>4. Current intention</h3><p>${escapeHtml(currentIntention)}</p>${optionCards("intentionHandling", handling)}</section>` : ""}${(!isCleanse || currentIntention) ? `<section><h3>${currentIntention ? "5" : "4"}. New or strengthened intention</h3><textarea name="newIntention" rows="3"></textarea></section>` : ""}<section><h3>Reflection</h3><textarea name="notes" rows="3" placeholder="Optional notes or reflection"></textarea></section><label>Completed at<input type="datetime-local" name="occurredAt" value="${localDateTime()}"></label>`,
+      content: `${context}<section><h3>1. ${isCleanse ? "Reason for cleansing" : "Purpose of the charge"}</h3>${optionCards("purpose", reasons)}</section><section><h3>2. ${isCleanse ? "Cleansing" : "Charging"} methods</h3>${optionCards("methods", methods, true)}</section><section><h3>3. Supports used</h3>${supportCards(object)}</section>${currentIntention ? `<section><h3>4. Intention consequence</h3>${optionCards("intentionHandling", handling)}</section>` : ""}${!isCleanse ? `<section data-new-intention ${currentIntention ? "hidden" : ""}><h3>${currentIntention ? "5" : "4"}. New or strengthened intention</h3><textarea name="newIntention" rows="3"></textarea></section>` : currentIntention ? `<section data-new-intention hidden><h3>5. Replacement intention</h3><textarea name="newIntention" rows="3"></textarea></section>` : ""}<section><h3>Reflection</h3><textarea name="notes" rows="3" placeholder="Optional notes or reflection"></textarea></section><label>Completed at<input type="datetime-local" name="occurredAt" value="${localDateTime()}"></label>`,
       async onSubmit(formData, form) {
         const occurredAt = toIso(formData.get("occurredAt"));
         if (!occurredAt) return false;
         if (!formData.getAll("methods").length) { showToast("Choose at least one method"); return false; }
         const record = { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), occurredAt, purpose: formData.get("purpose"), methods: selectedValues(formData, "methods"), supports: selectedSupportRecords(form), intentionHandling: formData.get("intentionHandling") || "", intention: String(formData.get("newIntention") || "").trim(), notes: String(formData.get("notes") || "").trim() };
         snapshot();
-        const clear = record.intentionHandling === "clear-the-current-intention";
-        const replace = record.intention && ["replace-with-a-new-intention", "replace-it-after-cleansing"].includes(record.intentionHandling);
-        const strengthen = record.intention && record.intentionHandling === "keep-and-strengthen-the-current-intention";
+        const clear = record.intentionHandling === "clear-current-intention";
+        const replace = record.intention && ["clear-and-replace-after-cleansing", "cleanse-and-replace-it", "replace-without-cleansing"].includes(record.intentionHandling);
+        const strengthen = record.intention && record.intentionHandling === "strengthen-current-intention";
         const care = isCleanse ? { cleansedAt: occurredAt, cleansingRecord: record } : { chargedAt: occurredAt, chargingRecord: record };
         if (clear) { care.dedication = ""; care.dedicationDetails = null; }
         if (replace || strengthen) {
@@ -272,21 +284,37 @@
           care.dedicationDetails = { ...(state.dedicationDetails || {}), intention: record.intention, updatedAt: occurredAt };
         }
         setLivingCrystalCare(object, care);
-        showToast(isCleanse ? "Crystal cleansed" : "Crystal charged");
+        const methodSummary = record.methods.map(humanizeActionValue).join(", ");
+        const consequence = clear ? "Previous intention cleared." : replace ? "Intention replaced." : strengthen ? "Intention strengthened." : currentIntention ? "Current intention retained." : "";
+        showToast(`Crystal ${isCleanse ? "cleansed" : "charged"}${methodSummary ? ` with ${methodSummary}` : ""}. ${consequence}`.trim());
       }
     });
   }
 
-  function openDeityAction(object, kind) {
+  function openDeityAction(object, kind, offeringId = "") {
     const state = livingState(object)?.deity || {};
     const statuses = ["Offered", "Present on altar", "Completed", "Consumed or used", "Removed", "Returned to nature", "Disposed of", "Unknown", "Custom"];
-    if (kind === "offering-status") {
-      const latest = state.offerings?.[state.offerings.length - 1];
-      if (!latest) { showToast("Record an offering before updating its status"); openDeityAction(object, "offering"); return; }
-      openWorkflowModal({ title: "Update Offering Status", intro: `Updating: ${(latest.items || []).map((item) => item.label || item).join(", ") || "latest offering"}`, submitLabel: "Update Status", content: `<section><h3>Devotional state</h3>${optionCards("status", statuses, false, latest.status)}</section><label>Custom status<input name="customStatus"></label>`, async onSubmit(data) {
+    const offerings = [...(state.offerings || [])].sort((a, b) => String(b.occurredAt || "").localeCompare(String(a.occurredAt || "")));
+    if (kind === "offering") {
+      openWorkflowModal({ title: "Offering Manager", intro: `Record a new offering for ${object.dataset.label || "this presence"}, or update an existing devotional record.`, submitLabel: "Continue", content: `<section><h3>Choose an offering</h3><label class="offering-manager-choice"><input type="radio" name="offeringChoice" value="new" required><span><strong>Record New Offering</strong><small>Create a new devotional record.</small></span></label>${offerings.map((offering) => `<label class="offering-manager-choice"><input type="radio" name="offeringChoice" value="${escapeHtml(offering.id)}" required><span><strong>${escapeHtml(new Date(offering.occurredAt || Date.now()).toLocaleDateString())} · ${escapeHtml((offering.items || []).map((item) => item.label || item).join(", ") || (offering.types || []).join(", ") || "Offering")}</strong><small>${escapeHtml([offering.intention, offering.status, offering.perceivedResponse].filter(Boolean).join(" · "))}</small></span></label>`).join("")}</section>`, onSubmit(data) {
+        const choice = data.get("offeringChoice");
+        closeActionModal();
+        openDeityAction(object, choice === "new" ? "offering-new" : "offering-update", choice === "new" ? "" : choice);
+        return false;
+      }});
+      return;
+    }
+    if (kind === "offering-update") {
+      const offering = offerings.find((item) => item.id === offeringId);
+      if (!offering) { showToast("That offering is no longer available"); return; }
+      openWorkflowModal({ title: "Update Offering", intro: `Editing ${(offering.items || []).map((item) => item.label || item).join(", ") || "the selected offering"} from ${new Date(offering.occurredAt).toLocaleDateString()}.`, submitLabel: "Save Offering Update", content: `<section><h3>Current devotional state</h3>${optionCards("status", statuses, false, offering.status)}<input name="customStatus" placeholder="Custom status"></section><section><h3>Perceived response</h3>${optionCards("response", ["Not yet known", "Accepted", "Neutral", "Declined", "Strong presence felt", "Personal interpretation"], false, offering.perceivedResponse)}<textarea name="responseNotes" rows="3" placeholder="Personal interpretation">${escapeHtml(offering.responseNotes || "")}</textarea></section><label>Reflection or follow-up notes<textarea name="followUpNotes" rows="3">${escapeHtml(offering.followUpNotes || "")}</textarea></label><label>Completion or removal date<input type="datetime-local" name="completedAt" value="${offering.completedAt ? localDateTime(offering.completedAt) : ""}"></label>`, onSubmit(data) {
         const status = data.get("status") === "custom" ? String(data.get("customStatus") || "").trim() : data.get("status");
+        const response = data.get("response") || "";
         const occurredAt = new Date().toISOString();
-        snapshot(); setLivingDeityState(object, { offeringStatus: status, updateLatestOffering: { status, statusUpdatedAt: occurredAt }, offeringStatusRecord: { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), offeringId: latest.id, status, occurredAt } });
+        const update = { status, perceivedResponse: response, responseNotes: String(data.get("responseNotes") || "").trim(), followUpNotes: String(data.get("followUpNotes") || "").trim(), completedAt: toIso(data.get("completedAt")), updatedAt: occurredAt };
+        snapshot();
+        setLivingDeityState(object, { ...(offering.id === offerings[0]?.id ? { offeringStatus: status } : {}), updateOfferingId: offering.id, updateOffering: update, offeringStatusRecord: { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), offeringId: offering.id, status, perceivedResponse: response, occurredAt } });
+        showToast(`Offering status updated to ${humanizeActionValue(status)}.${response ? ` Perceived response recorded as ${humanizeActionValue(response)}.` : ""}`);
       }});
       return;
     }
@@ -305,7 +333,7 @@
       const status = data.get("status") === "custom" ? String(data.get("customStatus") || "").trim() : data.get("status");
       const record = { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), occurredAt, types: selectedValues(data, "types"), items: [...selectedSupportRecords(form), ...custom], intention: String(data.get("intention") || "").trim(), message: String(data.get("message") || "").trim(), status, perceivedResponse: data.get("response") || "", responseNotes: String(data.get("responseNotes") || "").trim() };
       snapshot(); setLivingDeityState(object, { lastOfferingAt: occurredAt, offeringStatus: status, offeringRecord: record });
-      showToast("Offering recorded");
+      showToast(`Offering recorded for ${object.dataset.label || "selected deity"}.`);
     }});
   }
 
@@ -379,7 +407,6 @@
     { id: "charge", label: "Charge", icon: "☾", priority: 13, types: ["crystal"], handler: (o) => openCrystalAction(o, "charge") },
     { id: "dedicate", label: "Dedicate", icon: "✦", priority: 14, types: ["crystal"], handler: (o) => openCrystalAction(o, "dedication") },
     { id: "record-offering", label: "Offering", icon: "🎁", priority: 12, types: ["deity"], handler: (o) => openDeityAction(o, "offering") },
-    { id: "offering-status", label: "Offering Status", icon: "◉", priority: 13, types: ["deity"], handler: (o) => openDeityAction(o, "offering-status") },
     { id: "reason-presence", label: "Reason", icon: "✎", priority: 14, types: ["deity"], handler: (o) => openDeityAction(o, "reason-presence") },
     { id: "edit-apothecary", label: "Edit Recipe", icon: "⚗", priority: 11, types: ["apothecary"], available: (o) => Boolean(o.dataset.apothecaryItemId && typeof openCreateApothecaryModal === "function"), handler: (o) => openCreateApothecaryModal("", o.dataset.apothecaryItemId) },
     { id: "begin-practice", label: "Begin Practice", icon: "✨", priority: 16, types: ["*"], available: (o) => Boolean(o.dataset.instanceId && typeof openLivingStatePracticeMenu === "function"), handler: () => openLivingStatePracticeMenu() },
@@ -401,6 +428,7 @@
     { id: "forward", label: "Bring Forward", icon: "⬆", priority: 45, types: ["*"], handler: (o) => { snapshot(); bringForward(o); } },
     { id: "backward", label: "Send Backward", icon: "⬇", priority: 46, types: ["*"], handler: (o) => { snapshot(); sendBackward(o); } },
     { id: "ungroup", label: "Ungroup", icon: "⊟", priority: 47, types: ["*"], available: (o) => Boolean(o.dataset.groupId && typeof ungroupCurrentItems === "function"), handler: (o) => { snapshot(); ungroupCurrentItems(o.dataset.groupId); } },
+    { id: "back-to-altar", label: "Back to Altar", mobileLabel: "Deselect", icon: "←", priority: 98, types: ["*"], handler: () => deselectObject() },
     { id: "delete", label: "Delete", icon: "🗑", priority: 99, types: ["*"], handler: (o) => deleteObject(o) }
   ];
 
@@ -416,7 +444,8 @@
   }
 
   function buttonMarkup(action, object, overflow = false) {
-    const label = typeof action.label === "function" ? action.label(object) : action.label;
+    const configuredLabel = MOBILE_QUERY.matches && action.mobileLabel ? action.mobileLabel : action.label;
+    const label = typeof configuredLabel === "function" ? configuredLabel(object) : configuredLabel;
     return `<button type="button" data-action="${escapeHtml(action.id)}" ${overflow ? 'role="menuitem"' : ""} title="${escapeHtml(label)}"><span aria-hidden="true">${escapeHtml(action.icon)}</span><span>${escapeHtml(label)}</span></button>`;
   }
 
@@ -424,8 +453,11 @@
     overflowOpen = false;
     const popup = toolbar?.querySelector("[data-object-action-overflow]");
     const trigger = toolbar?.querySelector("[data-object-action-more]");
+    const backdrop = toolbar?.querySelector("[data-object-action-backdrop]");
     if (popup) popup.hidden = true;
+    if (backdrop) backdrop.hidden = true;
     if (trigger) trigger.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("altar-action-sheet-open");
   }
 
   function renderSelectedObjectActions(object = currentObject()) {
@@ -448,7 +480,8 @@
       ${overflow.length ? `
         <div class="altar-object-actions-more-wrap">
           <button type="button" data-object-action-more aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">•••</span><span>See More</span></button>
-          <div class="altar-object-actions-overflow" data-object-action-overflow role="menu" hidden>${overflow.map((action) => buttonMarkup(action, object, true)).join("")}</div>
+          <button type="button" class="altar-object-actions-backdrop" data-object-action-backdrop aria-label="Close more actions" hidden></button>
+          <div class="altar-object-actions-overflow" data-object-action-overflow role="menu" hidden><strong class="altar-object-actions-overflow-title">More Actions</strong>${overflow.map((action) => buttonMarkup(action, object, true)).join("")}</div>
         </div>
       ` : ""}
     `;
@@ -462,6 +495,7 @@
     if (!action) return false;
     closeObjectActionOverflow();
     await action.handler(object);
+    if (actionId === "back-to-altar") return true;
     if (!document.querySelector("[data-object-action-modal]")) {
       refreshAfterAction(currentObject(object));
     }
@@ -476,17 +510,22 @@
       overflowOpen = !overflowOpen;
       const popup = toolbar.querySelector("[data-object-action-overflow]");
       popup.hidden = !overflowOpen;
+      const backdrop = toolbar.querySelector("[data-object-action-backdrop]");
+      if (backdrop) backdrop.hidden = !overflowOpen;
       more.setAttribute("aria-expanded", String(overflowOpen));
+      document.body.classList.toggle("altar-action-sheet-open", overflowOpen && MOBILE_QUERY.matches);
       if (overflowOpen) popup.querySelector("button")?.focus();
       return;
     }
-    if (overflowOpen && !event.target.closest(".altar-object-actions-more-wrap")) closeObjectActionOverflow();
+    if (event.target.closest("[data-object-action-backdrop]") || (overflowOpen && !event.target.closest(".altar-object-actions-more-wrap"))) closeObjectActionOverflow();
   });
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    const modalOpen = Boolean(document.querySelector("[data-object-action-modal], [role=dialog]"));
     closeObjectActionOverflow();
-    closeActionModal();
+    if (document.querySelector("[data-object-action-modal]")) closeActionModal();
+    else if (!modalOpen && currentObject() && typeof deselectObject === "function") deselectObject();
   });
 
   window.altarObjectActionRegistry = registry;

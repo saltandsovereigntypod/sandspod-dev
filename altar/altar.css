@@ -762,6 +762,9 @@
   display: none;
 }
 
+.altar-object-actions-backdrop[hidden],
+.altar-object-actions-overflow-title { display: none; }
+
 .altar-object-actions-overflow button {
   width: 100% !important;
   justify-content: flex-start !important;
@@ -784,9 +787,24 @@
 }
 
 .object-workflow-card {
+  box-sizing: border-box;
   width: min(720px, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  min-width: 0;
   max-height: min(88vh, 850px);
   overflow-y: auto;
+}
+
+.object-workflow-card *,
+.object-workflow-card form,
+.object-workflow-card section,
+.object-workflow-card label,
+.object-workflow-card input,
+.object-workflow-card select,
+.object-workflow-card textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .object-workflow-card form,
@@ -810,19 +828,27 @@
 .object-workflow-options input:checked + span { border-color: var(--gold); background: rgba(185,160,93,.16); }
 .object-workflow-muted { opacity: .72; }
 .relationship-manager-table { display: grid; gap: .35rem; }
+.relationship-manager-group { margin: .75rem 0 .1rem; color: var(--gold); }
+.relationship-duplicate-notice { padding: .55rem; border: 1px solid rgba(185,160,93,.25); border-radius: .65rem; }
 .relationship-manager-heading,
 .relationship-manager-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: .75rem; align-items: center; padding: .55rem; border-bottom: 1px solid rgba(185,160,93,.2); }
 .relationship-manager-heading { color: var(--gold); font-weight: 700; }
 .relationship-manager-row small { display: block; opacity: .7; }
 .relationship-manager-row.is-editing form { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr auto; gap: .5rem; }
-.apothecary-ingredient-amount-row { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(7rem, 1fr) auto auto auto; gap: .35rem; align-items: center; }
+.apothecary-ingredient-amount-row { display: grid; grid-template-columns: minmax(8rem, 1fr) auto minmax(7rem, 1fr) auto auto auto; gap: .35rem; align-items: center; }
+.apothecary-add-ingredient { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 1fr) auto; gap: .45rem; }
+.offering-manager-choice { display: block; }
+.offering-manager-choice > input { position: absolute; opacity: 0; }
+.offering-manager-choice > span { display: grid; gap: .2rem; padding: .7rem; border: 1px solid rgba(185,160,93,.25); border-radius: .65rem; cursor: pointer; }
+.offering-manager-choice > input:checked + span { border-color: var(--gold); background: rgba(185,160,93,.14); }
 
 @media (max-width: 600px) {
   .object-workflow-options { grid-template-columns: 1fr; }
   .relationship-manager-heading { display: none; }
   .relationship-manager-row,
   .relationship-manager-row.is-editing form { grid-template-columns: 1fr; }
-  .apothecary-ingredient-amount-row { grid-template-columns: 1fr 1fr auto auto auto; }
+  .apothecary-ingredient-amount-row { grid-template-columns: 1fr auto; }
+  .apothecary-add-ingredient { grid-template-columns: 1fr; }
 }
 
 .altar-action-group {
