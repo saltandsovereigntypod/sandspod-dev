@@ -783,6 +783,48 @@
   width: 100%;
 }
 
+.object-workflow-card {
+  width: min(720px, calc(100vw - 2rem));
+  max-height: min(88vh, 850px);
+  overflow-y: auto;
+}
+
+.object-workflow-card form,
+.object-workflow-card section {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.object-workflow-card section {
+  padding: 0.85rem;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.object-workflow-card h3 { margin: 0; color: var(--gold); font-size: 1rem; }
+.object-workflow-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+.object-workflow-options label { display: block; }
+.object-workflow-options input { position: absolute; opacity: 0; pointer-events: none; }
+.object-workflow-options span { display: block; height: 100%; padding: 0.6rem; border: 1px solid rgba(185,160,93,.25); border-radius: .65rem; cursor: pointer; }
+.object-workflow-options input:checked + span { border-color: var(--gold); background: rgba(185,160,93,.16); }
+.object-workflow-muted { opacity: .72; }
+.relationship-manager-table { display: grid; gap: .35rem; }
+.relationship-manager-heading,
+.relationship-manager-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: .75rem; align-items: center; padding: .55rem; border-bottom: 1px solid rgba(185,160,93,.2); }
+.relationship-manager-heading { color: var(--gold); font-weight: 700; }
+.relationship-manager-row small { display: block; opacity: .7; }
+.relationship-manager-row.is-editing form { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr auto; gap: .5rem; }
+.apothecary-ingredient-amount-row { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(7rem, 1fr) auto auto auto; gap: .35rem; align-items: center; }
+
+@media (max-width: 600px) {
+  .object-workflow-options { grid-template-columns: 1fr; }
+  .relationship-manager-heading { display: none; }
+  .relationship-manager-row,
+  .relationship-manager-row.is-editing form { grid-template-columns: 1fr; }
+  .apothecary-ingredient-amount-row { grid-template-columns: 1fr 1fr auto auto auto; }
+}
+
 .altar-action-group {
   display: flex;
   gap: clamp(0.2rem, 0.7vw, 0.45rem);

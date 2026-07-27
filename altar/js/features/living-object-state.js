@@ -52,12 +52,18 @@
       crystal: {
         lastChargedAt: "",
         lastCleansedAt: "",
-        dedication: ""
+        dedication: "",
+        dedicationDetails: null,
+        cleansingHistory: [],
+        chargingHistory: []
       },
       deity: {
         lastOfferingAt: "",
         offeringStatus: "",
-        reasonForPresence: ""
+        reasonForPresence: "",
+        reasonDetails: null,
+        offerings: [],
+        offeringStatusHistory: []
       },
       apothecary: {
         activationState: "",
@@ -101,6 +107,10 @@
     }
     if (!Array.isArray(state.candle.burnHistory)) state.candle.burnHistory = [];
     if (!Array.isArray(state.candle.dressings)) state.candle.dressings = [];
+    if (!Array.isArray(state.crystal.cleansingHistory)) state.crystal.cleansingHistory = [];
+    if (!Array.isArray(state.crystal.chargingHistory)) state.crystal.chargingHistory = [];
+    if (!Array.isArray(state.deity.offerings)) state.deity.offerings = [];
+    if (!Array.isArray(state.deity.offeringStatusHistory)) state.deity.offeringStatusHistory = [];
     return state;
   }
 
@@ -251,6 +261,9 @@
       if (care.cleansedAt) state.crystal.lastCleansedAt = care.cleansedAt;
       if (care.chargedAt) state.crystal.lastChargedAt = care.chargedAt;
       if (care.dedication !== undefined) state.crystal.dedication = care.dedication;
+      if (care.dedicationDetails !== undefined) state.crystal.dedicationDetails = care.dedicationDetails;
+      if (care.cleansingRecord) state.crystal.cleansingHistory.push(care.cleansingRecord);
+      if (care.chargingRecord) state.crystal.chargingHistory.push(care.chargingRecord);
       state.lastUsedAt = nowIso();
       return state;
     });
@@ -261,6 +274,15 @@
       if (deityState.lastOfferingAt) state.deity.lastOfferingAt = deityState.lastOfferingAt;
       if (deityState.offeringStatus !== undefined) state.deity.offeringStatus = deityState.offeringStatus;
       if (deityState.reasonForPresence !== undefined) state.deity.reasonForPresence = deityState.reasonForPresence;
+      if (deityState.reasonDetails !== undefined) state.deity.reasonDetails = deityState.reasonDetails;
+      if (deityState.offeringRecord) state.deity.offerings.push(deityState.offeringRecord);
+      if (deityState.offeringStatusRecord) state.deity.offeringStatusHistory.push(deityState.offeringStatusRecord);
+      if (deityState.updateLatestOffering && state.deity.offerings.length) {
+        state.deity.offerings[state.deity.offerings.length - 1] = {
+          ...state.deity.offerings[state.deity.offerings.length - 1],
+          ...deityState.updateLatestOffering
+        };
+      }
       state.lastUsedAt = nowIso();
       return state;
     });

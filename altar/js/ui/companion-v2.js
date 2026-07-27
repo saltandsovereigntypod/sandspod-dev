@@ -523,6 +523,26 @@
     });
   }
 
+  function getLivingWorkflowEvents(object) {
+    if (!object || typeof getLivingObjectState !== "function") return [];
+    const state = getLivingObjectState(object);
+    const convert = (records, type, label) => (records || []).map((record) => ({
+      id: record.id || "",
+      event_type: type,
+      event_label: label,
+      event_notes: [record.purpose, record.dedicatedTo, record.intention, record.status, ...(record.methods || []), ...(record.items || []).map((item) => item.label || item)].filter(Boolean).join(" · "),
+      occurred_at: record.occurredAt || record.recordedAt || "",
+      metadata: record
+    }));
+    return [
+      ...convert(state?.crystal?.cleansingHistory, "crystal_cleansed", "Crystal Cleansed"),
+      ...convert(state?.crystal?.chargingHistory, "crystal_charged", "Crystal Charged"),
+      ...convert(state?.crystal?.dedicationDetails ? [state.crystal.dedicationDetails] : [], "crystal_dedicated", "Crystal Dedicated"),
+      ...convert(state?.deity?.offerings, "offering_recorded", "Offering Recorded"),
+      ...convert(state?.deity?.offeringStatusHistory, "offering_status_changed", "Offering Status Changed")
+    ];
+  }
+
   function mergeHistoryEvents(...sources) {
     const seenIds = new Set();
     const seenContent = new Set();
@@ -569,6 +589,7 @@
   function renderHistory(object, entity, instanceEvents = [], entityEvents = []) {
     const events = mergeHistoryEvents(
       getCandleBurnEvents(object),
+      getLivingWorkflowEvents(object),
       instanceEvents,
       entityEvents
     );

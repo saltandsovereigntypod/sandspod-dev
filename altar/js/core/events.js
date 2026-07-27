@@ -194,6 +194,8 @@ document.addEventListener("click", (event) => {
   const manageRelationshipsButton = event.target.closest("[data-manage-library-relationships]");
   const closeRelationshipManagerButton = event.target.closest("[data-close-relationship-manager]");
   const deleteLibraryRelationshipButton = event.target.closest("[data-delete-library-relationship]");
+  const editLibraryRelationshipButton = event.target.closest("[data-edit-library-relationship]");
+  const cancelLibraryRelationshipButton = event.target.closest("[data-cancel-library-relationship]");
   const closeLivingHistoryButton = event.target.closest("[data-close-living-history]");
 
   if (openCabinetButton) {
@@ -348,6 +350,17 @@ document.addEventListener("click", (event) => {
     }
 
     return;
+  }
+
+  if (editLibraryRelationshipButton) {
+    event.preventDefault();
+    editLibraryRelationship(editLibraryRelationshipButton.dataset.editLibraryRelationship);
+  }
+
+  if (cancelLibraryRelationshipButton) {
+    event.preventDefault();
+    const modal = cancelLibraryRelationshipButton.closest("[data-relationship-manager-modal]");
+    refreshRelationshipManagerModal(modal?.dataset.entityId || "");
   }
 });
 
