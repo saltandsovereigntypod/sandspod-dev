@@ -1,0 +1,8 @@
+{
+  "name": "salt-and-sovereignty-static-site",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/validate-static.js",
+    "validate": "node scripts/validate-static.js"
+  }
+}
