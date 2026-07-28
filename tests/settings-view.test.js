@@ -19,6 +19,15 @@ test("background options preserve unknown saved values and remove duplicates", (
   assert.deepEqual(Settings.backgroundOptions([{ name: "Forest" }, { name: "Forest" }], "Legacy"), ["Legacy", "Forest"]);
 });
 
+test("background options use definition names and automatically include future definitions", () => {
+  assert.deepEqual(Settings.backgroundOptions([
+    { id: "forest-path", name: "Forest Altar", background: "/forest.png" },
+    { id: "shelf", name: "Deity Shelf Altar", background: "/shelf.png" },
+    { id: "future", name: "Moon Garden", background: "/moon.png" }
+  ]), ["Forest Altar", "Deity Shelf Altar", "Moon Garden"]);
+  assert.ok(Settings.CATEGORIES.includes("account"));
+});
+
 test("stale settings responses are rejected after edits", () => {
   assert.equal(Settings.isStale(1, 2, false), true);
   assert.equal(Settings.isStale(2, 2, true), true);

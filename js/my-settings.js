@@ -232,11 +232,13 @@ document.addEventListener("submit", async (event) => {
     await applyMundaneModePreference();
 
     window.dispatchEvent(new CustomEvent("saltSettingsChanged"));
+    window.dispatchEvent(new CustomEvent("saltSettingsSaveState", { detail: { ok: true } }));
 
     showMySanctuaryNotice("Settings saved.");
   } catch (error) {
     console.error(error);
     showMySanctuaryNotice("Settings could not be saved.");
+    window.dispatchEvent(new CustomEvent("saltSettingsSaveState", { detail: { ok: false } }));
   }
 });
 

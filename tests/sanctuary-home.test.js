@@ -27,3 +27,26 @@ test("scope and stale request guards separate guest and authenticated data", () 
   assert.equal(Sanctuary.isCurrentRequest(1, 2, "user:u1", "user:u1", true), false);
   assert.equal(Sanctuary.isCurrentRequest(2, 2, "user:u1", "guest", true), false);
 });
+
+test("snapshot reports only reliable active state without duplicates", () => {
+  const facts = Sanctuary.buildSnapshot([
+    { type: "candle", lit: true, status: "lit" },
+    { type: "offering", status: "active" },
+    { type: "offering", status: "expired" }
+  ], { title: "Crossroads Protection" });
+  assert.ok(facts.includes("1 candle is currently lit."));
+  assert.ok(facts.includes("1 offering is active."));
+  assert.ok(facts.includes("Your active ritual is “Crossroads Protection.”"));
+  assert.deepEqual(Sanctuary.buildSnapshot([], null), []);
+});
+
+test("companion observation is singular, neutral, and canonical", () => {
+  const observation = Sanctuary.companionObservation([
+    { title: "Rose Oil", group: "apothecary", entityId: "legacy", timestamp: "2026-07-03" },
+    { title: "Protection Working", group: "rituals", entityId: "legacy", timestamp: "2026-07-02" }
+  ], library);
+  assert.equal(observation.destination, "/grimoire/?entity=canonical");
+  assert.match(observation.text, /share a Living Library connection/);
+  assert.doesNotMatch(observation.text, /should|recommend|best/i);
+  assert.equal(Sanctuary.companionObservation([], library), null);
+});
