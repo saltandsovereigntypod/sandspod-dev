@@ -3268,3 +3268,14 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
 .custom-form-upload-row input[type="file"] {
   width: 100%;
 }
+.cabinet-form-unavailable {
+  display: grid;
+  place-items: center;
+  min-height: 5rem;
+  padding: .5rem;
+  color: rgba(244, 236, 216, .72);
+  border: 1px dashed rgba(185, 160, 93, .45);
+  border-radius: .45rem;
+  font-size: .8rem;
+  text-align: center;
+}

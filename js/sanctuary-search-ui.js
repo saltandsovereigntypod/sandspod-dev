@@ -59,7 +59,8 @@
         id: object.dataset.altarObjectId || object.dataset.instanceId || `placed:${index}:${object.dataset.label || object.dataset.type}`,
         group: "currentAltar", type: object.dataset.type || "object", entityId: canonicalId,
         title: object.dataset.label || global.Library?.getEntity?.(canonicalId)?.name || "Altar Object",
-        subtitle: "Current Altar", aliases: [object.dataset.type, object.dataset.form].filter(Boolean), fields: [object.dataset.type, object.dataset.form]
+        subtitle: "Current Altar", aliases: [object.dataset.type, object.dataset.form].filter(Boolean), fields: [object.dataset.type, object.dataset.form],
+        destination: { kind: "current-altar", instanceId: object.dataset.altarObjectId || object.dataset.instanceId || "", href: `/altar/?selectObject=${encodeURIComponent(object.dataset.altarObjectId || object.dataset.instanceId || "")}` }
       };
     });
   }
@@ -103,10 +104,9 @@
   }
 
   function resultMarkup(result, index) {
-    const href = global.SanctuarySearch.resolveDestination(result, global.Library);
     const body = `<strong>${escapeHtml(result.title)}</strong><span>${escapeHtml(result.subtitle)}</span>${result.relationshipContext || result.matchContext ? `<small>${escapeHtml(result.relationshipContext || result.matchContext)}</small>` : ""}`;
-    if (href) return `<a href="${escapeHtml(href)}" data-sanctuary-result data-result-index="${index}">${body}</a>`;
-    if (result.action) return `<button type="button" data-sanctuary-result data-result-index="${index}" data-result-action="${escapeHtml(result.action.kind)}" data-result-id="${escapeHtml(result.action.id)}">${body}</button>`;
+    const destination = global.SanctuarySearchNavigation?.destinationFor?.(result, global.Library);
+    if (destination) return `<button type="button" data-sanctuary-result data-result-index="${index}" data-result-id="${escapeHtml(result.id)}" data-result-group="${escapeHtml(result.group)}">${body}</button>`;
     return `<div class="sanctuary-search-result is-context">${body}</div>`;
   }
 
@@ -173,10 +173,10 @@
       modal.querySelectorAll("[data-sanctuary-search-filter]").forEach((item) => { item.classList.toggle("is-active", item === filter); item.setAttribute("aria-pressed", item === filter ? "true" : "false"); });
       return renderResults();
     }
-    const action = event.target.closest("[data-result-action]");
-    if (action?.dataset.resultAction === "apothecary" && typeof global.openApothecaryItemEditor === "function") {
-      closeSearch();
-      global.openApothecaryItemEditor(action.dataset.resultId);
+    const resultButton = event.target.closest("[data-sanctuary-result][data-result-id]");
+    if (resultButton) {
+      const result = global.SanctuarySearch.getIndex().find((item) => item.id === resultButton.dataset.resultId && item.group === resultButton.dataset.resultGroup);
+      global.SanctuarySearchNavigation?.open?.(result, { library: global.Library, close: closeSearch, openApothecary: global.openApothecaryItemEditor, selectObject: (instanceId) => { const object = document.querySelector(`[data-altar-object-id="${CSS.escape(instanceId)}"], [data-instance-id="${CSS.escape(instanceId)}"]`); if (object && typeof global.selectObject === "function") global.selectObject(object); } });
     }
   });
   document.addEventListener("input", (event) => { if (modal && event.target.matches("[data-sanctuary-search-input]")) renderResults(); });

@@ -1,6 +1,7 @@
 (function initializeLivingSanctuary(global) {
   const escapeHtml = (value = "") => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
   let sanctuaryRequestId = 0;
+  let sanctuaryState = { authResolved: false, user: null, isGuest: false, settings: {}, settingsResolved: false, canModerate: false };
 
   function greeting(settings = {}, user = null) {
     const preference = settings.sanctuary_greeting_name || "preferred";
@@ -50,6 +51,9 @@
   function moderatorDestination(user, permission = global.isSaltCommunityModerator) {
     return typeof permission === "function" && permission(user) ? "/admin/submissions/" : null;
   }
+  function createViewState({ authResolved = false, user = null, settings = {}, settingsResolved = false } = {}, permission = global.isSaltCommunityModerator) {
+    return { authResolved, user, isGuest: authResolved && !user, settings, settingsResolved, canModerate: Boolean(authResolved && user && permission?.(user)) };
+  }
 
   function indexRecords() {
     global.SanctuarySearchUI?.rebuildLocalIndex?.();
@@ -65,25 +69,27 @@
     return global.MyJourney?.buildTimeline(records) || [];
   }
 
-  function renderHome(panel, settings) {
+  function renderHome(panel, state = sanctuaryState) {
     const section = panel.querySelector('[data-sanctuary-view="dashboard"]');
     if (!section) return;
     const records = indexRecords();
-    const user = global.getCurrentSaltUser?.() || null;
+    const user = state.user;
+    const settings = state.settings || {};
     const continues = continueItems(records, { library: global.Library });
     const recent = records.filter((item) => item.timestamp).sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
     const activeRitual = global.getStoredActiveRitualSession?.() || null;
     const objectState = [...document.querySelectorAll?.("[data-object-id]") || []].map((node) => { try { return { type: node.dataset.type, ...JSON.parse(node.dataset.livingState || "{}") }; } catch { return { type: node.dataset.type }; } });
     const snapshot = buildSnapshot(objectState, activeRitual);
     const observation = companionObservation(records, global.Library);
-    const moderationHref = moderatorDestination(user);
+    const moderationHref = state.canModerate ? "/admin/submissions/" : null;
     const review = moderationHref ? `<a href="${moderationHref}">Community Submissions</a>` : "";
     const facts = [
       recent.find((item) => item.group === "rituals") && `Your most recent recorded ritual is “${recent.find((item) => item.group === "rituals").title}.”`,
       recent.find((item) => item.group === "pages") && `“${recent.find((item) => item.group === "pages").title}” is your most recent Book of Shadows record.`,
       recent.find((item) => item.group === "library") && `${recent.find((item) => item.group === "library").title} was recently present in your Living Library.`
     ].filter(Boolean);
-    section.innerHTML = `<h2 data-my-sanctuary-dashboard-title>${escapeHtml(greeting(settings, user))}</h2><p class="my-sanctuary-user">${user ? "Cloud-connected Sanctuary" : "Guest Sanctuary · saved in this browser"}</p><p class="my-sanctuary-intro">Your private home within Salt & Sovereignty. Return to your altar, continue your writing, revisit your rituals, and follow the living threads of your practice.</p><nav class="living-sanctuary-nav" aria-label="Sanctuary navigation"><button type="button" data-my-sanctuary-view-button="journey">My Journey</button><a href="/altar/">Digital Altar</a><a href="/grimoire/">Book of Shadows</a><a href="/grimoire/community-grimoire.html">Community Grimoire</a><a href="/submit/">Offer to the Sanctuary</a><button type="button" data-my-sanctuary-view-button="submissions">My Submissions</button>${review}<button type="button" data-my-sanctuary-view-button="settings">Settings</button></nav>${snapshot.length ? `<section class="living-sanctuary-section"><h3>Sanctuary Snapshot</h3>${snapshot.map((fact) => `<p>${escapeHtml(fact)}</p>`).join("")}</section>` : '<p class="my-sanctuary-soft-note">Your Sanctuary is quiet right now.</p>'}${continues.length ? `<section class="living-sanctuary-section"><h3>Continue Your Practice</h3><div class="living-sanctuary-continue">${continues.map((item) => `<a href="${escapeHtml(item.destination)}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.subtitle || item.type || "Recently recorded")}</span></a>`).join("")}</div></section>` : `<p class="my-sanctuary-soft-note">The things you return to will gather here over time.</p>`}${facts.length ? `<section class="living-sanctuary-section"><h3>In Your Sanctuary</h3>${facts.map((fact) => `<p>${escapeHtml(fact)}</p>`).join("")}</section>` : `<p class="my-sanctuary-soft-note">Your Sanctuary is ready for you. Begin with your altar, open your Book of Shadows, or add something meaningful to your Living Library.</p>`}${observation ? `<section class="living-sanctuary-section"><h3>A Living Connection</h3><p>${escapeHtml(observation.text)} <a href="${escapeHtml(observation.destination)}">Open entry</a></p></section>` : ""}<div class="my-sanctuary-actions"><button class="button button--ghost" type="button" data-my-sanctuary-show-auth ${user ? "hidden" : ""}>Sign In</button><button class="button button--ghost" type="button" data-my-sanctuary-signout ${user ? "" : "hidden"}>Sign Out</button></div>`;
+    const authAction = !state.authResolved ? '<span role="status">Opening your Sanctuary…</span>' : user ? '<button class="button button--ghost" type="button" data-my-sanctuary-signout>Sign Out</button>' : '<button class="button button--ghost" type="button" data-my-sanctuary-show-auth>Sign In</button>';
+    section.innerHTML = `<h2 data-my-sanctuary-dashboard-title>${escapeHtml(greeting(settings, user))}</h2><p class="my-sanctuary-user">${!state.authResolved ? "Opening your Sanctuary…" : user ? "Cloud-connected Sanctuary" : "Guest Sanctuary · saved in this browser"}</p><p class="my-sanctuary-intro">Your private home within Salt & Sovereignty. Return to your altar, continue your writing, revisit your rituals, and follow the living threads of your practice.</p><nav class="living-sanctuary-nav" aria-label="Sanctuary navigation"><button type="button" data-my-sanctuary-view-button="journey">My Journey</button><a href="/altar/">Digital Altar</a><a href="/grimoire/">Book of Shadows</a><a href="/grimoire/community-grimoire.html">Community Grimoire</a><a href="/submit/">Offer to the Sanctuary</a><button type="button" data-my-sanctuary-view-button="submissions">My Submissions</button>${review}<button type="button" data-my-sanctuary-view-button="settings">Settings</button></nav>${snapshot.length ? `<section class="living-sanctuary-section"><h3>Sanctuary Snapshot</h3>${snapshot.map((fact) => `<p>${escapeHtml(fact)}</p>`).join("")}</section>` : '<p class="my-sanctuary-soft-note">Your Sanctuary is quiet right now.</p>'}${continues.length ? `<section class="living-sanctuary-section"><h3>Continue Your Practice</h3><div class="living-sanctuary-continue">${continues.map((item) => `<a href="${escapeHtml(item.destination)}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.subtitle || item.type || "Recently recorded")}</span></a>`).join("")}</div></section>` : `<p class="my-sanctuary-soft-note">The things you return to will gather here over time.</p>`}${facts.length ? `<section class="living-sanctuary-section"><h3>In Your Sanctuary</h3>${facts.map((fact) => `<p>${escapeHtml(fact)}</p>`).join("")}</section>` : `<p class="my-sanctuary-soft-note">Your Sanctuary is ready for you. Begin with your altar, open your Book of Shadows, or add something meaningful to your Living Library.</p>`}${observation ? `<section class="living-sanctuary-section"><h3>A Living Connection</h3><p>${escapeHtml(observation.text)} <a href="${escapeHtml(observation.destination)}">Open entry</a></p></section>` : ""}<div class="my-sanctuary-actions">${authAction}</div>`;
   }
 
   function renderJourney(panel, state = {}) {
@@ -104,28 +110,37 @@
     if (!panel.querySelector('[data-sanctuary-view="journey"]')) { const journey = document.createElement("section"); journey.className = "my-sanctuary-view"; journey.dataset.sanctuaryView = "journey"; journey.hidden = true; panel.querySelector(".my-sanctuary-card")?.append(journey); }
     const originalSetView = global.setMySanctuaryView;
     global.setMySanctuaryView = function livingSanctuaryView(view) {
-      originalSetView(view); const settings = global.getLocalMySettings?.() || {};
-      if (view === "dashboard") renderHome(panel, settings);
+      originalSetView(view);
+      if (view === "dashboard") renderHome(panel, sanctuaryState);
       if (view === "journey") renderJourney(panel, {});
       if (view === "settings") global.LivingSettingsView?.render?.(panel);
     };
-    renderHome(panel, global.getLocalMySettings?.() || {});
+    sanctuaryState = createViewState({ settings: global.getLocalMySettings?.() || {} });
+    renderHome(panel, sanctuaryState);
   }
 
   if (typeof document !== "undefined") document.addEventListener("input", (event) => { if (!event.target.matches("[data-journey-search]")) return; const panel = event.target.closest("[data-my-sanctuary-panel]"); renderJourney(panel, { query: event.target.value, direction: panel.querySelector("[data-journey-direction]")?.value, grouping: panel.querySelector("[data-journey-grouping]")?.value, category: panel.querySelector("[data-journey-filter][aria-pressed=true]")?.dataset.journeyFilter }); });
   if (typeof document !== "undefined") document.addEventListener("change", (event) => { if (!event.target.matches("[data-journey-direction], [data-journey-grouping]")) return; const panel = event.target.closest("[data-my-sanctuary-panel]"); renderJourney(panel, { query: panel.querySelector("[data-journey-search]")?.value, direction: panel.querySelector("[data-journey-direction]")?.value, grouping: panel.querySelector("[data-journey-grouping]")?.value, category: panel.querySelector("[data-journey-filter][aria-pressed=true]")?.dataset.journeyFilter }); });
   if (typeof document !== "undefined") document.addEventListener("click", (event) => { const filter = event.target.closest("[data-journey-filter]"); if (!filter) return; const panel = filter.closest("[data-my-sanctuary-panel]"); renderJourney(panel, { query: panel.querySelector("[data-journey-search]")?.value, direction: panel.querySelector("[data-journey-direction]")?.value, grouping: panel.querySelector("[data-journey-grouping]")?.value, category: filter.dataset.journeyFilter }); });
-  function refreshForAuth() {
+  async function refreshForAuth(event) {
     sanctuaryRequestId += 1;
+    const token = sanctuaryRequestId;
     global.SanctuarySearch?.buildIndex?.({});
+    const user = event?.detail?.user ?? global.getCurrentSaltUser?.() ?? null;
+    sanctuaryState = createViewState({ authResolved: true, user, settings: user ? {} : global.getLocalMySettings?.() || {}, settingsResolved: !user });
     const panel = document.querySelector("[data-my-sanctuary-panel]");
     const home = panel?.querySelector('[data-sanctuary-view="dashboard"]');
-    if (home && !home.hidden) renderHome(panel, global.getLocalMySettings?.() || {});
+    if (home && !home.hidden) renderHome(panel, sanctuaryState);
+    const settings = user ? await global.getMySettings?.() : global.getLocalMySettings?.();
+    if (token !== sanctuaryRequestId) return;
+    sanctuaryState = createViewState({ authResolved: true, user, settings: settings || {}, settingsResolved: true });
+    if (home && !home.hidden) renderHome(panel, sanctuaryState);
   }
   if (typeof document !== "undefined") document.addEventListener("saltAuthChanged", refreshForAuth);
   if (typeof document !== "undefined") document.addEventListener("saltAuthReady", refreshForAuth);
+  if (typeof window !== "undefined") window.addEventListener("saltSettingsChanged", () => refreshForAuth({ detail: { user: global.getCurrentSaltUser?.() || null } }));
 
-  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, install };
+  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, createViewState, install };
   global.LivingSanctuary = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document !== "undefined") install();

@@ -41,6 +41,7 @@
       relationshipContext: record.relationshipContext || "",
       href: record.href || null,
       action: record.action || null,
+      destination: record.destination ? { ...record.destination } : null,
       timestamp: record.timestamp || null,
       metadata: { ...(record.metadata || {}) }
     };

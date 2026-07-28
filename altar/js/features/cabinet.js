@@ -21,15 +21,11 @@ const cabinetItems = [
     name: `${color.charAt(0).toUpperCase() + color.slice(1)} Candle`,
     icon: "🕯️",
     keywords: [color, "candle", "fire"],
-    forms: [
-      {
-        label: "Vigil Candle",
-        image: `../assets/altar/objects/candles/${color}-candle.${color === "white" || color === "black" ? "PNG" : "png"}`,
-        type: "candle",
-        color,
-        form: "vigil"
-      }
-    ]
+    forms: (window.SanctuaryAssetCatalog?.getForms?.("candle") || []).map((form) => ({
+      label: form.label,
+      image: form.id === "vigil" ? `../assets/altar/objects/candles/${color}-candle.${color === "white" || color === "black" ? "PNG" : "png"}` : "",
+      type: "candle", color, form: form.id, aliases: form.aliases || []
+    }))
   })),
 
   ...[
@@ -154,13 +150,12 @@ function cabinetSearchAliases(item) {
 
 window.AltarCabinet = {
   getSearchRecords() {
-    return cabinetItems.filter((item) => item.category !== "backgrounds").map((item, index) => ({
-      id: `cabinet:${item.category}:${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${index}`,
-      group: "cabinet", source: "altar-cabinet", type: item.forms?.[0]?.type || item.category,
-      title: item.name, subtitle: "Altar Cabinet", aliases: cabinetSearchAliases(item),
-      fields: [item.category, "cabinet asset", (item.forms || []).map((form) => [form.label, form.type, form.form])],
-      href: `/altar/?cabinet=${encodeURIComponent(item.category)}&item=${encodeURIComponent(item.name)}`
-    }));
+    return cabinetItems.filter((item) => item.category !== "backgrounds").flatMap((item, index) => {
+      const base = `/altar/?cabinet=${encodeURIComponent(item.category)}&item=${encodeURIComponent(item.name)}`;
+      const itemRecord = { id: `cabinet:${item.category}:${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${index}`, group: "cabinet", source: "altar-cabinet", type: item.forms?.[0]?.type || item.category, title: item.name, subtitle: "Altar Cabinet", aliases: cabinetSearchAliases(item), fields: [item.category, "cabinet asset"], href: base };
+      const formRecords = (item.forms || []).map((form) => ({ id: `${itemRecord.id}:form:${form.form || form.label}`, group: "cabinet", source: "altar-cabinet-form", type: form.type || item.category, title: form.label, subtitle: `${form.type === "candle" ? "Candle" : "Object"} Form · ${item.name}`, aliases: [item.name, `${item.name} ${form.label}`, ...(form.aliases || [])], fields: [item.category, item.name, form.form], href: `${base}&form=${encodeURIComponent(form.form || form.label)}` }));
+      return [itemRecord, ...formRecords];
+    });
   }
 };
 window.dispatchEvent(new CustomEvent("altarCabinetReady"));
@@ -258,14 +253,14 @@ function renderCabinetTile(item, form, isMultiForm = false) {
       data-vessel="${form.vessel || ""}"
       data-deity="${form.deity || ""}">
       <span class="cabinet-tile-image-wrap">
-        <img src="${displayImage}" alt="" class="cabinet-tile-image" loading="lazy" />
+        ${displayImage ? `<img src="${displayImage}" alt="${form.label || item.name} preview" class="cabinet-tile-image" loading="lazy" />` : '<span class="cabinet-form-unavailable">Image unavailable</span>'}
       </span>
 
       <span class="cabinet-tile-name">${isMultiForm ? form.label : item.name}</span>
 
       <span class="cabinet-custom-actions">
-        <span data-upload-cabinet-image>${hasOverride ? "Change" : "Upload"}</span>
-        ${hasOverride ? `<span data-restore-cabinet-image>Restore</span>` : ""}
+        <span data-upload-cabinet-image>${hasOverride ? "Replace Form Image" : "Add Form Image"}</span>
+        ${hasOverride ? `<span data-restore-cabinet-image>Remove Override</span>` : ""}
       </span>
     </button>
   `;
@@ -475,6 +470,14 @@ function renderCabinetItems() {
       `;
       })
       .join("");
+
+  const requestedItem = cabinetSearchParams.get("item");
+  const requestedForm = cabinetSearchParams.get("form");
+  if (requestedItem) {
+    const targetLabel = requestedForm ? `${requestedItem} ${requestedForm}`.toLowerCase().replaceAll("-", " ") : requestedItem.toLowerCase();
+    const tile = [...cabinetItemsGrid.querySelectorAll("[data-label]")].find((item) => String(item.dataset.label || "").toLowerCase().replaceAll("-", " ").includes(targetLabel));
+    if (tile) { tile.classList.add("is-search-target"); tile.scrollIntoView({ block: "nearest" }); }
+  }
 }
 
 function renderCabinet() {

@@ -43,6 +43,7 @@ function closeAltarCabinetOverlay() {
   document.body.classList.remove("altar-cabinet-overlay-open");
 
   window.setTimeout(() => {
+    if (params.get("cabinet") && typeof openAltarCabinetOverlay === "function") openAltarCabinetOverlay();
     overlay.hidden = true;
   }, 220);
 }
@@ -160,6 +161,11 @@ if (altarCabinet) {
     const itemButton = event.target.closest("[data-image]");
 
     if (!itemButton) return;
+    if (!itemButton.dataset.image) {
+      if (typeof promptCustomCabinetImage === "function") promptCustomCabinetImage(itemButton);
+      else showAltarToast("Add a form image before placing this form");
+      return;
+    }
 
     placeObject({
       imagePath: itemButton.dataset.image || "",
@@ -369,6 +375,19 @@ document.addEventListener("click", (event) => {
     cleanupExactLibraryRelationships();
   }
 });
+
+window.addEventListener("load", () => {
+  const params = new URLSearchParams(window.location.search);
+  window.setTimeout(() => {
+    const apothecaryItemId = params.get("apothecaryItem");
+    if (apothecaryItemId && typeof openApothecaryItemEditor === "function") openApothecaryItemEditor(apothecaryItemId);
+    const instanceId = params.get("selectObject");
+    if (instanceId && typeof selectObject === "function") {
+      const object = [...document.querySelectorAll(".altar-object")].find((item) => item.dataset.altarObjectId === instanceId || item.dataset.instanceId === instanceId);
+      if (object) selectObject(object);
+    }
+  }, 0);
+}, { once: true });
 
 document.addEventListener("change", (event) => {
   const categorySelect = event.target.closest("[data-custom-cabinet-category-select]");
