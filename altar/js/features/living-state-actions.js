@@ -607,8 +607,8 @@ async function submitLivingStateTendForm(form) {
 
   closeLivingStateTendModal();
 
-  if (selectedObject?.dataset.instanceId === instanceId && typeof showLivingStatePanel === "function") {
-    await showLivingStatePanel(selectedObject);
+  if (selectedObject?.dataset.instanceId === instanceId && typeof refreshAltarCompanion === "function") {
+    await refreshAltarCompanion(selectedObject);
   }
 
   showAltarToast("Living State updated");
@@ -788,8 +788,8 @@ async function submitLivingStateActivityForm(form) {
 
   closeLivingStateActivityModal();
 
-  if (selectedObject?.dataset.instanceId === instanceId && typeof showLivingStatePanel === "function") {
-    await showLivingStatePanel(selectedObject);
+  if (selectedObject?.dataset.instanceId === instanceId && typeof refreshAltarCompanion === "function") {
+    await refreshAltarCompanion(selectedObject);
   }
 
   showAltarToast(`${config.title} saved`);
