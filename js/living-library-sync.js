@@ -581,22 +581,6 @@ async function initLivingLibrarySupabaseSync() {
     localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
   }
 
-  const canonicalMerges = typeof Library.importTraditionalLibrary === "function"
-    ? Library.importTraditionalLibrary() || []
-    : [];
-
-  if (canonicalMerges.length) {
-    const layouts = getLivingLibraryLayoutsFromLocal();
-    canonicalMerges.forEach(({ canonicalEntityId, sourceEntityIds }) => {
-      sourceEntityIds.forEach((sourceId) => {
-        if (!layouts[sourceId]) return;
-        layouts[canonicalEntityId] = { ...layouts[sourceId], ...(layouts[canonicalEntityId] || {}) };
-        delete layouts[sourceId];
-      });
-    });
-    localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
-  }
-
   livingLibrarySyncReady = true;
 
   for (const { canonicalEntityId, sourceEntityIds } of canonicalMerges) {
