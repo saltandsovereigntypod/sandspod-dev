@@ -64,7 +64,7 @@ function captureAltarSnapshot() {
       locked: object.dataset.locked || "false",
       glowing: object.dataset.glowing || "false",
       lit: object.dataset.lit || "false",
-      dressings: object.dataset.dressings || "[]",
+      livingState: object.dataset.livingState || "",
       plaqueText: object.dataset.plaqueText || "",
       altarObjectId: object.dataset.altarObjectId || "",
       groupId: object.dataset.groupId || "",
@@ -159,6 +159,7 @@ function undoAltarChange() {
   }
 
   restoreAltarSnapshot(previousSnapshot);
+  saveWorkingAltarDraft();
   showAltarToast("Undone");
 }
 
@@ -176,6 +177,7 @@ function redoAltarChange() {
   }
 
   restoreAltarSnapshot(nextSnapshot);
+  saveWorkingAltarDraft();
   showAltarToast("Redone");
 }
 
@@ -455,13 +457,13 @@ function placeObject(options) {
    } = options;
 
   const entityName =
+    label ||
     herb ||
     crystal ||
     deity ||
     tool ||
     vessel ||
     color ||
-    label ||
     "Object";
 
   const entityType =
@@ -472,10 +474,14 @@ function placeObject(options) {
     vessel ? "vessel" :
     type || "object";
 
-  const existingEntity =
+  const canonicalEntity = typeof Library !== "undefined" && typeof Library.resolveObjectEntity === "function"
+    ? Library.resolveObjectEntity({ entityId, herb, crystal, deity, tool, vessel, color, type })
+    : null;
+  const existingEntity = canonicalEntity || (
     entityId && typeof Library !== "undefined"
       ? Library.getEntity(entityId)
-      : null;
+      : null
+  );
 
   const entity = existingEntity || Library.getOrCreateEntity({
     name: entityName,
@@ -489,7 +495,7 @@ function placeObject(options) {
 
   object.dataset.label = label || "object";
   object.dataset.type = type || "";
-  object.dataset.entityId = entityId || entity.id;
+  object.dataset.entityId = entity.id;
   object.dataset.instanceId = instanceId || "";
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
@@ -519,8 +525,6 @@ function placeObject(options) {
   object.dataset.locked = "false";
   object.dataset.glowing = "false";
   object.dataset.lit = "false";
-  object.dataset.dressings = "[]";
-
   highestLayer += 1;
   object.style.zIndex = highestLayer;
 
@@ -582,6 +586,20 @@ function duplicateObject(object) {
 
   const clone = object.cloneNode(true);
 
+  clone.dataset.altarObjectId = crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Date.now() + Math.random());
+
+  if (typeof getLivingObjectState === "function" && typeof saveLivingObjectState === "function") {
+    const clonedState = getLivingObjectState(clone);
+    if (clonedState?.candle?.currentBurnStartedAt) {
+      const time = new Date().toISOString();
+      clonedState.candle.currentBurnStartedAt = time;
+      clonedState.candle.lastLitAt = time;
+    }
+    saveLivingObjectState(clone, clonedState, { silent: true, preserveUpdatedAt: true });
+  }
+
   highestLayer += 1;
 
   clone.style.left = `${(parseFloat(object.style.left) || 0) + 24}px`;
@@ -630,16 +648,36 @@ function getSelectedCompanionEntity() {
 
   if (!object || typeof Library === "undefined") return null;
 
-  let entityId = object.dataset.entityId;
+  let entityId = typeof Library.resolveCanonicalEntityId === "function"
+    ? Library.resolveCanonicalEntityId(object.dataset.entityId)
+    : object.dataset.entityId;
+
+  const canonicalEntity = typeof Library.resolveObjectEntity === "function"
+    ? Library.resolveObjectEntity({
+        entityId,
+        herb: object.dataset.herb,
+        crystal: object.dataset.crystal,
+        deity: object.dataset.deity,
+        tool: object.dataset.tool,
+        vessel: object.dataset.vessel,
+        color: object.dataset.color,
+        type: object.dataset.type
+      })
+    : null;
+
+  if (canonicalEntity) {
+    entityId = canonicalEntity.id;
+    object.dataset.entityId = entityId;
+  }
 
   if (!entityId) {
     const entityName =
+      object.dataset.label ||
       object.dataset.herb ||
       object.dataset.crystal ||
       object.dataset.deity ||
       object.dataset.tool ||
       object.dataset.vessel ||
-      object.dataset.label ||
       "Object";
 
     const entityType =
@@ -818,40 +856,3 @@ document.addEventListener("submit", (event) => {
   closeCompanionEditModal();
   showAltarToast("Entry updated");
 }, true);
-
-/* =========================================================
-   ENSURE COMPANION EDIT BUTTON EXISTS
-   ========================================================= */
-
-function ensureCompanionEditButton() {
-  const object = getCurrentSelectedAltarObject();
-  const companionContent = document.querySelector(".altar-companion-content");
-
-  if (!object || !companionContent) return;
-  if (companionContent.querySelector("[data-edit-companion-entry]")) return;
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "altar-companion-edit-button";
-  button.setAttribute("data-edit-companion-entry", "");
-  button.textContent = "Edit This Entry";
-
-  companionContent.appendChild(button);
-}
-
-const companionEditButtonObserver = new MutationObserver(() => {
-  ensureCompanionEditButton();
-});
-
-companionEditButtonObserver.observe(document.body, {
-  childList: true,
-  subtree: true,
-  attributes: true,
-  attributeFilter: ["class", "hidden"]
-});
-
-document.addEventListener("click", () => {
-  window.setTimeout(ensureCompanionEditButton, 50);
-});
-
-ensureCompanionEditButton();
