@@ -6,6 +6,10 @@
 
 Every query starts with a canonical Living Library entity ID. `LivingConnections.resolveEntityId(value)` accepts an ID or a record containing `entityId` / `entity_id`. It also resolves `traditional/<type>/<key>` references through the existing Living Library reference lookup. No new identifiers are generated.
 
+`Library.resolveCanonicalEntityId()` is the navigation boundary: it accepts only an existing canonical ID, a canonical Traditional reference, or an ID recorded as having been safely merged. Display names, slugs, filenames, asset IDs, and object-instance IDs are not treated as entity IDs. `Library.resolveObjectEntity()` may use an altar object's typed identity fields to find an existing Traditional reference, but returns the resulting canonical entity ID to every downstream caller.
+
+During Traditional import, legacy automatically-created entities whose normalized name and compatible type unambiguously match a Traditional entry are merged into that canonical entity. My Practice and Community fields, aliases, relationships, timestamps, and legacy IDs are retained. Entities explicitly marked with `traditionalReference: null` remain intentionally custom and are never merged automatically.
+
 ## Event shape
 
 `LivingConnections.createEvent()` returns an internal event with:

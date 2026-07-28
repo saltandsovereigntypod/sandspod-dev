@@ -131,3 +131,33 @@ test("Living Object State histories normalize into the shared timeline", () => {
   assert.deepEqual(timeline.map((event) => event.type), ["cleansed", "charged"]);
   assert.deepEqual(timeline[0].relatedObjectIds, ["quartz-instance"]);
 });
+
+test("load gathers legacy object activity through canonical merge aliases", async () => {
+  const requestedIds = [];
+  const library = {
+    resolveCanonicalEntityId(value) {
+      return value === "legacy-basil" || value === "basil" ? "basil" : null;
+    },
+    getEntity(id) {
+      return id === "basil"
+        ? { id: "basil", name: "Basil", type: "herb", metadata: { mergedEntityIds: ["legacy-basil"] }, traditional: {}, myPractice: {}, community: {} }
+        : null;
+    },
+    getConnections() { return []; }
+  };
+  const previousLoader = global.getObjectInstanceEventsByEntity;
+  global.getObjectInstanceEventsByEntity = async (id) => {
+    requestedIds.push(id);
+    return id === "legacy-basil"
+      ? [{ id: "legacy-use", entity_id: id, event_type: "object_use", event_label: "Used on altar", occurred_at: "2026-05-01" }]
+      : [];
+  };
+
+  try {
+    const loaded = await LivingConnections.load("basil", { library });
+    assert.deepEqual(requestedIds, ["basil", "legacy-basil"]);
+    assert.ok(loaded.timeline.some((item) => item.id === "legacy-use" && item.entityId === "basil"));
+  } finally {
+    global.getObjectInstanceEventsByEntity = previousLoader;
+  }
+});

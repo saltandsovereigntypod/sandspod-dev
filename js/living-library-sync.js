@@ -530,7 +530,31 @@ async function initLivingLibrarySupabaseSync() {
   await loadLivingLibraryFromSupabase();
   await loadLivingLibraryRelationsFromSupabase();
 
+  const canonicalMerges = typeof Library.importTraditionalLibrary === "function"
+    ? Library.importTraditionalLibrary() || []
+    : [];
+
+  if (canonicalMerges.length) {
+    const layouts = getLivingLibraryLayoutsFromLocal();
+    canonicalMerges.forEach(({ canonicalEntityId, sourceEntityIds }) => {
+      sourceEntityIds.forEach((sourceId) => {
+        if (!layouts[sourceId]) return;
+        layouts[canonicalEntityId] = { ...layouts[sourceId], ...(layouts[canonicalEntityId] || {}) };
+        delete layouts[sourceId];
+      });
+    });
+    localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
+  }
+
   livingLibrarySyncReady = true;
+
+  for (const { canonicalEntityId } of canonicalMerges) {
+    await saveLivingLibraryEntityToSupabase(canonicalEntityId);
+    const connections = Library.getConnections(canonicalEntityId) || [];
+    for (const connection of connections) {
+      await saveLivingLibraryRelationToSupabase(connection.from, connection.relation, connection.to);
+    }
+  }
 
   await saveAllLivingLibraryLayoutsToSupabase();
 }

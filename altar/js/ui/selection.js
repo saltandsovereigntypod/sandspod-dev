@@ -114,12 +114,26 @@ function getCompanionDisplaySettings() {
 function getLibraryEntityForObject(object) {
   if (!object) return null;
 
-  const entityId = object.dataset.entityId;
-
-  if (!entityId) return null;
+  const resolvedEntity = typeof Library !== "undefined" && typeof Library.resolveObjectEntity === "function"
+    ? Library.resolveObjectEntity({
+        entityId: object.dataset.entityId,
+        herb: object.dataset.herb,
+        crystal: object.dataset.crystal,
+        deity: object.dataset.deity,
+        tool: object.dataset.tool,
+        vessel: object.dataset.vessel,
+        color: object.dataset.color,
+        type: object.dataset.type
+      })
+    : null;
+  const entityId = resolvedEntity?.id || (typeof Library !== "undefined" && typeof Library.resolveCanonicalEntityId === "function"
+    ? Library.resolveCanonicalEntityId(object.dataset.entityId)
+    : object.dataset.entityId);
 
   if (typeof Library === "undefined") return null;
 
+  if (!entityId) return null;
+  object.dataset.entityId = entityId;
   return Library.getEntity(entityId);
 }
 

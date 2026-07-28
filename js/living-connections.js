@@ -15,10 +15,14 @@
   function resolveEntityId(value, library = global.Library) {
     if (!value) return null;
     if (typeof value === "string") {
+      if (!library) return value;
+      if (library?.resolveCanonicalEntityId) {
+        return library.resolveCanonicalEntityId(value);
+      }
       if (value.startsWith("traditional/") && library?.findEntityByTraditionalReference) {
         return library.findEntityByTraditionalReference(value)?.id || null;
       }
-      return library?.getEntity?.(value)?.id || value;
+      return library?.getEntity?.(value)?.id || null;
     }
 
     const direct = value.entityId || value.entity_id || value.libraryEntityId || value.library_entity_id;
@@ -463,6 +467,8 @@
     if (!entityId) return { entityId: null, timeline: [], usage: getUsage(null), pairings: [], references: null };
 
     const sources = { ...(options.sources || {}), library };
+    const canonicalEntity = library?.getEntity?.(entityId);
+    const equivalentEntityIds = unique([entityId, ...(canonicalEntity?.metadata?.mergedEntityIds || [])]);
     if (!sources.livingStates && typeof document !== "undefined" && typeof global.getLivingObjectState === "function") {
       sources.livingStates = [...document.querySelectorAll(".altar-object[data-entity-id]")]
         .filter((object) => object.dataset.entityId === entityId)
@@ -473,13 +479,18 @@
         }));
     }
     if (!sources.objectEvents && typeof global.getObjectInstanceEventsByEntity === "function") {
-      sources.objectEvents = await global.getObjectInstanceEventsByEntity(entityId);
+      const eventGroups = await Promise.all(equivalentEntityIds.map((id) => global.getObjectInstanceEventsByEntity(id)));
+      sources.objectEvents = eventGroups.flat().map((event) => ({
+        ...event,
+        entity_id: entityId,
+        metadata: { ...(event.metadata || {}), legacyEntityId: event.entity_id || event.entityId || null }
+      }));
     }
 
     const database = options.db || (typeof db !== "undefined" ? db : global.db);
     const user = options.user || (typeof global.getUser === "function" ? global.getUser() : global.currentUser);
     if (database && user && !sources.ritualLinks) {
-      const linkResult = await database.from("ritual_links").select("*").eq("user_id", user.id).eq("entity_id", entityId);
+      const linkResult = await database.from("ritual_links").select("*").eq("user_id", user.id).in("entity_id", equivalentEntityIds);
       if (!linkResult.error) {
         const targetLinks = linkResult.data || [];
         const ritualIds = unique(targetLinks.map((link) => link.ritual_id));

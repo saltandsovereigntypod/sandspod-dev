@@ -457,13 +457,13 @@ function placeObject(options) {
    } = options;
 
   const entityName =
+    label ||
     herb ||
     crystal ||
     deity ||
     tool ||
     vessel ||
     color ||
-    label ||
     "Object";
 
   const entityType =
@@ -474,10 +474,14 @@ function placeObject(options) {
     vessel ? "vessel" :
     type || "object";
 
-  const existingEntity =
+  const canonicalEntity = typeof Library !== "undefined" && typeof Library.resolveObjectEntity === "function"
+    ? Library.resolveObjectEntity({ entityId, herb, crystal, deity, tool, vessel, color, type })
+    : null;
+  const existingEntity = canonicalEntity || (
     entityId && typeof Library !== "undefined"
       ? Library.getEntity(entityId)
-      : null;
+      : null
+  );
 
   const entity = existingEntity || Library.getOrCreateEntity({
     name: entityName,
@@ -491,7 +495,7 @@ function placeObject(options) {
 
   object.dataset.label = label || "object";
   object.dataset.type = type || "";
-  object.dataset.entityId = entityId || entity.id;
+  object.dataset.entityId = entity.id;
   object.dataset.instanceId = instanceId || "";
   object.dataset.herb = herb || "";
   object.dataset.form = form || "";
@@ -644,16 +648,36 @@ function getSelectedCompanionEntity() {
 
   if (!object || typeof Library === "undefined") return null;
 
-  let entityId = object.dataset.entityId;
+  let entityId = typeof Library.resolveCanonicalEntityId === "function"
+    ? Library.resolveCanonicalEntityId(object.dataset.entityId)
+    : object.dataset.entityId;
+
+  const canonicalEntity = typeof Library.resolveObjectEntity === "function"
+    ? Library.resolveObjectEntity({
+        entityId,
+        herb: object.dataset.herb,
+        crystal: object.dataset.crystal,
+        deity: object.dataset.deity,
+        tool: object.dataset.tool,
+        vessel: object.dataset.vessel,
+        color: object.dataset.color,
+        type: object.dataset.type
+      })
+    : null;
+
+  if (canonicalEntity) {
+    entityId = canonicalEntity.id;
+    object.dataset.entityId = entityId;
+  }
 
   if (!entityId) {
     const entityName =
+      object.dataset.label ||
       object.dataset.herb ||
       object.dataset.crystal ||
       object.dataset.deity ||
       object.dataset.tool ||
       object.dataset.vessel ||
-      object.dataset.label ||
       "Object";
 
     const entityType =

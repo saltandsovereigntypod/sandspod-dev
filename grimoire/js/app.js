@@ -200,7 +200,9 @@ async function initGrimoire() {
     }
     
     const requestedView = new URLSearchParams(window.location.search);
-    const requestedEntityId = requestedView.get("entity");
+    const requestedEntityId = typeof Library !== "undefined" && typeof Library.resolveCanonicalEntityId === "function"
+      ? Library.resolveCanonicalEntityId(requestedView.get("entity"))
+      : requestedView.get("entity");
     const requestedPageId = requestedView.get("page");
     const lastView = getLastGrimoireView();
 

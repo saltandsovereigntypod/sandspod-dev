@@ -179,6 +179,56 @@ function findEntityByTraditionalReference(reference) {
   }) || null;
 }
 
+function normalizeCanonicalName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function resolveCanonicalEntityId(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return null;
+
+  if (candidate.startsWith("traditional/")) {
+    return findEntityByTraditionalReference(candidate)?.id || null;
+  }
+
+  if (library.entities[candidate]) return candidate;
+
+  return Object.values(library.entities).find((entity) =>
+    (entity.metadata?.mergedEntityIds || []).includes(candidate)
+  )?.id || null;
+}
+
+function getTraditionalReferenceForObjectIdentity(identity = {}) {
+  const candidates = [
+    identity.herb && getTraditionalReference("herb", identity.herb),
+    identity.crystal && getTraditionalReference("crystal", identity.crystal),
+    identity.deity && getTraditionalReference("deity", identity.deity),
+    identity.color && getTraditionalReference("candle", identity.color),
+    identity.tool && getTraditionalReference("tool", identity.tool),
+    identity.vessel && getTraditionalReference("vessel", identity.vessel),
+    identity.vessel && getTraditionalReference("tool", identity.vessel)
+  ].filter(Boolean);
+
+  return candidates.find((reference) => getTraditionalEntry(reference)) || null;
+}
+
+function resolveObjectEntity(identity = {}) {
+  const explicitId = resolveCanonicalEntityId(identity.entityId || identity.entity_id);
+  const explicitEntity = explicitId ? getEntity(explicitId) : null;
+  const hasIntentionalReference = explicitEntity && Object.prototype.hasOwnProperty.call(
+    explicitEntity.metadata || {},
+    "traditionalReference"
+  );
+  if (hasIntentionalReference) return explicitEntity;
+
+  const reference = getTraditionalReferenceForObjectIdentity(identity);
+  return reference ? getOrCreateTraditionalEntity(reference) : explicitEntity;
+}
+
 function searchTraditionalEntries(type, query = "") {
   if (typeof TraditionalLibrary === "undefined") return [];
 
@@ -434,21 +484,43 @@ function mergeEntities(sourceId, destinationId) {
 
   if (!source || !destination) return;
 
-  destination.aliases = [
+  destination.aliases = [...new Set([
     ...(destination.aliases || []),
     source.name,
     ...(source.aliases || [])
-  ];
+  ].filter(Boolean))];
 
-  destination.myPractice = {
-    ...destination.myPractice,
-    ...source.myPractice
-  };
+  function mergeAuthoredLayer(destinationLayer = {}, sourceLayer = {}) {
+    const merged = { ...destinationLayer };
+    Object.entries(sourceLayer || {}).forEach(([key, sourceValue]) => {
+      const destinationValue = merged[key];
+      if (destinationValue === undefined || destinationValue === null || destinationValue === "") {
+        merged[key] = sourceValue;
+      } else if (Array.isArray(destinationValue) && Array.isArray(sourceValue)) {
+        merged[key] = [...new Set([...destinationValue, ...sourceValue])];
+      } else if (typeof destinationValue === "object" && typeof sourceValue === "object") {
+        merged[key] = { ...sourceValue, ...destinationValue };
+      } else if (String(destinationValue).trim() !== String(sourceValue).trim() && String(sourceValue).trim()) {
+        merged[key] = `${destinationValue}\n\n${sourceValue}`;
+      }
+    });
+    return merged;
+  }
 
-  destination.community = {
-    ...destination.community,
-    ...source.community
+  destination.myPractice = mergeAuthoredLayer(destination.myPractice, source.myPractice);
+
+  destination.community = mergeAuthoredLayer(destination.community, source.community);
+  destination.metadata = {
+    ...(source.metadata || {}),
+    ...(destination.metadata || {}),
+    mergedEntityIds: [...new Set([
+      ...(destination.metadata?.mergedEntityIds || []),
+      ...(source.metadata?.mergedEntityIds || []),
+      sourceId
+    ])]
   };
+  destination.createdAt = [destination.createdAt, source.createdAt].filter(Boolean).sort()[0] || destination.createdAt;
+  destination.updatedAt = new Date().toISOString();
 
   library.relations.forEach(link => {
 
@@ -493,6 +565,27 @@ function mergeEntities(sourceId, destinationId) {
 
       return entity.type === type && hasMyPractice;
     });
+}
+
+function mergeTraditionalDuplicates(canonicalEntity, entry) {
+  if (!canonicalEntity || !entry) return [];
+  const compatibleTypes = new Set([entry.type]);
+  if (entry.type === "tool" && entry.key === "cauldron") compatibleTypes.add("vessel");
+  const canonicalName = normalizeCanonicalName(entry.name);
+  const canonicalKey = normalizeCanonicalName(entry.key);
+  const duplicateIds = Object.values(library.entities)
+    .filter((candidate) => candidate.id !== canonicalEntity.id)
+    .filter((candidate) => !Object.prototype.hasOwnProperty.call(candidate.metadata || {}, "traditionalReference"))
+    .filter((candidate) => compatibleTypes.has(candidate.type))
+    .filter((candidate) => {
+      const name = normalizeCanonicalName(candidate.name);
+      return name === canonicalName || name === canonicalKey ||
+        (entry.type === "candle" && name === normalizeCanonicalName(`${entry.key} candle`));
+    })
+    .map((candidate) => candidate.id);
+
+  duplicateIds.forEach((sourceId) => mergeEntities(sourceId, canonicalEntity.id));
+  return duplicateIds;
 }
 
   function connect(from, relation, to) {
@@ -630,9 +723,14 @@ function mergeDuplicateEntities(sourceId, destinationId) {
 function importTraditionalLibrary() {
   if (typeof TraditionalLibrary === "undefined") return;
 
+  const merges = [];
+
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
     Object.entries(collection).forEach(([key]) => {
-      getOrCreateTraditionalEntity(getTraditionalReference(type, key));
+      const reference = getTraditionalReference(type, key);
+      const entity = getOrCreateTraditionalEntity(reference);
+      const sourceIds = mergeTraditionalDuplicates(entity, getTraditionalEntry(reference));
+      if (sourceIds.length) merges.push({ canonicalEntityId: entity.id, sourceEntityIds: sourceIds });
     });
   });
 
@@ -664,6 +762,7 @@ function importTraditionalLibrary() {
   });
 
   save();
+  return merges;
 }
 
 function syncMyPracticeConnections(entityId) {
@@ -705,6 +804,9 @@ return {
   createEntity,
   getOrCreateEntity,
   getOrCreateTraditionalEntity,
+  resolveCanonicalEntityId,
+  resolveObjectEntity,
+  getTraditionalReferenceForObjectIdentity,
   getTraditionalEntry,
   findEntityByTraditionalReference,
   searchTraditionalEntries,
