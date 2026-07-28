@@ -5,7 +5,8 @@
     rituals: "Rituals",
     templates: "Ritual Templates",
     apothecary: "Apothecary",
-    objects: "Altar Objects"
+    currentAltar: "Current Altar",
+    cabinet: "Altar Cabinet"
   };
   const sourceRecords = new Map();
 

@@ -156,6 +156,32 @@ window.AltarBackgrounds = {
 };
 window.dispatchEvent(new CustomEvent("altarBackgroundsReady"));
 
+function cabinetSearchAliases(item) {
+  const formWords = (item.forms || []).flatMap((form) => [form.label, form.type, form.form]);
+  const variants = item.category === "candles" ? ["candle", "candles", "taper", "tea light", "tealight"]
+    : item.category === "herbs" ? ["herb", "herbs"]
+      : item.category === "crystals" ? ["crystal", "crystals"]
+        : item.name === "Spell Jar" ? ["jar", "spell jar", "spell jars"] : [];
+  return [...new Set([...(item.keywords || []), ...formWords, ...variants].filter(Boolean))];
+}
+
+window.AltarCabinet = {
+  getSearchRecords() {
+    return cabinetItems.filter((item) => item.category !== "backgrounds").map((item, index) => ({
+      id: `cabinet:${item.category}:${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${index}`,
+      group: "cabinet", source: "altar-cabinet", type: item.forms?.[0]?.type || item.category,
+      title: item.name, subtitle: "Altar Cabinet", aliases: cabinetSearchAliases(item),
+      fields: [item.category, "cabinet asset", (item.forms || []).map((form) => [form.label, form.type, form.form])],
+      href: `/altar/?cabinet=${encodeURIComponent(item.category)}&item=${encodeURIComponent(item.name)}`
+    }));
+  }
+};
+window.dispatchEvent(new CustomEvent("altarCabinetReady"));
+
+const cabinetSearchParams = new URLSearchParams(window.location.search);
+const requestedCabinetCategory = cabinetSearchParams.get("cabinet");
+if (cabinetCategories.some((category) => category.id === requestedCabinetCategory)) activeCabinetCategory = requestedCabinetCategory;
+
 function changeAltarBackground(button) {
   if (!altarStage || !button) return;
 

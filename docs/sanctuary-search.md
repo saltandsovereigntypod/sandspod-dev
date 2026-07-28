@@ -4,7 +4,7 @@
 
 ## Sources
 
-The shared UI adapter derives records from the already-loaded canonical Living Library, Book of Shadows pages and sections, My Rituals, Ritual Templates, Apothecary items, and objects currently on the Altar. Local sources are indexed when the modal opens. Cloud-backed ritual and template collections update the index progressively when their existing loaders resolve.
+The shared UI adapter derives records from the already-loaded canonical Living Library, Book of Shadows pages and sections, My Rituals, Ritual Templates, Apothecary items, objects currently on the Altar, and the existing Altar Cabinet catalogue. Current Altar and Altar Cabinet are deliberately separate result groups. Cabinet results open the Altar with its existing cabinet focused on the matching category. Local sources are indexed when the modal opens; cloud-backed ritual and template collections update the same index progressively when their existing loaders resolve.
 
 Knowledge-layer visibility follows the existing local Sanctuary settings. Traditional, My Practice, or Community fields hidden by those settings are not placed in searchable text. No index is persisted.
 

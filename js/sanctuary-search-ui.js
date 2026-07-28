@@ -36,6 +36,7 @@
   function pageRecords() {
     return (global.SanctuarySearchPageSource || []).map((page) => ({
       id: page.id, group: "pages", type: page.type || "page", title: page.title || "Untitled Page",
+      aliases: ["journal", "Book of Shadows"],
       subtitle: page.type === "ritual_journal" ? "Ritual Journal · Book of Shadows" : "Book of Shadows Page",
       fields: [page.metadata, page._searchBlocks, page.blocks, page.content], href: `/grimoire/?page=${encodeURIComponent(page.id)}`,
       timestamp: page.updated_at || page.created_at
@@ -52,7 +53,7 @@
       const names = ingredients.map((ingredient) => ingredient.label || ingredient.name).filter(Boolean);
       return {
         id: item.id, group: "apothecary", type: item.type || "recipe", title: item.name || "Untitled Recipe",
-        subtitle: "Apothecary Recipe", fields: [item.intention, item.notes, names], relationshipText: names,
+        subtitle: "Apothecary Recipe", aliases: item.type === "oil" ? ["oil", "essential oil"] : [], fields: [item.intention, item.notes, names], relationshipText: names,
         relationshipContext: names.length ? `Contains ${names.slice(0, 3).join(", ")}` : "",
         action: typeof global.openApothecaryItemEditor === "function" ? { kind: "apothecary", id: item.id } : null,
         timestamp: item.updatedAt || item.updated_at || item.createdAt || item.created_at
@@ -62,20 +63,23 @@
 
   function objectRecords() {
     if (typeof document === "undefined") return [];
-    return [...document.querySelectorAll(".altar-object[data-entity-id]")].map((object) => {
-      const canonicalId = global.Library?.resolveCanonicalEntityId?.(object.dataset.entityId);
-      if (!canonicalId) return null;
+    return [...document.querySelectorAll(".altar-object")].map((object, index) => {
+      const canonicalId = object.dataset.entityId ? global.Library?.resolveCanonicalEntityId?.(object.dataset.entityId) : null;
       return {
-        id: object.dataset.altarObjectId || object.dataset.instanceId || `${canonicalId}:${object.dataset.label}`,
-        group: "objects", type: object.dataset.type || "object", entityId: canonicalId,
-        title: object.dataset.label || global.Library.getEntity(canonicalId)?.name || "Altar Object",
-        subtitle: "Object currently on the Altar", fields: [object.dataset.type, object.dataset.form]
+        id: object.dataset.altarObjectId || object.dataset.instanceId || `placed:${index}:${object.dataset.label || object.dataset.type}`,
+        group: "currentAltar", type: object.dataset.type || "object", entityId: canonicalId,
+        title: object.dataset.label || global.Library?.getEntity?.(canonicalId)?.name || "Altar Object",
+        subtitle: "Current Altar", aliases: [object.dataset.type, object.dataset.form].filter(Boolean), fields: [object.dataset.type, object.dataset.form]
       };
-    }).filter(Boolean);
+    });
+  }
+
+  function cabinetRecords() {
+    return global.AltarCabinet?.getSearchRecords?.() || [];
   }
 
   function rebuildLocalIndex() {
-    global.SanctuarySearch.buildIndex({ library: libraryRecords(), pages: pageRecords(), apothecary: recipeRecords(), objects: objectRecords() });
+    global.SanctuarySearch.buildIndex({ library: libraryRecords(), pages: pageRecords(), apothecary: recipeRecords(), currentAltar: objectRecords(), cabinet: cabinetRecords() });
   }
 
   async function enrichIndex(token) {
@@ -142,7 +146,8 @@
       if (key === "rituals") return typeof global.getMyRituals === "function";
       if (key === "templates") return typeof global.getRitualTemplates === "function";
       if (key === "apothecary") return typeof global.getApothecaryItems === "function";
-      if (key === "objects") return Boolean(document.querySelector("[data-altar-stage]"));
+      if (key === "currentAltar") return Boolean(document.querySelector("[data-altar-stage]"));
+      if (key === "cabinet") return Boolean(global.AltarCabinet?.getSearchRecords?.().length);
       return false;
     });
     modal = document.createElement("div");
@@ -192,5 +197,6 @@
   });
   document.addEventListener("living-library:hydrated", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
   document.addEventListener("sanctuary-search:sources-changed", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
+  window.addEventListener("altarCabinetReady", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
   global.SanctuarySearchUI = { rebuildLocalIndex };
 })(typeof window !== "undefined" ? window : globalThis);

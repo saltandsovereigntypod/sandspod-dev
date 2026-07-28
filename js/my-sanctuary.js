@@ -515,11 +515,7 @@ function updateSanctuaryAdminLink() {
   const adminLink = document.querySelector("[data-sanctuary-admin-link]");
   if (!adminLink) return;
 
-  adminLink.hidden = !isSanctuaryAdmin(currentUser);
-}
-
-function isSanctuaryAdmin(user = currentUser) {
-  return window.isSaltCommunityModerator?.(user) || false;
+  adminLink.hidden = !window.isSaltCommunityModerator?.(currentUser);
 }
 
 function updateMySanctuaryPanel() {

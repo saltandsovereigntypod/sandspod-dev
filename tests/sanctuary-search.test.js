@@ -49,13 +49,22 @@ test("empty, custom, hidden-layer, guest, and unsupported records remain safe", 
   Search.buildIndex({ local: [
     { id: "custom", group: "library", entityId: "custom", title: "Custom Sigil", fields: "guest local note" },
     { id: "hidden", group: "library", entityId: "hidden", title: "Visible Personal Layer", fields: "my practice only" },
-    { id: "object", group: "objects", title: "Unsupported Object", fields: { entity_id: "9668e4f1-9a69-4d23-9200-29ab39892585", notes: "context only" } }
+    { id: "object", group: "currentAltar", title: "Unsupported Object", fields: { entity_id: "9668e4f1-9a69-4d23-9200-29ab39892585", notes: "context only" } }
   ] });
   assert.deepEqual(Search.search("nothing"), []);
   assert.equal(Search.search("guest")[0].id, "custom");
   assert.equal(Search.search("practice")[0].id, "hidden");
   assert.equal(Search.resolveDestination(Search.search("Unsupported")[0], { resolveCanonicalEntityId: () => null }), null);
   assert.deepEqual(Search.search("9668e4f1-9a69-4d23-9200-29ab39892585"), []);
+});
+
+test("Current Altar and Altar Cabinet remain separate result groups", () => {
+  Search.buildIndex({
+    current: [{ id: "placed-candle", group: "currentAltar", title: "White Candle", aliases: ["candle"] }],
+    cabinet: [{ id: "cabinet-candle", group: "cabinet", title: "White Candle", aliases: ["candle", "taper", "tea light"] }]
+  });
+  assert.deepEqual(Search.groupResults(Search.search("candle")).map((group) => group.key), ["currentAltar", "cabinet"]);
+  assert.equal(Search.search("taper", { group: "cabinet" })[0].id, "cabinet-candle");
 });
 
 test("recent limiting and stale request rejection are deterministic", () => {
