@@ -215,6 +215,13 @@ async function initGrimoire() {
         }
       }).catch((error) => console.warn("Library display settings hydration failed.", error));
     }
+
+    // Canonical entities exist independently of whether the Traditional layer
+    // is visible. Importing here attaches reference metadata without opening or
+    // enabling Traditional pages in the Book of Shadows.
+    if (typeof Library !== "undefined" && typeof TraditionalLibrary !== "undefined") {
+      Library.importTraditionalLibrary();
+    }
     
     const requestedView = new URLSearchParams(window.location.search);
     const requestedEntityId = typeof Library !== "undefined" && typeof Library.resolveCanonicalEntityId === "function"
