@@ -9,23 +9,9 @@ workspacePanelStyles.href = "workspace-panel.css";
 document.head.appendChild(workspacePanelStyles);
 
 const toolbar = document.createElement("div");
-toolbar.className = "altar-toolbar";
+toolbar.className = "altar-toolbar is-in-action-bar";
 toolbar.hidden = true;
-toolbar.innerHTML = `
-  <button type="button" data-action="smaller" title="Make smaller">−</button>
-  <button type="button" data-action="larger" title="Make larger">+</button>
-  <button type="button" data-action="rotate-left" title="Rotate left">↺</button>
-  <button type="button" data-action="rotate-right" title="Rotate right">↻</button>
-  <button type="button" data-action="delete" title="Delete">🗑</button>
-  <button type="button" data-action="forward" title="Bring forward">⬆</button>
-  <button type="button" data-action="backward" title="Send backward">⬇</button>
-  <button type="button" data-action="flip" title="Flip horizontally">⇋</button>
-  <button type="button" data-action="lock" title="Lock position">🔒</button>
-  <button type="button" data-action="duplicate" title="Duplicate">⧉</button>
-  <button type="button" data-action="glow" title="Glow on/off">✦</button>
-  <button type="button" data-action="light" title="Light candle">🔥</button>
-  <button type="button" data-action="dress-candle" title="Dress candle">🕯️+</button>
-`;
+toolbar.setAttribute("aria-label", "Selected object actions");
 
 const altarActionBar = document.createElement("div");
 altarActionBar.className = "altar-action-bar";
@@ -161,7 +147,7 @@ if (altarStage) {
   altarStage.appendChild(lightingCanvas);
 
   altarStage.after(altarActionBar);
-  altarStage.appendChild(toolbar);
+  altarActionBar.prepend(toolbar);
   altarStage.appendChild(altarGroupIndicator);
   altarStage.appendChild(altarInfoCard);
 
