@@ -143,6 +143,7 @@ function renderRitualJournalForm(session, mode = "completed_session") {
 }
 
 async function ensureRitualJournalGrimoirePage(user, ritual, formValues, summary) {
+  if (ritual.grimoire_page_id) return ritual.grimoire_page_id;
   let { data: book, error: bookError } = await db
     .from("grimoire_books")
     .select("id")
@@ -244,7 +245,26 @@ async function createRitualJournalLinks(user, ritual, pageId, summary) {
   if (ritual.linked_altar_id) links.push({ user_id: user.id, ritual_id: ritual.id, link_type: "altar", saved_altar_id: ritual.linked_altar_id, label: "Linked altar" });
 
   if (links.length) {
-    const { error } = await db.from("ritual_links").insert(links);
+    const { data: existingLinks, error: existingError } = await db
+      .from("ritual_links")
+      .select("link_type,entity_id,object_instance_id,apothecary_item_id,grimoire_page_id,saved_altar_id")
+      .eq("user_id", user.id)
+      .eq("ritual_id", ritual.id);
+    if (existingError) throw existingError;
+
+    const identity = (link) => [
+      link.link_type,
+      link.entity_id || "",
+      link.object_instance_id || "",
+      link.apothecary_item_id || "",
+      link.grimoire_page_id || "",
+      link.saved_altar_id || ""
+    ].join(":");
+    const existing = new Set((existingLinks || []).map(identity));
+    const newLinks = links.filter((link) => !existing.has(identity(link)));
+    if (!newLinks.length) return;
+
+    const { error } = await db.from("ritual_links").insert(newLinks);
     if (error) throw error;
   }
 }
@@ -300,8 +320,33 @@ async function saveRitualJournal(form, saveMode = "journal") {
     }
   };
 
-  const { data: ritual, error } = await db.from("user_rituals").insert(payload).select("*").single();
-  if (error) throw error;
+  let ritual;
+  if (payload.session_id) {
+    const { data: existing, error: existingError } = await db
+      .from("user_rituals")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("session_id", payload.session_id)
+      .maybeSingle();
+    if (existingError) throw existingError;
+    if (existing) {
+      const { data, error } = await db
+        .from("user_rituals")
+        .update(payload)
+        .eq("id", existing.id)
+        .eq("user_id", user.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      ritual = { ...data, grimoire_page_id: existing.grimoire_page_id || data.grimoire_page_id };
+    }
+  }
+
+  if (!ritual) {
+    const { data, error } = await db.from("user_rituals").insert(payload).select("*").single();
+    if (error) throw error;
+    ritual = data;
+  }
 
   const pageId = await ensureRitualJournalGrimoirePage(user, ritual, values, summary);
   const { error: updateError } = await db.from("user_rituals").update({ grimoire_page_id: pageId }).eq("id", ritual.id).eq("user_id", user.id);
@@ -309,6 +354,9 @@ async function saveRitualJournal(form, saveMode = "journal") {
 
   ritual.grimoire_page_id = pageId;
   await createRitualJournalLinks(user, ritual, pageId, summary);
+  if (typeof upsertRitualJournalLivingLibraryEntity === "function") {
+    await upsertRitualJournalLivingLibraryEntity(user, ritual, values, summary);
+  }
 
   if (saveMode === "template" && typeof openRitualTemplateEditor === "function") {
     finishRitualJournal();

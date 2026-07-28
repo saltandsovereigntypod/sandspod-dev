@@ -1415,13 +1415,13 @@ document.addEventListener("submit", (event) => {
     Notes: String(formData.get("Notes") || "").trim()
   };
 
-  Object.keys(changes).forEach((key) => {
-    if (!changes[key]) {
-      delete changes[key];
-    }
+  const nextSection = { ...(Library.getEntity(entityId)?.[section] || {}) };
+  Object.entries(changes).forEach(([key, value]) => {
+    if (value) nextSection[key] = value;
+    else delete nextSection[key];
   });
 
-  Library.updateEntitySection(entityId, section, changes);
+  Library.updateEntity(entityId, { [section]: nextSection });
 
   closeLibrarySectionEditor();
 

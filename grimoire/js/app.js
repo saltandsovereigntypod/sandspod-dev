@@ -1498,12 +1498,18 @@ async function saveLibraryPracticeFromPage(entityId) {
     Library.syncMyPracticeConnections(entityId);
   }
 
+  const cloudResult = typeof flushLivingLibraryEntitySave === "function"
+    ? await flushLivingLibraryEntitySave(entityId)
+    : { saved: false, localOnly: true };
+
   libraryEditMode = false;
 
   await renderLivingLibraryShelves();
   await renderLibraryEntity(entityId);
 
-  flashStatus("My Practice saved.");
+  flashStatus(cloudResult?.error
+    ? "My Practice saved locally. Cloud sync will retry later."
+    : "My Practice saved.");
 }
 
 function renderCommunityLayer(entity) {
@@ -2789,4 +2795,3 @@ document.addEventListener("click", (event) => {
     closeGrimoireSidebar();
   }
 });
-

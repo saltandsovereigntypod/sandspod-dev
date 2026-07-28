@@ -415,14 +415,6 @@ altarActionBar.addEventListener("click", (event) => {
       ungroupCurrentItems();
       return;
 
-    case "start-ritual":
-      showAltarToast("Ritual Builder is coming soon");
-      return;
-
-    case "save-as-ritual":
-      showAltarToast("Save as Ritual is coming soon");
-      return;
-
     case "send-group-to-grimoire":
       sendCurrentGroupToGrimoire();
       return;

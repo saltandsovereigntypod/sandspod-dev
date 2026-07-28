@@ -158,19 +158,6 @@ async function upsertRitualJournalLivingLibraryEntity(user, ritual, formValues =
   return entity;
 }
 
-// The legacy helper names are retained because the existing save flows call them.
-// They now create Living Library entities and intentionally return null instead
-// of a grimoire_pages UUID.
-if (typeof ensureRitualTemplateGrimoirePage === "function") {
-  ensureRitualTemplateGrimoirePage = async function routeTemplateToLivingLibrary(user, templateData) {
-    await upsertRitualTemplateLivingLibraryEntity(user, templateData);
-    return null;
-  };
-}
-
-if (typeof ensureRitualJournalGrimoirePage === "function") {
-  ensureRitualJournalGrimoirePage = async function routeJournalToLivingLibrary(user, ritual, formValues, summary) {
-    await upsertRitualJournalLivingLibraryEntity(user, ritual, formValues, summary);
-    return null;
-  };
-}
+// Save flows call these directly after their canonical Book of Shadows record is
+// available. Keeping this module additive prevents Library routing from replacing
+// (or returning null in place of) a real grimoire page ID.
