@@ -475,7 +475,7 @@ function replaceConnections(from, relation, targets = []) {
   save();
 }
 
-function mergeEntities(sourceId, destinationId) {
+function mergeEntities(sourceId, destinationId, options = {}) {
 
   if (sourceId === destinationId) return;
 
@@ -507,9 +507,10 @@ function mergeEntities(sourceId, destinationId) {
     return merged;
   }
 
-  destination.myPractice = mergeAuthoredLayer(destination.myPractice, source.myPractice);
-
-  destination.community = mergeAuthoredLayer(destination.community, source.community);
+  if (options.mergeAuthored !== false) {
+    destination.myPractice = mergeAuthoredLayer(destination.myPractice, source.myPractice);
+    destination.community = mergeAuthoredLayer(destination.community, source.community);
+  }
   destination.metadata = {
     ...(source.metadata || {}),
     ...(destination.metadata || {}),
@@ -584,7 +585,14 @@ function mergeTraditionalDuplicates(canonicalEntity, entry) {
     })
     .map((candidate) => candidate.id);
 
-  duplicateIds.forEach((sourceId) => mergeEntities(sourceId, canonicalEntity.id));
+  duplicateIds.forEach((sourceId) => {
+    const source = getEntity(sourceId);
+    const canonicalCloudTime = Date.parse(canonicalEntity.metadata?.cloudUpdatedAt || "");
+    const sourceCloudTime = Date.parse(source?.metadata?.cloudUpdatedAt || "");
+    const canonicalIsAuthoritative = Number.isFinite(canonicalCloudTime) &&
+      Number.isFinite(sourceCloudTime) && canonicalCloudTime >= sourceCloudTime;
+    mergeEntities(sourceId, canonicalEntity.id, { mergeAuthored: !canonicalIsAuthoritative });
+  });
   return duplicateIds;
 }
 

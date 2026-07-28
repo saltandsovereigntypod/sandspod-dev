@@ -177,6 +177,10 @@ async function initGrimoire() {
   if (!user) return;
 
   try {
+    const initializationStartedAt = performance.now();
+    const reportTiming = (label, startedAt = initializationStartedAt) => {
+      console.info(`[Grimoire timing] ${label}: ${Math.round((performance.now() - startedAt) * 10) / 10}ms`);
+    };
     setStatus("Opening your Book of Shadows...");
 
     await loadOrCreateBook(user);
@@ -188,8 +192,28 @@ async function initGrimoire() {
     cleanupOrphanedApothecaryLibraryEntries();
     cleanupDeletedApothecaryLibraryEntries();
     
-    if (typeof initLivingLibrarySupabaseSync === "function") {
-      await initLivingLibrarySupabaseSync();
+    const librarySyncPromise = typeof initLivingLibrarySupabaseSync === "function"
+      ? initLivingLibrarySupabaseSync().catch((error) => console.warn("Living Library background hydration failed.", error))
+      : Promise.resolve();
+
+    // Canonical entities exist independently of whether the Traditional layer
+    // is visible. Importing here attaches reference metadata without opening or
+    // enabling Traditional pages in the Book of Shadows.
+    if (typeof Library !== "undefined" && typeof TraditionalLibrary !== "undefined") {
+      Library.importTraditionalLibrary();
+    }
+    reportTiming("Living Library local initialization");
+
+    if (!cachedLibraryPageSettings && typeof getLocalMySettings === "function") {
+      cachedLibraryPageSettings = getLocalMySettings();
+    }
+    if (typeof getMySettings === "function") {
+      getMySettings().then(async (settings) => {
+        cachedLibraryPageSettings = settings;
+        if (!libraryEditMode && activeLibraryEntityId && Library.getEntity(activeLibraryEntityId)) {
+          await renderLibraryEntity(activeLibraryEntityId);
+        }
+      }).catch((error) => console.warn("Library display settings hydration failed.", error));
     }
 
     // Canonical entities exist independently of whether the Traditional layer
@@ -205,20 +229,25 @@ async function initGrimoire() {
       : requestedView.get("entity");
     const requestedPageId = requestedView.get("page");
     const lastView = getLastGrimoireView();
+    const lastEntityId = lastView?.type === "library" && typeof Library !== "undefined" && typeof Library.resolveCanonicalEntityId === "function"
+      ? Library.resolveCanonicalEntityId(lastView.id)
+      : lastView?.id;
 
     if (requestedEntityId && typeof Library !== "undefined" && Library.getEntity(requestedEntityId)) {
       renderWelcomeState();
       renderShelf();
-      await renderLivingLibraryShelves();
       await renderLibraryEntity(requestedEntityId);
+      reportTiming("canonical entity first render");
+      renderLivingLibraryShelves();
     } else if (requestedPageId && pages.some((page) => page.id === requestedPageId)) {
       await openPage(requestedPageId, "read");
       await renderLivingLibraryShelves();
-    } else if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
+    } else if (lastView?.type === "library" && lastEntityId && typeof Library !== "undefined") {
       renderWelcomeState();
       renderShelf();
-      await renderLivingLibraryShelves();
-      await renderLibraryEntity(lastView.id);
+      await renderLibraryEntity(lastEntityId);
+      reportTiming("canonical entity first render");
+      renderLivingLibraryShelves();
     } else if (lastView?.type === "page" && pages.some((page) => page.id === lastView.id)) {
       await openPage(lastView.id, lastView.mode || "read");
       await renderLivingLibraryShelves();
@@ -240,6 +269,15 @@ async function initGrimoire() {
         }
       }
     }
+
+    librarySyncPromise.then(async () => {
+      reportTiming("background Supabase hydration complete");
+      await renderLivingLibraryShelves();
+      if (!libraryEditMode && activeLibraryEntityId && Library.getEntity(activeLibraryEntityId)) {
+        await renderLibraryEntity(activeLibraryEntityId);
+        reportTiming("hydrated entity refresh");
+      }
+    });
 
     setStatus("");
   } catch (error) {
@@ -1921,8 +1959,10 @@ async function hydrateLivingJourney(entityId, requestId) {
   const target = [...document.querySelectorAll("[data-living-journey]")]
     .find((section) => section.dataset.livingJourney === entityId);
   if (!target || typeof LivingConnections === "undefined" || typeof LivingConnectionsView === "undefined") return;
+  const startedAt = performance.now();
   try {
     const result = await LivingConnections.load(entityId);
+    console.info(`[Grimoire timing] LivingConnections load: ${Math.round((performance.now() - startedAt) * 10) / 10}ms`);
     if (!LivingConnectionsView.isCurrentRequest(requestId, livingJourneyRequestId, entityId, activeLibraryEntityId) || !target.isConnected) return;
     target.innerHTML = renderLivingJourney(LivingConnectionsView.createJourneyModel(result));
   } catch (error) {
@@ -1932,6 +1972,7 @@ async function hydrateLivingJourney(entityId, requestId) {
 }
 
 async function renderLibraryEntity(entityId) {
+  const renderStartedAt = performance.now();
   if (!entryList || typeof Library === "undefined") return;
 
   const entity = Library.getEntity(entityId);
@@ -2038,6 +2079,7 @@ async function renderLibraryEntity(entityId) {
 
   renderLivingLibraryShelves();
   hydrateLivingJourney(entity.id, journeyRequestId);
+  console.info(`[Grimoire timing] entity rendering: ${Math.round((performance.now() - renderStartedAt) * 10) / 10}ms`);
 }
 
 function openCreateLibraryEntryModal() {

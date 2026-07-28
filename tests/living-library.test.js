@@ -147,6 +147,8 @@ test("legacy duplicate content and relationships merge without losing authored v
   assert.deepEqual(canonical.myPractice.Uses, ["Meditation"]);
   assert.equal(canonical.community.Notes, "Community note");
   assert.ok(library.getConnections(canonical.id).some((relation) => relation.to === related.id));
+  assert.equal(library.importTraditionalLibrary().length, 0);
+  assert.equal(canonical.myPractice.Notes, "Legacy note");
 });
 
 test("explicit custom entities are never merged by normalized names", () => {
@@ -164,4 +166,33 @@ test("explicit custom entities are never merged by normalized names", () => {
   assert.ok(library.getEntity(custom.id));
   assert.notEqual(custom.id, library.findEntityByTraditionalReference("traditional/crystal/clear_quartz").id);
   assert.equal(library.resolveObjectEntity({ entityId: custom.id, crystal: "clear_quartz" }).id, custom.id);
+});
+
+test("an older legacy cloud duplicate cannot restore deleted canonical practice", () => {
+  const context = createLibraryContext();
+  const library = context.__Library;
+  const canonical = library.createEntity({
+    id: "canonical-quartz",
+    name: "Clear Quartz",
+    type: "crystal",
+    metadata: {
+      traditionalReference: "traditional/crystal/clear_quartz",
+      cloudUpdatedAt: "2026-07-28T12:00:00Z"
+    },
+    traditional: context.TraditionalLibrary.crystal.clear_quartz,
+    myPractice: {}
+  });
+  library.createEntity({
+    id: "old-quartz-row",
+    name: "clear_quartz",
+    type: "crystal",
+    metadata: { cloudUpdatedAt: "2026-07-20T12:00:00Z" },
+    myPractice: { Notes: "Deleted old content" }
+  });
+
+  const merges = library.importTraditionalLibrary();
+  assert.deepEqual(canonical.myPractice, {});
+  assert.equal(library.getEntity("old-quartz-row"), null);
+  assert.equal(library.resolveCanonicalEntityId("old-quartz-row"), canonical.id);
+  assert.ok(merges.some((merge) => merge.canonicalEntityId === canonical.id));
 });
