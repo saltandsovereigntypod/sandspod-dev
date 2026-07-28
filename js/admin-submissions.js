@@ -3,11 +3,6 @@
    Private review inbox for Salt & Sovereignty submissions
    ========================================================= */
 
-const SALT_ADMIN_IDS = [
-  "ddc5463e-1551-498b-b5af-79ce52ac591c",
-  "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
-];
-
 const ADMIN_STATUS_FILTERS = [
   "pending",
   "needs_revision",
@@ -27,7 +22,7 @@ let activeAdminSubmission = null;
 let adminUnreadCounts = {};
 
 function isSaltSubmissionAdmin() {
-  return currentUser && SALT_ADMIN_IDS.includes(currentUser.id);
+  return window.isSaltCommunityModerator?.(currentUser) || false;
 }
 
 function adminSubmissionStatus(message) {

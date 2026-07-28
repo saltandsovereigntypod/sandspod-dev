@@ -6,37 +6,6 @@
 
 (function initializeCompanionActionRefreshBridge() {
   let queuedRefresh = null;
-  let refreshInProgress = false;
-
-  function applyCompanionPresentation(target = null) {
-    if (typeof window.scheduleCompanionV4 === "function") {
-      window.scheduleCompanionV4(target);
-    }
-  }
-
-  function wrapCompanionRenderer(functionName) {
-    const originalRenderer = window[functionName];
-
-    if (
-      typeof originalRenderer !== "function" ||
-      originalRenderer.__companionPresentationWrapped
-    ) {
-      return;
-    }
-
-    function companionAwareRenderer(...args) {
-      const result = originalRenderer.apply(this, args);
-
-      if (!refreshInProgress) {
-        queueMicrotask(() => applyCompanionPresentation(args[0] || null));
-      }
-
-      return result;
-    }
-
-    companionAwareRenderer.__companionPresentationWrapped = true;
-    window[functionName] = companionAwareRenderer;
-  }
 
   function getSelectedCompanionTarget(object = null) {
     return (
@@ -52,23 +21,11 @@
       return Promise.resolve(false);
     }
 
-    refreshInProgress = true;
-
     return Promise.resolve(window.showAltarCompanionPanel(target))
-      .then(() => {
-        document.dispatchEvent(
-          new CustomEvent("companion:refreshed", {
-            detail: { object: target }
-          })
-        );
-        return true;
-      })
+      .then(() => true)
       .catch((error) => {
         console.error("Unable to refresh the Altar Companion.", error);
         return false;
-      })
-      .finally(() => {
-        refreshInProgress = false;
       });
   }
 
@@ -101,9 +58,21 @@
     }
 
     async function companionAwareSubmitHandler(...args) {
-      const result = await originalHandler.apply(this, args);
-      await refreshSelectedCompanion();
-      return result;
+      const form = args[0];
+      if (form?.dataset.companionSubmitting === "true") return false;
+
+      if (form?.dataset) form.dataset.companionSubmitting = "true";
+      const submitButtons = Array.from(form?.querySelectorAll?.('[type="submit"]') || []);
+      submitButtons.forEach((button) => { button.disabled = true; });
+
+      try {
+        const result = await originalHandler.apply(this, args);
+        await refreshSelectedCompanion();
+        return result;
+      } finally {
+        if (form?.dataset) delete form.dataset.companionSubmitting;
+        submitButtons.forEach((button) => { button.disabled = false; });
+      }
     }
 
     companionAwareSubmitHandler.__companionRefreshWrapped = true;
@@ -112,11 +81,8 @@
 
   window.refreshAltarCompanion = refreshSelectedCompanion;
 
-  wrapCompanionRenderer("showAltarCompanionPanel");
-  wrapCompanionRenderer("showLibraryEntityInCompanion");
   wrapLifecycleSubmitHandler("submitLivingStateTendForm");
   wrapLifecycleSubmitHandler("submitLivingStateActivityForm");
-  applyCompanionPresentation();
 
   document.addEventListener("companion:refresh", (event) => {
     refreshSelectedCompanion(event.detail?.object || null);
