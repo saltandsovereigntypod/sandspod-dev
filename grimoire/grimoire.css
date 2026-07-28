@@ -1647,6 +1647,37 @@ body.grimoire-font-handwritten {
   min-height: 2.45rem;
 }
 
+.book-library-entry-step {
+  min-width: 0;
+  margin: 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(190, 155, 90, 0.28);
+  border-radius: 0.65rem;
+}
+
+.book-library-entry-step legend {
+  padding: 0 0.35rem;
+  color: var(--gold, #c9a86a);
+  font-weight: 700;
+}
+
+.book-library-entry-results {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.book-library-entry-results .button {
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.book-library-entry-selection {
+  margin: 0.65rem 0 0;
+}
+
 .library-sidebar-search {
   display: block;
   margin: 0.6rem 0 0.85rem;
