@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/threshold.css" />
     
-    <link rel="manifest" href="/sandspod/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/sandspod/assets/icons/icon-192.png" />
     
   </head>
@@ -79,7 +78,7 @@
           <a href="#blog">Blog</a>
           <a href="#contact">Contact</a>
           <button class="nav-sanctuary-button" type="button" data-my-sanctuary-open>
-            My Sanctuary
+            Sanctuary
           </button>
         </div>
       </nav>
@@ -95,9 +94,9 @@
             A crossroads sanctuary for witchcraft, healing, and self-reclamation.
           </p>
           <div class="button-row">
-            <a class="button button--primary" href="#podcast">Listen to the Podcast</a>
-            <a class="button" href="#books">Explore the Books</a>
-            <a class="button button--ghost" href="#contact">Contact Me</a>
+            <a class="button button--primary" href="/altar/" data-sanctuary-destination="/altar/">Use Altar</a>
+            <a class="button button--ghost" href="/grimoire/" data-sanctuary-destination="/grimoire/">Book of Shadows</a>
+            <a class="button button--ghost" href="#podcast">Listen to Podcast</a>
           </div>
         </div>
       </section>
@@ -407,14 +406,70 @@
       </div>
     </footer>
 
+    <div class="sanctuary-modal" data-sanctuary-modal data-sanctuary-gateway hidden>
+      <div class="sanctuary-modal-card" role="dialog" aria-modal="true" aria-labelledby="sanctuary-gateway-title" tabindex="-1">
+        <button class="sanctuary-modal-close" type="button" data-sanctuary-close aria-label="Cancel and close">×</button>
+
+        <div data-sanctuary-signed-out>
+          <p class="eyebrow">The Sanctuary</p>
+          <h2 id="sanctuary-gateway-title">Enter the Sanctuary</h2>
+          <p>
+            The Digital Altar and Book of Shadows are interactive spiritual tools for building a personal practice,
+            recording rituals, creating grimoire entries, and returning to your work over time.
+          </p>
+
+          <div class="sanctuary-gateway-choices">
+            <section>
+              <h3>Create an Account</h3>
+              <p>
+                Save and restore supported altar layouts, Book of Shadows entries, rituals, templates, Living Library
+                data, My Practice notes, apothecary records, and related practice information. Cloud synchronization
+                can make supported work available across supported devices.
+              </p>
+            </section>
+            <section>
+              <h3>Continue as Guest</h3>
+              <p>
+                Explore without registering. Guest work stays only in this browser or device and is not automatically
+                cloud-synchronized. Clearing browser data, changing browsers or devices, or using private browsing may
+                remove or isolate that work.
+              </p>
+            </section>
+          </div>
+
+          <form class="sanctuary-auth-form" data-auth-form>
+            <label>Email <input type="email" name="email" autocomplete="email" /></label>
+            <label>Password <input type="password" name="password" autocomplete="current-password" /></label>
+            <div class="sanctuary-auth-actions">
+              <button class="button button--primary" type="button" data-auth-action="signup">Create Account</button>
+              <button class="button" type="submit" data-auth-action="signin">Sign In</button>
+              <button class="button button--ghost" type="button" data-sanctuary-guest>Continue as Guest</button>
+            </div>
+            <p data-auth-status role="status" aria-live="polite">Choose how you would like to enter.</p>
+          </form>
+        </div>
+
+        <div data-sanctuary-signed-in hidden>
+          <h2>Welcome back.</h2>
+          <p>Signed in as <strong data-sanctuary-email></strong>.</p>
+          <button class="button button--primary" type="button" data-sanctuary-continue>Continue</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/welcome-discovery.js"></script>
     <script src="js/sanctuary-modal.js"></script>
     <script src="js/my-settings.js"></script>
     <script src="js/my-rituals.js"></script>
     <script src="js/submissions.js"></script>
     <script src="js/my-sanctuary.js"></script>
+    <script src="js/sanctuary-search.js"></script>
+    <script src="js/my-journey.js"></script>
+    <script src="js/settings-view.js"></script>
+    <script src="js/living-sanctuary.js"></script>
     <script src="script.js"></script> 
 
     <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f6b1922840414fb58931479f84817975"}'></script><!-- End Cloudflare Web Analytics -->

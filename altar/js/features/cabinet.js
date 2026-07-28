@@ -148,6 +148,14 @@ const cabinetItems = [
   }
 ];
 
+// Narrow public catalogue for shared Settings. Keep cabinet internals private.
+window.AltarBackgrounds = {
+  getAll() {
+    return cabinetItems.filter((item) => item.category === "backgrounds").map(({ name, background }) => ({ id: background, name, background }));
+  }
+};
+window.dispatchEvent(new CustomEvent("altarBackgroundsReady"));
+
 function changeAltarBackground(button) {
   if (!altarStage || !button) return;
 
