@@ -527,14 +527,26 @@
     if (!object || typeof getLivingObjectState !== "function") return [];
     const state = getLivingObjectState(object);
     const readable = (value) => humanizeCompanionKey(value || "").replace(/\b\w/g, (letter, index) => index ? letter.toLowerCase() : letter.toUpperCase());
-    const convert = (records, type, label) => (records || []).map((record) => ({
-      id: record.id || "",
-      event_type: type,
-      event_label: label,
-      event_notes: [record.purpose && readable(record.purpose), record.dedicatedTo, ...(record.items || []).map((item) => item.label || item), ...(record.methods || []).map(readable), record.intention && `“${record.intention}”`, record.status && `Status: ${readable(record.status)}`, record.perceivedResponse && `Perceived response: ${readable(record.perceivedResponse)}`, record.intentionHandling && readable(record.intentionHandling)].filter(Boolean).join(" · "),
-      occurred_at: record.occurredAt || record.recordedAt || "",
-      metadata: record
-    }));
+    const convert = (records, type, label) => (records || []).map((record) => {
+      const isCrystalCare = type === "crystal_cleansed" || type === "crystal_charged";
+      const notes = isCrystalCare
+        ? [
+          record.purpose && `Purpose: ${readable(record.purpose)}`,
+          record.methods?.length && `Method: ${record.methods.map(readable).join(", ")}`,
+          record.intention && `Intention: ${record.intention}`,
+          record.intentionHandling && `Intention state: ${readable(record.intentionHandling)}`,
+          record.notes && `Reflection: ${record.notes}`
+        ].filter(Boolean).join(" · ")
+        : [record.purpose && readable(record.purpose), record.dedicatedTo, ...(record.items || []).map((item) => item.label || item), ...(record.methods || []).map(readable), record.intention && `“${record.intention}”`, record.status && `Status: ${readable(record.status)}`, record.perceivedResponse && `Perceived response: ${readable(record.perceivedResponse)}`, record.intentionHandling && readable(record.intentionHandling)].filter(Boolean).join(" · ");
+      return {
+        id: record.id || "",
+        event_type: type,
+        event_label: label,
+        event_notes: notes,
+        occurred_at: record.occurredAt || record.recordedAt || "",
+        metadata: record
+      };
+    });
     return [
       ...convert(state?.crystal?.cleansingHistory, "crystal_cleansed", "Crystal Cleansed"),
       ...convert(state?.crystal?.chargingHistory, "crystal_charged", "Crystal Charged"),

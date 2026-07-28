@@ -173,9 +173,19 @@
       add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (identity === "crystal") {
+      const currentIntention = firstValue(
+        livingState?.crystal?.intention?.text,
+        livingState?.crystal?.currentIntention,
+        livingState?.crystal?.dedicationDetails?.intention,
+        livingState?.crystal?.dedicationDetails?.purpose,
+        livingState?.crystal?.dedication
+      );
+      add("Current Intention", currentIntention || "No recorded intention");
       add("Last Cleansed", livingState?.crystal?.lastCleansedAt, formatDate);
       add("Last Charged", livingState?.crystal?.lastChargedAt, formatDate);
-      add("Dedication", livingState?.crystal?.dedication);
+      if (livingState?.crystal?.dedication && livingState.crystal.dedication !== currentIntention) {
+        add("Dedication", livingState.crystal.dedication);
+      }
       add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (identity === "deity") {

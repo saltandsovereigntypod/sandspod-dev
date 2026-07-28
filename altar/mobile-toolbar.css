@@ -118,12 +118,21 @@
 
 @media (max-width: 900px) and (orientation: landscape) {
   .altar-workspace {
-    grid-template-columns: minmax(330px, 44vw) minmax(0, 1fr) !important;
-    column-gap: 1.15rem !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    column-gap: 0 !important;
   }
 
   .altar-workspace-panel {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+    width: 100%;
     min-width: 0;
+  }
+
+  .altar-stage-wrap {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100%;
   }
 
   .altar-workspace-panel .altar-companion-header {
