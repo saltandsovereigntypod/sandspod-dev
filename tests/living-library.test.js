@@ -75,3 +75,18 @@ test("Explicit custom entities remain unlinked when Traditional content grows", 
   assert.notEqual(canonical.id, custom.id);
   assert.equal(library.getEntity(custom.id).metadata.traditionalReference, null);
 });
+
+test("Living Library prevents duplicate canonical relationship edges", () => {
+  const context = createLibraryContext();
+  const library = context.__Library;
+  const first = library.createEntity({ name: "First", type: "herb" });
+  const second = library.createEntity({ name: "Second", type: "herb" });
+
+  library.connect(first.id, "pairs_with", second.id);
+  library.connect(first.id, "pairs_with", second.id);
+
+  const matches = library.exportLibrary().relations.filter((relation) => {
+    return relation.from === first.id && relation.relation === "pairs_with" && relation.to === second.id;
+  });
+  assert.equal(matches.length, 1);
+});
