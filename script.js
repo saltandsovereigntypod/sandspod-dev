@@ -237,16 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const thresholdQuestion = document.querySelector("[data-threshold-question]");
   const thresholdNote = document.querySelector("[data-threshold-note]");
 
-  const thresholdQuestions = [
-    "Are you willing to meet yourself where you are?",
-    "What part of yourself is asking to be witnessed?",
-    "What would happen if you stopped trying to earn your worth?",
-    "Can you cross this threshold without abandoning yourself?",
-    "What are you carrying that was never yours?",
-    "Are you ready to return to the parts of you that survived?",
-    "Can you let this be a place where every part of you is welcome?"
-  ];
-
   if (!thresholdGate) return;
 
   const hasEnteredThreshold = sessionStorage.getItem("saltThresholdEntered");
@@ -263,11 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.body.classList.add("threshold-locked");
-
-  if (thresholdQuestion) {
-    thresholdQuestion.textContent =
-      thresholdQuestions[Math.floor(Math.random() * thresholdQuestions.length)];
-  }
 
   if (enterThreshold) {
     enterThreshold.addEventListener("click", () => {

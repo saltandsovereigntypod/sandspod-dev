@@ -64,10 +64,10 @@ function getLivingLibraryExportEntities() {
 async function saveLivingLibraryEntityToSupabase(entityId) {
   const user = getLivingLibraryUser();
 
-  if (!user || typeof db === "undefined" || typeof Library === "undefined") return;
+  if (!user || typeof db === "undefined" || typeof Library === "undefined") return { saved: false, localOnly: true };
 
   const entity = Library.getEntity(entityId);
-  if (!entity) return;
+  if (!entity) return { saved: false, error: "missing_entity" };
 
   const row = {
     user_id: user.id,
@@ -89,7 +89,15 @@ async function saveLivingLibraryEntityToSupabase(entityId) {
 
   if (error) {
     console.error("Living Library save failed:", error);
+    return { saved: false, error: "cloud_save_failed" };
   }
+  return { saved: true };
+}
+
+async function flushLivingLibraryEntitySave(entityId) {
+  window.clearTimeout(livingLibrarySaveTimers[entityId]);
+  delete livingLibrarySaveTimers[entityId];
+  return saveLivingLibraryEntityToSupabase(entityId);
 }
 
 async function saveLivingLibraryRelationToSupabase(fromEntityId, relation, toEntityId, metadata = {}) {
@@ -273,7 +281,8 @@ async function loadLivingLibraryFromSupabase() {
     let entity = Library.getEntity(row.entity_id);
 
     if (!entity) {
-      entity = Library.getOrCreateEntity({
+      entity = Library.createEntity({
+        id: row.entity_id,
         name: row.name,
         type: row.type,
         image: row.image || ""
@@ -309,6 +318,8 @@ async function loadLivingLibraryFromSupabase() {
 
   localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
 }
+
+window.flushLivingLibraryEntitySave = flushLivingLibraryEntitySave;
 
 async function loadLivingLibraryRelationsFromSupabase() {
   const user = getLivingLibraryUser();
