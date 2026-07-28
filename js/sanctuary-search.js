@@ -46,6 +46,20 @@
     };
   }
 
+  function createApothecaryResult(item = {}) {
+    const typeLabel = item.typeLabel || item.type_label || item.type || "Apothecary Item";
+    const title = item.name || item.title || item.displayName || item.customName || "Untitled Apothecary Item";
+    const ingredientNames = (item.ingredients || []).map((ingredient) => ingredient.label || ingredient.name || ingredient.libraryName).filter(Boolean);
+    const typeAliases = [typeLabel, item.type, `${typeLabel}s`, typeLabel.replaceAll("-", " ")].filter(Boolean);
+    return createResult({
+      id: item.id, group: "apothecary", source: "apothecary", type: item.type || "recipe", title,
+      subtitle: `${typeLabel} · Apothecary`, aliases: typeAliases,
+      fields: [title, item.intention, item.notes, item.tags, item.details, item.formName, ingredientNames],
+      relationshipText: ingredientNames, relationshipContext: ingredientNames.length ? `Contains ${ingredientNames.slice(0, 3).join(", ")}` : "",
+      action: item.action || null, timestamp: item.updatedAt || item.updated_at || item.createdAt || item.created_at
+    });
+  }
+
   function dedupe(records = []) {
     const results = new Map();
     records.map(createResult).filter(Boolean).forEach((record) => {
@@ -133,7 +147,7 @@
     return Boolean(isOpen) && requestId === currentRequestId;
   }
 
-  const api = { GROUP_LABELS, buildIndex, updateSource, getIndex, search, rankRecords, groupResults, resolveDestination, getRecent, isCurrentRequest, createResult };
+  const api = { GROUP_LABELS, buildIndex, updateSource, getIndex, search, rankRecords, groupResults, resolveDestination, getRecent, isCurrentRequest, createResult, createApothecaryResult };
   global.SanctuarySearch = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

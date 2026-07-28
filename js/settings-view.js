@@ -15,9 +15,15 @@
   function populateBackgroundSelect(select, saved = "") {
     if (!select) return;
     const selected = select.value || saved;
-    const definitions = global.AltarBackgrounds?.getAll?.() || [];
+    const definitions = global.SanctuaryAssetCatalog?.getBackgrounds?.() || global.AltarBackgrounds?.getAll?.() || [];
     select.innerHTML = '<option value="">No default</option>' + backgroundOptions(definitions, selected).map((name) => `<option value="${name.replaceAll('"', '&quot;')}">${name}</option>`).join("");
     select.value = selected;
+    let picker = select.parentElement.querySelector("[data-background-picker]");
+    if (!picker) { picker = document.createElement("div"); picker.className = "sanctuary-background-picker"; picker.dataset.backgroundPicker = ""; picker.setAttribute("role", "radiogroup"); picker.setAttribute("aria-label", "Default Altar background"); select.after(picker); select.classList.add("sr-only"); }
+    const choices = [{ name: "", thumbnailPath: "", label: "No default" }, ...definitions.map((item) => ({ name: item.name, thumbnailPath: item.thumbnailPath || item.thumbnail || item.assetPath || item.background, label: item.name }))];
+    if (selected && !choices.some((item) => item.name === selected)) choices.push({ name: selected, thumbnailPath: "", label: `${selected} (currently unavailable)` });
+    picker.innerHTML = choices.map((item) => `<label class="sanctuary-background-option"><input type="radio" name="background_picker" value="${item.name.replaceAll('"', '&quot;')}" ${item.name === selected ? "checked" : ""}>${item.thumbnailPath ? `<img src="${item.thumbnailPath}" alt="">` : '<span class="sanctuary-background-placeholder" aria-hidden="true">✦</span>'}<span>${item.label}</span></label>`).join("");
+    picker.querySelectorAll('input[name="background_picker"]').forEach((radio) => radio.addEventListener("change", () => { select.value = radio.value; select.dispatchEvent(new Event("input", { bubbles: true })); }));
   }
   function render(panel) {
     const form = panel?.querySelector("[data-my-settings-form]");

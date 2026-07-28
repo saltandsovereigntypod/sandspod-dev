@@ -253,20 +253,12 @@ async function applyDefaultAltarBackgroundSetting() {
 
   if (!savedBackground) return;
 
-  const matchingBackground = cabinetItems.find((item) => {
-    return (
-      item.category === "backgrounds" &&
-      (
-        item.name.toLowerCase() === savedBackground.toLowerCase() ||
-        item.background === savedBackground
-      )
-    );
-  });
+  const matchingBackground = (window.SanctuaryAssetCatalog?.getBackgrounds?.() || []).find((item) => item.name.toLowerCase() === savedBackground.toLowerCase() || item.assetPath === savedBackground);
 
   if (!matchingBackground) return;
 
-  altarStage.style.backgroundImage = `url("${matchingBackground.background}")`;
-  altarStage.dataset.background = matchingBackground.background;
+  altarStage.style.backgroundImage = `url("${matchingBackground.assetPath}")`;
+  altarStage.dataset.background = matchingBackground.assetPath;
   altarStage.dataset.backgroundName = matchingBackground.name;
 }
 

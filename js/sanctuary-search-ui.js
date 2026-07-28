@@ -48,17 +48,7 @@
 
   function recipeRecords() {
     const recipes = typeof global.getApothecaryItems === "function" ? global.getApothecaryItems() : [];
-    return recipes.map((item) => {
-      const ingredients = item.ingredients || [];
-      const names = ingredients.map((ingredient) => ingredient.label || ingredient.name).filter(Boolean);
-      return {
-        id: item.id, group: "apothecary", type: item.type || "recipe", title: item.name || "Untitled Recipe",
-        subtitle: "Apothecary Recipe", aliases: item.type === "oil" ? ["oil", "essential oil"] : [], fields: [item.intention, item.notes, names], relationshipText: names,
-        relationshipContext: names.length ? `Contains ${names.slice(0, 3).join(", ")}` : "",
-        action: typeof global.openApothecaryItemEditor === "function" ? { kind: "apothecary", id: item.id } : null,
-        timestamp: item.updatedAt || item.updated_at || item.createdAt || item.created_at
-      };
-    });
+    return recipes.map((item) => global.SanctuarySearch.createApothecaryResult({ ...item, action: typeof global.openApothecaryItemEditor === "function" ? { kind: "apothecary", id: item.id } : null })).filter(Boolean);
   }
 
   function objectRecords() {
@@ -75,7 +65,18 @@
   }
 
   function cabinetRecords() {
-    return global.AltarCabinet?.getSearchRecords?.() || [];
+    const builtIn = global.AltarCabinet?.getSearchRecords?.() || [];
+    const custom = (global.getCustomCabinetItems?.() || []).flatMap((item) => (item.forms || []).map((form, index) => {
+      const canonicalId = global.Library?.resolveCanonicalEntityId?.(form.entityId || item.entityId);
+      const canonicalName = canonicalId ? global.Library?.getEntity?.(canonicalId)?.name : "";
+      return {
+        id: `custom-form:${item.id}:${form.form || form.label || index}`, group: "cabinet", source: "custom-form", type: form.type || item.category,
+        entityId: canonicalId || null, title: item.name || form.label || "Custom Form",
+        subtitle: `Custom ${form.type || item.category || "Object"} Form${canonicalName ? ` · ${canonicalName}` : ""}`,
+        aliases: [...(item.keywords || []), form.label, form.form, canonicalName].filter(Boolean), fields: [item.category, canonicalName, form.label, form.form]
+      };
+    }));
+    return [...builtIn, ...custom];
   }
 
   function rebuildLocalIndex() {
@@ -133,6 +134,7 @@
     requestId += 1;
     modal.remove();
     modal = null;
+    document.body.classList.remove("sanctuary-search-open");
     trigger?.focus();
   }
 
@@ -154,6 +156,7 @@
     modal.className = "sanctuary-search-backdrop";
     modal.innerHTML = `<div class="sanctuary-search-dialog" role="dialog" aria-modal="true" aria-labelledby="sanctuary-search-title"><header><div><p class="eyebrow">A Living Index</p><h2 id="sanctuary-search-title">Search the Sanctuary</h2></div><button type="button" data-sanctuary-search-close aria-label="Close search">×</button></header><label class="sanctuary-search-input"><span class="sr-only">Search the Sanctuary</span><input type="search" data-sanctuary-search-input placeholder="Search names, purposes, rituals, or ingredients…" autocomplete="off" /></label><div class="sanctuary-search-filters" role="group" aria-label="Filter search results">${[["all", "All"], ...supportedGroups].map(([key, label], index) => `<button type="button" data-sanctuary-search-filter="${key}" class="${index === 0 ? "is-active" : ""}" aria-pressed="${index === 0}">${label}</button>`).join("")}</div><p class="sr-only" role="status" aria-live="polite" data-sanctuary-search-status></p><div class="sanctuary-search-results" data-sanctuary-search-results></div></div>`;
     document.body.append(modal);
+    document.body.classList.add("sanctuary-search-open");
     renderResults();
     modal.querySelector("input").focus();
     const token = ++requestId;

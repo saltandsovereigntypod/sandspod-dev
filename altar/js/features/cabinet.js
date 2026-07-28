@@ -14,20 +14,7 @@ const cabinetCategories = [
 ];
 
 const cabinetItems = [
-  {
-    category: "backgrounds",
-    name: "Forest Altar",
-    icon: "🌲",
-    keywords: ["forest", "green", "crossroads"],
-    background: "../assets/altar/backgrounds/forest-scene.png"
-  },
-  {
-    category: "backgrounds",
-    name: "Deity Shelf Altar",
-    icon: "🕯️",
-    keywords: ["shelf", "deity", "statues"],
-    background: "../assets/altar/backgrounds/shelf-deity-altar.png"
-  },
+  ...(window.SanctuaryAssetCatalog?.getBackgrounds?.() || []).map((background) => ({ category: "backgrounds", name: background.name, icon: "🌲", keywords: [], background: background.assetPath })),
 
   ...["white", "black", "green", "purple", "red", "orange", "yellow", "blue", "brown", "pink", "gold", "silver"].map((color) => ({
     category: "candles",
@@ -36,11 +23,11 @@ const cabinetItems = [
     keywords: [color, "candle", "fire"],
     forms: [
       {
-        label: "Place",
+        label: "Vigil Candle",
         image: `../assets/altar/objects/candles/${color}-candle.${color === "white" || color === "black" ? "PNG" : "png"}`,
         type: "candle",
         color,
-        form: "standard"
+        form: "vigil"
       }
     ]
   })),
@@ -151,14 +138,14 @@ const cabinetItems = [
 // Narrow public catalogue for shared Settings. Keep cabinet internals private.
 window.AltarBackgrounds = {
   getAll() {
-    return cabinetItems.filter((item) => item.category === "backgrounds").map(({ name, background }) => ({ id: background, name, background }));
+    return (window.SanctuaryAssetCatalog?.getBackgrounds?.() || []).map((item) => ({ id: item.id, name: item.name, background: item.assetPath, thumbnail: item.thumbnailPath }));
   }
 };
 window.dispatchEvent(new CustomEvent("altarBackgroundsReady"));
 
 function cabinetSearchAliases(item) {
   const formWords = (item.forms || []).flatMap((form) => [form.label, form.type, form.form]);
-  const variants = item.category === "candles" ? ["candle", "candles", "taper", "tea light", "tealight"]
+  const variants = item.category === "candles" ? ["candle", "candles"]
     : item.category === "herbs" ? ["herb", "herbs"]
       : item.category === "crystals" ? ["crystal", "crystals"]
         : item.name === "Spell Jar" ? ["jar", "spell jar", "spell jars"] : [];

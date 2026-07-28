@@ -97,6 +97,10 @@ function getApothecaryItems() {
   return apothecaryItemsCache;
 }
 
+function announceApothecarySearchChange() {
+  document.dispatchEvent(new CustomEvent("sanctuary-search:sources-changed", { detail: { source: "apothecary" } }));
+}
+
 async function loadApothecaryItems() {
   const user =
     typeof getCurrentAssetUser === "function"
@@ -110,6 +114,7 @@ async function loadApothecaryItems() {
       apothecaryItemsCache = [];
     }
 
+    announceApothecarySearchChange();
     return apothecaryItemsCache;
   }
 
@@ -127,6 +132,7 @@ async function loadApothecaryItems() {
   }
 
   apothecaryItemsCache = (data || []).map(mapApothecaryRowToItem);
+  announceApothecarySearchChange();
   return apothecaryItemsCache;
 }
 
@@ -163,6 +169,7 @@ async function saveApothecaryItems(items) {
   }
 
   apothecaryItemsCache = (data || []).map(mapApothecaryRowToItem);
+  announceApothecarySearchChange();
 
   return true;
 }
@@ -1123,6 +1130,7 @@ async function deleteApothecaryItem(itemId) {
     }
 
     apothecaryItemsCache = apothecaryItemsCache.filter((savedItem) => savedItem.id !== itemId);
+    announceApothecarySearchChange();
     } else {
     const items = getApothecaryItems().filter(
       (savedItem) => savedItem.id !== itemId

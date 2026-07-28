@@ -47,6 +47,9 @@
     }
     return null;
   }
+  function moderatorDestination(user, permission = global.isSaltCommunityModerator) {
+    return typeof permission === "function" && permission(user) ? "/admin/submissions/" : null;
+  }
 
   function indexRecords() {
     global.SanctuarySearchUI?.rebuildLocalIndex?.();
@@ -73,7 +76,8 @@
     const objectState = [...document.querySelectorAll?.("[data-object-id]") || []].map((node) => { try { return { type: node.dataset.type, ...JSON.parse(node.dataset.livingState || "{}") }; } catch { return { type: node.dataset.type }; } });
     const snapshot = buildSnapshot(objectState, activeRitual);
     const observation = companionObservation(records, global.Library);
-    const review = global.isSaltCommunityModerator?.(user) ? '<a href="/admin/submissions/">Community Submissions</a>' : "";
+    const moderationHref = moderatorDestination(user);
+    const review = moderationHref ? `<a href="${moderationHref}">Community Submissions</a>` : "";
     const facts = [
       recent.find((item) => item.group === "rituals") && `Your most recent recorded ritual is “${recent.find((item) => item.group === "rituals").title}.”`,
       recent.find((item) => item.group === "pages") && `“${recent.find((item) => item.group === "pages").title}” is your most recent Book of Shadows record.`,
@@ -111,9 +115,17 @@
   if (typeof document !== "undefined") document.addEventListener("input", (event) => { if (!event.target.matches("[data-journey-search]")) return; const panel = event.target.closest("[data-my-sanctuary-panel]"); renderJourney(panel, { query: event.target.value, direction: panel.querySelector("[data-journey-direction]")?.value, grouping: panel.querySelector("[data-journey-grouping]")?.value, category: panel.querySelector("[data-journey-filter][aria-pressed=true]")?.dataset.journeyFilter }); });
   if (typeof document !== "undefined") document.addEventListener("change", (event) => { if (!event.target.matches("[data-journey-direction], [data-journey-grouping]")) return; const panel = event.target.closest("[data-my-sanctuary-panel]"); renderJourney(panel, { query: panel.querySelector("[data-journey-search]")?.value, direction: panel.querySelector("[data-journey-direction]")?.value, grouping: panel.querySelector("[data-journey-grouping]")?.value, category: panel.querySelector("[data-journey-filter][aria-pressed=true]")?.dataset.journeyFilter }); });
   if (typeof document !== "undefined") document.addEventListener("click", (event) => { const filter = event.target.closest("[data-journey-filter]"); if (!filter) return; const panel = filter.closest("[data-my-sanctuary-panel]"); renderJourney(panel, { query: panel.querySelector("[data-journey-search]")?.value, direction: panel.querySelector("[data-journey-direction]")?.value, grouping: panel.querySelector("[data-journey-grouping]")?.value, category: filter.dataset.journeyFilter }); });
-  if (typeof document !== "undefined") document.addEventListener("saltAuthChanged", () => { sanctuaryRequestId += 1; global.SanctuarySearch?.buildIndex?.({}); });
+  function refreshForAuth() {
+    sanctuaryRequestId += 1;
+    global.SanctuarySearch?.buildIndex?.({});
+    const panel = document.querySelector("[data-my-sanctuary-panel]");
+    const home = panel?.querySelector('[data-sanctuary-view="dashboard"]');
+    if (home && !home.hidden) renderHome(panel, global.getLocalMySettings?.() || {});
+  }
+  if (typeof document !== "undefined") document.addEventListener("saltAuthChanged", refreshForAuth);
+  if (typeof document !== "undefined") document.addEventListener("saltAuthReady", refreshForAuth);
 
-  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, install };
+  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, install };
   global.LivingSanctuary = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document !== "undefined") install();

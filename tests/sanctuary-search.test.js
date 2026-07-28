@@ -61,10 +61,10 @@ test("empty, custom, hidden-layer, guest, and unsupported records remain safe", 
 test("Current Altar and Altar Cabinet remain separate result groups", () => {
   Search.buildIndex({
     current: [{ id: "placed-candle", group: "currentAltar", title: "White Candle", aliases: ["candle"] }],
-    cabinet: [{ id: "cabinet-candle", group: "cabinet", title: "White Candle", aliases: ["candle", "taper", "tea light"] }]
+    cabinet: [{ id: "cabinet-candle", group: "cabinet", title: "White Candle", aliases: ["candle", "vigil"] }]
   });
   assert.deepEqual(Search.groupResults(Search.search("candle")).map((group) => group.key), ["currentAltar", "cabinet"]);
-  assert.equal(Search.search("taper", { group: "cabinet" })[0].id, "cabinet-candle");
+  assert.equal(Search.search("vigil", { group: "cabinet" })[0].id, "cabinet-candle");
 });
 
 test("recent limiting and stale request rejection are deterministic", () => {
