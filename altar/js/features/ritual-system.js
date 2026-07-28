@@ -11,6 +11,9 @@ let activeRitualSteps = [];
 let ritualSessionClockInterval = null;
 let ritualStepClockInterval = null;
 let ritualPanelRenderLock = false;
+let ritualActionPending = false;
+let ritualStepTransitionPending = false;
+let ritualCompletionPending = false;
 
 function getStoredActiveRitualSession() {
   try {
@@ -139,7 +142,7 @@ function getStepElapsedSeconds(step) {
       ? new Date(activeRitualSession.paused_at).getTime()
       : Date.now();
 
-  return Math.max(0, Math.floor((end - new Date(step.started_at).getTime()) / 1000));
+  return Math.max(0, Number(step.elapsed_seconds || 0) + Math.floor((end - new Date(step.started_at).getTime()) / 1000));
 }
 
 function startRitualClocks() {
@@ -232,6 +235,9 @@ async function fetchActiveRitualSession() {
 }
 
 async function createFreeRitualSession({ title = "", intention = "" } = {}) {
+  if (activeRitualSession?.id || getStoredActiveRitualSession()?.id) {
+    throw new Error("A ritual session is already active.");
+  }
   const user = await getRitualUser();
 
   if (!user) {
@@ -281,6 +287,9 @@ async function createFreeRitualSession({ title = "", intention = "" } = {}) {
 }
 
 async function createTemplateRitualSession(template) {
+  if (activeRitualSession?.id || getStoredActiveRitualSession()?.id) {
+    throw new Error("A ritual session is already active.");
+  }
   const user = await getRitualUser();
 
   if (!user) throw new Error("Sign in to begin a ritual.");
@@ -396,6 +405,19 @@ async function pauseActiveRitualSession() {
 
   const pausedAt = new Date().toISOString();
   const user = await getRitualUser();
+  const currentStep = getCurrentRitualStep();
+
+  if (currentStep?.started_at) {
+    const elapsedSeconds = getStepElapsedSeconds(currentStep);
+    const { error: stepError } = await db
+      .from("ritual_session_steps")
+      .update({ elapsed_seconds: elapsedSeconds, started_at: null })
+      .eq("id", currentStep.id)
+      .eq("user_id", user.id);
+    if (stepError) throw stepError;
+    currentStep.elapsed_seconds = elapsedSeconds;
+    currentStep.started_at = null;
+  }
 
   const { data, error } = await db
     .from("ritual_sessions")
@@ -434,15 +456,30 @@ async function resumeActiveRitualSession() {
 
   if (error) throw error;
 
+  const currentStep = getCurrentRitualStep();
+  if (currentStep && !currentStep.started_at) {
+    const resumedAt = new Date().toISOString();
+    const { error: stepError } = await db
+      .from("ritual_session_steps")
+      .update({ started_at: resumedAt })
+      .eq("id", currentStep.id)
+      .eq("user_id", user.id);
+    if (stepError) throw stepError;
+    currentStep.started_at = resumedAt;
+  }
+
   activeRitualSession = data;
   await appendRitualEvent("session_resumed");
   renderActiveRitualPanel();
 }
 
 async function completeCurrentRitualStep() {
+  if (ritualStepTransitionPending) return;
   const step = getCurrentRitualStep();
   if (!step || !activeRitualSession?.id) return;
+  ritualStepTransitionPending = true;
 
+  try {
   const user = await getRitualUser();
   const completedAt = new Date().toISOString();
 
@@ -485,12 +522,18 @@ async function completeCurrentRitualStep() {
 
   await fetchActiveRitualSession();
   renderActiveRitualPanel();
+  } finally {
+    ritualStepTransitionPending = false;
+  }
 }
 
 async function skipCurrentRitualStep() {
+  if (ritualStepTransitionPending) return;
   const step = getCurrentRitualStep();
   if (!step || !activeRitualSession?.id) return;
+  ritualStepTransitionPending = true;
 
+  try {
   const user = await getRitualUser();
 
   const { error } = await db
@@ -524,15 +567,21 @@ async function skipCurrentRitualStep() {
   }
 
   renderActiveRitualPanel();
+  } finally {
+    ritualStepTransitionPending = false;
+  }
 }
 
 async function completeActiveRitualSession(status = "completed") {
+  if (ritualCompletionPending) return null;
   const activeSession = activeRitualSession || getStoredActiveRitualSession();
 
   if (!activeSession?.id) {
     throw new Error("No active ritual session was found.");
   }
+  ritualCompletionPending = true;
 
+  try {
   const user = await getRitualUser();
   if (!user) throw new Error("Sign in to complete this ritual session.");
 
@@ -589,8 +638,10 @@ async function completeActiveRitualSession(status = "completed") {
 
   ritualPanelView = "home";
   renderRitualHome();
-
   return data;
+  } finally {
+    ritualCompletionPending = false;
+  }
 }
 
 function renderRitualHome() {
@@ -864,6 +915,9 @@ document.addEventListener(
     event.preventDefault();
     event.stopImmediatePropagation();
 
+    if (ritualActionPending) return;
+    ritualActionPending = true;
+
     try {
       if (startButton) {
         if (activeRitualSession || getStoredActiveRitualSession()?.id) {
@@ -896,7 +950,11 @@ document.addEventListener(
       }
 
       if (createTemplateButton) {
-        showAltarToast("Template editor comes in Phase 3");
+        if (typeof openRitualTemplateEditor === "function") {
+          await openRitualTemplateEditor();
+        } else {
+          showAltarToast("Template editor is unavailable");
+        }
         return;
       }
 
@@ -932,6 +990,8 @@ document.addEventListener(
     } catch (error) {
       console.error(error);
       showAltarToast(error.message || "The ritual companion encountered a problem");
+    } finally {
+      ritualActionPending = false;
     }
   },
   true

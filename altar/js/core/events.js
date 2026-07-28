@@ -2,133 +2,12 @@
    EVENTS
    ========================================================= */
 
-let toolbarHoldInterval = null;
-let toolbarHoldTimeout = null;
-
-function stopToolbarHoldAction() {
-  window.clearTimeout(toolbarHoldTimeout);
-  window.clearInterval(toolbarHoldInterval);
-
-  toolbarHoldTimeout = null;
-}
-
-function startToolbarHoldAction(action) {
-  stopToolbarHoldAction();
-
-  if (!selectedObject) return;
-
-  const holdActions = {
-    smaller: () => resizeObject(selectedObject, -0.04),
-    larger: () => resizeObject(selectedObject, 0.04),
-    "rotate-left": () => rotateObject(selectedObject, -3),
-    "rotate-right": () => rotateObject(selectedObject, 3)
-  };
-
-  const holdAction = holdActions[action];
-
-  if (!holdAction) return;
-
-  toolbarHoldTimeout = window.setTimeout(() => {
-    pushAltarUndoSnapshot();
-
-    toolbarHoldInterval = window.setInterval(() => {
-      if (!selectedObject) {
-        stopToolbarHoldAction();
-        return;
-      }
-
-      holdAction();
-      updateObjectPositionPercent(selectedObject);
-    }, 70);
-  }, 280);
-}
-
-toolbar.addEventListener("pointerdown", (event) => {
-  event.stopPropagation();
-
-  const button = event.target.closest("button");
-  if (!button || !selectedObject) return;
-
-  event.preventDefault();
-
-  startToolbarHoldAction(button.dataset.action);
-});
-
-toolbar.addEventListener("pointerup", stopToolbarHoldAction);
-toolbar.addEventListener("pointercancel", stopToolbarHoldAction);
-toolbar.addEventListener("pointerleave", stopToolbarHoldAction);
-
 toolbar.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button || !selectedObject) return;
 
-  stopToolbarHoldAction();
-
-  switch (button.dataset.action) {
-    case "smaller":
-      pushAltarUndoSnapshot();
-      resizeObject(selectedObject, -0.1);
-      break;
-
-    case "larger":
-      pushAltarUndoSnapshot();
-      resizeObject(selectedObject, 0.1);
-      break;
-
-    case "rotate-left":
-      pushAltarUndoSnapshot();
-      rotateObject(selectedObject, -15);
-      break;
-
-    case "rotate-right":
-      pushAltarUndoSnapshot();
-      rotateObject(selectedObject, 15);
-      break;
-
-    case "delete":
-      pushAltarUndoSnapshot();
-      deleteObject(selectedObject);
-      break;
-
-    case "forward":
-      pushAltarUndoSnapshot();
-      bringForward(selectedObject);
-      break;
-
-    case "backward":
-      pushAltarUndoSnapshot();
-      sendBackward(selectedObject);
-      break;
-
-    case "flip":
-      pushAltarUndoSnapshot();
-      flipObject(selectedObject);
-      break;
-
-    case "lock":
-      pushAltarUndoSnapshot();
-      toggleLock(selectedObject);
-      break;
-
-    case "duplicate":
-      pushAltarUndoSnapshot();
-      duplicateObject(selectedObject);
-      break;
-
-    case "glow":
-      pushAltarUndoSnapshot();
-      toggleGlow(selectedObject);
-      break;
-
-    case "light":
-      pushAltarUndoSnapshot();
-      toggleLight(selectedObject);
-      break;
-
-    case "dress-candle":
-      pushAltarUndoSnapshot();
-      beginCandleDressing(selectedObject);
-      break;
+  if (typeof executeSelectedObjectAction === "function") {
+    executeSelectedObjectAction(button.dataset.action, selectedObject);
   }
 });
 
@@ -164,6 +43,7 @@ function closeAltarCabinetOverlay() {
   document.body.classList.remove("altar-cabinet-overlay-open");
 
   window.setTimeout(() => {
+    if (params.get("cabinet") && typeof openAltarCabinetOverlay === "function") openAltarCabinetOverlay();
     overlay.hidden = true;
   }, 220);
 }
@@ -281,6 +161,11 @@ if (altarCabinet) {
     const itemButton = event.target.closest("[data-image]");
 
     if (!itemButton) return;
+    if (!itemButton.dataset.image) {
+      if (typeof promptCustomCabinetImage === "function") promptCustomCabinetImage(itemButton);
+      else showAltarToast("Add a form image before placing this form");
+      return;
+    }
 
     placeObject({
       imagePath: itemButton.dataset.image || "",
@@ -315,6 +200,9 @@ document.addEventListener("click", (event) => {
   const manageRelationshipsButton = event.target.closest("[data-manage-library-relationships]");
   const closeRelationshipManagerButton = event.target.closest("[data-close-relationship-manager]");
   const deleteLibraryRelationshipButton = event.target.closest("[data-delete-library-relationship]");
+  const editLibraryRelationshipButton = event.target.closest("[data-edit-library-relationship]");
+  const cancelLibraryRelationshipButton = event.target.closest("[data-cancel-library-relationship]");
+  const cleanupLibraryRelationshipsButton = event.target.closest("[data-cleanup-library-relationships]");
   const closeLivingHistoryButton = event.target.closest("[data-close-living-history]");
 
   if (openCabinetButton) {
@@ -470,7 +358,36 @@ document.addEventListener("click", (event) => {
 
     return;
   }
+
+  if (editLibraryRelationshipButton) {
+    event.preventDefault();
+    editLibraryRelationship(editLibraryRelationshipButton.dataset.editLibraryRelationship);
+  }
+
+  if (cancelLibraryRelationshipButton) {
+    event.preventDefault();
+    const modal = cancelLibraryRelationshipButton.closest("[data-relationship-manager-modal]");
+    refreshRelationshipManagerModal(modal?.dataset.entityId || "");
+  }
+
+  if (cleanupLibraryRelationshipsButton) {
+    event.preventDefault();
+    cleanupExactLibraryRelationships();
+  }
 });
+
+window.addEventListener("load", () => {
+  const params = new URLSearchParams(window.location.search);
+  window.setTimeout(() => {
+    const apothecaryItemId = params.get("apothecaryItem");
+    if (apothecaryItemId && typeof openApothecaryItemEditor === "function") openApothecaryItemEditor(apothecaryItemId);
+    const instanceId = params.get("selectObject");
+    if (instanceId && typeof selectObject === "function") {
+      const object = [...document.querySelectorAll(".altar-object")].find((item) => item.dataset.altarObjectId === instanceId || item.dataset.instanceId === instanceId);
+      if (object) selectObject(object);
+    }
+  }, 0);
+}, { once: true });
 
 document.addEventListener("change", (event) => {
   const categorySelect = event.target.closest("[data-custom-cabinet-category-select]");
@@ -517,14 +434,6 @@ altarActionBar.addEventListener("click", (event) => {
       ungroupCurrentItems();
       return;
 
-    case "start-ritual":
-      showAltarToast("Ritual Builder is coming soon");
-      return;
-
-    case "save-as-ritual":
-      showAltarToast("Save as Ritual is coming soon");
-      return;
-
     case "send-group-to-grimoire":
       sendCurrentGroupToGrimoire();
       return;
@@ -559,9 +468,11 @@ altarActionBar.addEventListener("click", (event) => {
           candle.dataset.lit = "true";
           candle.classList.add("is-lit");
           startFlame(candle);
+          startLivingCandleBurn(candle);
         });
 
       renderLighting();
+      saveWorkingAltarDraft();
       return;
 
     case "extinguish-all":
@@ -575,6 +486,7 @@ altarActionBar.addEventListener("click", (event) => {
 
           stopFlame(candle);
           extinguishFlame(candle);
+          stopLivingCandleBurn(candle);
 
           candle.querySelectorAll(".candle-flame, .candle-glow, .flame-glow").forEach((effect) => {
             effect.remove();
@@ -582,6 +494,7 @@ altarActionBar.addEventListener("click", (event) => {
         });
 
       renderLighting();
+      saveWorkingAltarDraft();
       return;
   }
 });

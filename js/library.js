@@ -141,6 +141,153 @@ function findEntityByNameAndType(name, type) {
 
 }
 
+function getTraditionalReference(type, key) {
+  const normalizedType = String(type || "").trim().toLowerCase();
+  const normalizedKey = String(key || "").trim().toLowerCase();
+  if (!normalizedType || !normalizedKey) return null;
+  return `traditional/${normalizedType}/${normalizedKey}`;
+}
+
+function parseTraditionalReference(reference) {
+  const match = String(reference || "").match(/^traditional\/([^/]+)\/([^/]+)$/);
+  if (!match) return null;
+  return { type: match[1], key: match[2] };
+}
+
+function getTraditionalEntry(reference) {
+  const parsed = parseTraditionalReference(reference);
+  const traditional = parsed && typeof TraditionalLibrary !== "undefined"
+    ? TraditionalLibrary[parsed.type]?.[parsed.key]
+    : null;
+  if (!traditional) return null;
+
+  return {
+    reference: getTraditionalReference(parsed.type, parsed.key),
+    type: parsed.type,
+    key: parsed.key,
+    name: String(traditional.DisplayName || parsed.key).replaceAll("_", " "),
+    traditional
+  };
+}
+
+function findEntityByTraditionalReference(reference) {
+  const normalized = String(reference || "").trim().toLowerCase();
+  if (!normalized) return null;
+
+  return Object.values(library.entities).find((entity) => {
+    return String(entity.metadata?.traditionalReference || "").toLowerCase() === normalized;
+  }) || null;
+}
+
+function normalizeCanonicalName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function resolveCanonicalEntityId(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return null;
+
+  if (candidate.startsWith("traditional/")) {
+    return findEntityByTraditionalReference(candidate)?.id || null;
+  }
+
+  if (library.entities[candidate]) return candidate;
+
+  return Object.values(library.entities).find((entity) =>
+    (entity.metadata?.mergedEntityIds || []).includes(candidate)
+  )?.id || null;
+}
+
+function getTraditionalReferenceForObjectIdentity(identity = {}) {
+  const candidates = [
+    identity.herb && getTraditionalReference("herb", identity.herb),
+    identity.crystal && getTraditionalReference("crystal", identity.crystal),
+    identity.deity && getTraditionalReference("deity", identity.deity),
+    identity.color && getTraditionalReference("candle", identity.color),
+    identity.tool && getTraditionalReference("tool", identity.tool),
+    identity.vessel && getTraditionalReference("vessel", identity.vessel),
+    identity.vessel && getTraditionalReference("tool", identity.vessel)
+  ].filter(Boolean);
+
+  return candidates.find((reference) => getTraditionalEntry(reference)) || null;
+}
+
+function resolveObjectEntity(identity = {}) {
+  const explicitId = resolveCanonicalEntityId(identity.entityId || identity.entity_id);
+  const explicitEntity = explicitId ? getEntity(explicitId) : null;
+  const hasIntentionalReference = explicitEntity && Object.prototype.hasOwnProperty.call(
+    explicitEntity.metadata || {},
+    "traditionalReference"
+  );
+  if (hasIntentionalReference) return explicitEntity;
+
+  const reference = getTraditionalReferenceForObjectIdentity(identity);
+  return reference ? getOrCreateTraditionalEntity(reference) : explicitEntity;
+}
+
+function searchTraditionalEntries(type, query = "") {
+  if (typeof TraditionalLibrary === "undefined") return [];
+
+  const normalizedType = String(type || "").trim().toLowerCase();
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  const collection = TraditionalLibrary[normalizedType] || {};
+
+  return Object.entries(collection)
+    .map(([key, traditional]) => ({
+      reference: getTraditionalReference(normalizedType, key),
+      type: normalizedType,
+      key,
+      name: String(traditional.DisplayName || key).replaceAll("_", " ")
+    }))
+    .filter((entry) => !normalizedQuery || entry.name.toLowerCase().includes(normalizedQuery))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getOrCreateTraditionalEntity(reference) {
+  const entry = getTraditionalEntry(reference);
+  if (!entry) return null;
+
+  let entity = findEntityByTraditionalReference(entry.reference);
+
+  if (!entity) {
+    entity = Object.values(library.entities).find((candidate) => {
+      const hasReferenceChoice = Object.prototype.hasOwnProperty.call(
+        candidate.metadata || {},
+        "traditionalReference"
+      );
+
+      return !hasReferenceChoice &&
+        candidate.type === entry.type &&
+        candidate.name.trim().toLowerCase() === entry.name.trim().toLowerCase();
+    }) || null;
+  }
+
+  if (!entity) {
+    entity = createEntity({
+      name: entry.name,
+      type: entry.type,
+      traditional: structuredClone(entry.traditional),
+      metadata: { traditionalReference: entry.reference }
+    });
+  } else {
+    entity.name = entry.name;
+    entity.type = entry.type;
+    entity.traditional = structuredClone(entry.traditional);
+    entity.metadata = {
+      ...(entity.metadata || {}),
+      traditionalReference: entry.reference
+    };
+    entity.updatedAt = new Date().toISOString();
+  }
+
+  save();
+  return entity;
+}
+
 function getOrCreateEntity({
 
     name,
@@ -328,7 +475,7 @@ function replaceConnections(from, relation, targets = []) {
   save();
 }
 
-function mergeEntities(sourceId, destinationId) {
+function mergeEntities(sourceId, destinationId, options = {}) {
 
   if (sourceId === destinationId) return;
 
@@ -337,21 +484,44 @@ function mergeEntities(sourceId, destinationId) {
 
   if (!source || !destination) return;
 
-  destination.aliases = [
+  destination.aliases = [...new Set([
     ...(destination.aliases || []),
     source.name,
     ...(source.aliases || [])
-  ];
+  ].filter(Boolean))];
 
-  destination.myPractice = {
-    ...destination.myPractice,
-    ...source.myPractice
-  };
+  function mergeAuthoredLayer(destinationLayer = {}, sourceLayer = {}) {
+    const merged = { ...destinationLayer };
+    Object.entries(sourceLayer || {}).forEach(([key, sourceValue]) => {
+      const destinationValue = merged[key];
+      if (destinationValue === undefined || destinationValue === null || destinationValue === "") {
+        merged[key] = sourceValue;
+      } else if (Array.isArray(destinationValue) && Array.isArray(sourceValue)) {
+        merged[key] = [...new Set([...destinationValue, ...sourceValue])];
+      } else if (typeof destinationValue === "object" && typeof sourceValue === "object") {
+        merged[key] = { ...sourceValue, ...destinationValue };
+      } else if (String(destinationValue).trim() !== String(sourceValue).trim() && String(sourceValue).trim()) {
+        merged[key] = `${destinationValue}\n\n${sourceValue}`;
+      }
+    });
+    return merged;
+  }
 
-  destination.community = {
-    ...destination.community,
-    ...source.community
+  if (options.mergeAuthored !== false) {
+    destination.myPractice = mergeAuthoredLayer(destination.myPractice, source.myPractice);
+    destination.community = mergeAuthoredLayer(destination.community, source.community);
+  }
+  destination.metadata = {
+    ...(source.metadata || {}),
+    ...(destination.metadata || {}),
+    mergedEntityIds: [...new Set([
+      ...(destination.metadata?.mergedEntityIds || []),
+      ...(source.metadata?.mergedEntityIds || []),
+      sourceId
+    ])]
   };
+  destination.createdAt = [destination.createdAt, source.createdAt].filter(Boolean).sort()[0] || destination.createdAt;
+  destination.updatedAt = new Date().toISOString();
 
   library.relations.forEach(link => {
 
@@ -396,6 +566,34 @@ function mergeEntities(sourceId, destinationId) {
 
       return entity.type === type && hasMyPractice;
     });
+}
+
+function mergeTraditionalDuplicates(canonicalEntity, entry) {
+  if (!canonicalEntity || !entry) return [];
+  const compatibleTypes = new Set([entry.type]);
+  if (entry.type === "tool" && entry.key === "cauldron") compatibleTypes.add("vessel");
+  const canonicalName = normalizeCanonicalName(entry.name);
+  const canonicalKey = normalizeCanonicalName(entry.key);
+  const duplicateIds = Object.values(library.entities)
+    .filter((candidate) => candidate.id !== canonicalEntity.id)
+    .filter((candidate) => !Object.prototype.hasOwnProperty.call(candidate.metadata || {}, "traditionalReference"))
+    .filter((candidate) => compatibleTypes.has(candidate.type))
+    .filter((candidate) => {
+      const name = normalizeCanonicalName(candidate.name);
+      return name === canonicalName || name === canonicalKey ||
+        (entry.type === "candle" && name === normalizeCanonicalName(`${entry.key} candle`));
+    })
+    .map((candidate) => candidate.id);
+
+  duplicateIds.forEach((sourceId) => {
+    const source = getEntity(sourceId);
+    const canonicalCloudTime = Date.parse(canonicalEntity.metadata?.cloudUpdatedAt || "");
+    const sourceCloudTime = Date.parse(source?.metadata?.cloudUpdatedAt || "");
+    const canonicalIsAuthoritative = Number.isFinite(canonicalCloudTime) &&
+      Number.isFinite(sourceCloudTime) && canonicalCloudTime >= sourceCloudTime;
+    mergeEntities(sourceId, canonicalEntity.id, { mergeAuthored: !canonicalIsAuthoritative });
+  });
+  return duplicateIds;
 }
 
   function connect(from, relation, to) {
@@ -533,21 +731,20 @@ function mergeDuplicateEntities(sourceId, destinationId) {
 function importTraditionalLibrary() {
   if (typeof TraditionalLibrary === "undefined") return;
 
-  Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
-    Object.entries(collection).forEach(([key, data]) => {
-      const entity = getOrCreateEntity({
-        name: String(key).replaceAll("_", " "),
-        type
-      });
+  const merges = [];
 
-      entity.traditional = structuredClone(data);
-      entity.updatedAt = new Date().toISOString();
+  Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
+    Object.entries(collection).forEach(([key]) => {
+      const reference = getTraditionalReference(type, key);
+      const entity = getOrCreateTraditionalEntity(reference);
+      const sourceIds = mergeTraditionalDuplicates(entity, getTraditionalEntry(reference));
+      if (sourceIds.length) merges.push({ canonicalEntityId: entity.id, sourceEntityIds: sourceIds });
     });
   });
 
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
     Object.entries(collection).forEach(([key, data]) => {
-      const entity = findEntityByNameAndType(key.replaceAll("_", " "), type);
+      const entity = findEntityByTraditionalReference(getTraditionalReference(type, key));
       if (!entity) return;
 
       if (data.PairsWith) {
@@ -573,6 +770,7 @@ function importTraditionalLibrary() {
   });
 
   save();
+  return merges;
 }
 
 function syncMyPracticeConnections(entityId) {
@@ -613,6 +811,13 @@ return {
 
   createEntity,
   getOrCreateEntity,
+  getOrCreateTraditionalEntity,
+  resolveCanonicalEntityId,
+  resolveObjectEntity,
+  getTraditionalReferenceForObjectIdentity,
+  getTraditionalEntry,
+  findEntityByTraditionalReference,
+  searchTraditionalEntries,
   importTraditionalLibrary,
   syncMyPracticeConnections,
 

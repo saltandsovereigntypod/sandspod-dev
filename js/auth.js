@@ -4,6 +4,12 @@
    ========================================================= */
 
 let currentUser = null;
+window.getCurrentSaltUser = () => currentUser;
+const SALT_COMMUNITY_MODERATOR_IDS = new Set([
+  "ddc5463e-1551-498b-b5af-79ce52ac591c",
+  "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
+]);
+window.isSaltCommunityModerator = (user = currentUser) => Boolean(user && SALT_COMMUNITY_MODERATOR_IDS.has(user.id));
 
 const authForms = document.querySelectorAll("[data-auth-form]");
 const authStatuses = document.querySelectorAll("[data-auth-status]");
