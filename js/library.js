@@ -141,6 +141,103 @@ function findEntityByNameAndType(name, type) {
 
 }
 
+function getTraditionalReference(type, key) {
+  const normalizedType = String(type || "").trim().toLowerCase();
+  const normalizedKey = String(key || "").trim().toLowerCase();
+  if (!normalizedType || !normalizedKey) return null;
+  return `traditional/${normalizedType}/${normalizedKey}`;
+}
+
+function parseTraditionalReference(reference) {
+  const match = String(reference || "").match(/^traditional\/([^/]+)\/([^/]+)$/);
+  if (!match) return null;
+  return { type: match[1], key: match[2] };
+}
+
+function getTraditionalEntry(reference) {
+  const parsed = parseTraditionalReference(reference);
+  const traditional = parsed && typeof TraditionalLibrary !== "undefined"
+    ? TraditionalLibrary[parsed.type]?.[parsed.key]
+    : null;
+  if (!traditional) return null;
+
+  return {
+    reference: getTraditionalReference(parsed.type, parsed.key),
+    type: parsed.type,
+    key: parsed.key,
+    name: String(traditional.DisplayName || parsed.key).replaceAll("_", " "),
+    traditional
+  };
+}
+
+function findEntityByTraditionalReference(reference) {
+  const normalized = String(reference || "").trim().toLowerCase();
+  if (!normalized) return null;
+
+  return Object.values(library.entities).find((entity) => {
+    return String(entity.metadata?.traditionalReference || "").toLowerCase() === normalized;
+  }) || null;
+}
+
+function searchTraditionalEntries(type, query = "") {
+  if (typeof TraditionalLibrary === "undefined") return [];
+
+  const normalizedType = String(type || "").trim().toLowerCase();
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  const collection = TraditionalLibrary[normalizedType] || {};
+
+  return Object.entries(collection)
+    .map(([key, traditional]) => ({
+      reference: getTraditionalReference(normalizedType, key),
+      type: normalizedType,
+      key,
+      name: String(traditional.DisplayName || key).replaceAll("_", " ")
+    }))
+    .filter((entry) => !normalizedQuery || entry.name.toLowerCase().includes(normalizedQuery))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getOrCreateTraditionalEntity(reference) {
+  const entry = getTraditionalEntry(reference);
+  if (!entry) return null;
+
+  let entity = findEntityByTraditionalReference(entry.reference);
+
+  if (!entity) {
+    entity = Object.values(library.entities).find((candidate) => {
+      const hasReferenceChoice = Object.prototype.hasOwnProperty.call(
+        candidate.metadata || {},
+        "traditionalReference"
+      );
+
+      return !hasReferenceChoice &&
+        candidate.type === entry.type &&
+        candidate.name.trim().toLowerCase() === entry.name.trim().toLowerCase();
+    }) || null;
+  }
+
+  if (!entity) {
+    entity = createEntity({
+      name: entry.name,
+      type: entry.type,
+      traditional: structuredClone(entry.traditional),
+      metadata: { traditionalReference: entry.reference }
+    });
+  } else {
+    entity.name = entry.name;
+    entity.type = entry.type;
+    entity.traditional = structuredClone(entry.traditional);
+    entity.metadata = {
+      ...(entity.metadata || {}),
+      traditionalReference: entry.reference
+    };
+    entity.updatedAt = new Date().toISOString();
+  }
+
+  save();
+  return entity;
+}
+
 function getOrCreateEntity({
 
     name,
@@ -534,20 +631,14 @@ function importTraditionalLibrary() {
   if (typeof TraditionalLibrary === "undefined") return;
 
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
-    Object.entries(collection).forEach(([key, data]) => {
-      const entity = getOrCreateEntity({
-        name: String(key).replaceAll("_", " "),
-        type
-      });
-
-      entity.traditional = structuredClone(data);
-      entity.updatedAt = new Date().toISOString();
+    Object.entries(collection).forEach(([key]) => {
+      getOrCreateTraditionalEntity(getTraditionalReference(type, key));
     });
   });
 
   Object.entries(TraditionalLibrary).forEach(([type, collection]) => {
     Object.entries(collection).forEach(([key, data]) => {
-      const entity = findEntityByNameAndType(key.replaceAll("_", " "), type);
+      const entity = findEntityByTraditionalReference(getTraditionalReference(type, key));
       if (!entity) return;
 
       if (data.PairsWith) {
@@ -613,6 +704,10 @@ return {
 
   createEntity,
   getOrCreateEntity,
+  getOrCreateTraditionalEntity,
+  getTraditionalEntry,
+  findEntityByTraditionalReference,
+  searchTraditionalEntries,
   importTraditionalLibrary,
   syncMyPracticeConnections,
 

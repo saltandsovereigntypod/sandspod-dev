@@ -459,6 +459,10 @@ async function saveRitualTemplateFromEditor(form) {
     .eq("user_id", user.id);
   if (pageLinkError) throw pageLinkError;
 
+  if (typeof upsertRitualTemplateLivingLibraryEntity === "function") {
+    await upsertRitualTemplateLivingLibraryEntity(user, { ...savedTemplate, grimoire_page_id: pageId });
+  }
+
   if (templateId) {
     const { error } = await db
       .from("ritual_template_steps")
