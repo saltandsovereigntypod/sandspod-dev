@@ -14,20 +14,7 @@ const cabinetCategories = [
 ];
 
 const cabinetItems = [
-  {
-    category: "backgrounds",
-    name: "Forest Altar",
-    icon: "🌲",
-    keywords: ["forest", "green", "crossroads"],
-    background: "../assets/altar/backgrounds/forest-scene.png"
-  },
-  {
-    category: "backgrounds",
-    name: "Deity Shelf Altar",
-    icon: "🕯️",
-    keywords: ["shelf", "deity", "statues"],
-    background: "../assets/altar/backgrounds/shelf-deity-altar.png"
-  },
+  ...(window.SanctuaryAssetCatalog?.getBackgrounds?.() || []).map((background) => ({ category: "backgrounds", name: background.name, icon: "🌲", keywords: [], background: background.assetPath })),
 
   ...["white", "black", "green", "purple", "red", "orange", "yellow", "blue", "brown", "pink", "gold", "silver"].map((color) => ({
     category: "candles",
@@ -36,11 +23,11 @@ const cabinetItems = [
     keywords: [color, "candle", "fire"],
     forms: [
       {
-        label: "Place",
+        label: "Vigil Candle",
         image: `../assets/altar/objects/candles/${color}-candle.${color === "white" || color === "black" ? "PNG" : "png"}`,
         type: "candle",
         color,
-        form: "standard"
+        form: "vigil"
       }
     ]
   })),
@@ -147,6 +134,40 @@ const cabinetItems = [
     forms: [{ label: "Place", image: "../assets/altar/objects/vessels/spell-jar/spell-jar.png", type: "vessel", vessel: "spell-jar", form: "standard" }]
   }
 ];
+
+// Narrow public catalogue for shared Settings. Keep cabinet internals private.
+window.AltarBackgrounds = {
+  getAll() {
+    return (window.SanctuaryAssetCatalog?.getBackgrounds?.() || []).map((item) => ({ id: item.id, name: item.name, background: item.assetPath, thumbnail: item.thumbnailPath }));
+  }
+};
+window.dispatchEvent(new CustomEvent("altarBackgroundsReady"));
+
+function cabinetSearchAliases(item) {
+  const formWords = (item.forms || []).flatMap((form) => [form.label, form.type, form.form]);
+  const variants = item.category === "candles" ? ["candle", "candles"]
+    : item.category === "herbs" ? ["herb", "herbs"]
+      : item.category === "crystals" ? ["crystal", "crystals"]
+        : item.name === "Spell Jar" ? ["jar", "spell jar", "spell jars"] : [];
+  return [...new Set([...(item.keywords || []), ...formWords, ...variants].filter(Boolean))];
+}
+
+window.AltarCabinet = {
+  getSearchRecords() {
+    return cabinetItems.filter((item) => item.category !== "backgrounds").map((item, index) => ({
+      id: `cabinet:${item.category}:${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${index}`,
+      group: "cabinet", source: "altar-cabinet", type: item.forms?.[0]?.type || item.category,
+      title: item.name, subtitle: "Altar Cabinet", aliases: cabinetSearchAliases(item),
+      fields: [item.category, "cabinet asset", (item.forms || []).map((form) => [form.label, form.type, form.form])],
+      href: `/altar/?cabinet=${encodeURIComponent(item.category)}&item=${encodeURIComponent(item.name)}`
+    }));
+  }
+};
+window.dispatchEvent(new CustomEvent("altarCabinetReady"));
+
+const cabinetSearchParams = new URLSearchParams(window.location.search);
+const requestedCabinetCategory = cabinetSearchParams.get("cabinet");
+if (cabinetCategories.some((category) => category.id === requestedCabinetCategory)) activeCabinetCategory = requestedCabinetCategory;
 
 function changeAltarBackground(button) {
   if (!altarStage || !button) return;

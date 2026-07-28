@@ -19,11 +19,24 @@ function cleanLivingLibraryImage(image = "") {
 
 let livingLibrarySyncReady = false;
 let livingLibrarySaveTimers = {};
+let livingLibraryHydrating = false;
+const livingLibraryLocalRevisions = {};
 
 function getLivingLibraryUser() {
   if (typeof getUser === "function") return getUser();
   if (typeof currentUser !== "undefined") return currentUser;
   return null;
+}
+
+function livingLibraryTiming(label, startedAt) {
+  const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const duration = Math.round((now - startedAt) * 10) / 10;
+  console.info(`[Living Library timing] ${label}: ${duration}ms`);
+  return now;
+}
+
+function getCanonicalMergeKey(userId, sourceId) {
+  return `saltAndSovereigntyCanonicalMerge:${userId}:${sourceId}`;
 }
 
 function getLivingLibraryLayoutsFromLocal() {
@@ -64,10 +77,10 @@ function getLivingLibraryExportEntities() {
 async function saveLivingLibraryEntityToSupabase(entityId) {
   const user = getLivingLibraryUser();
 
-  if (!user || typeof db === "undefined" || typeof Library === "undefined") return;
+  if (!user || typeof db === "undefined" || typeof Library === "undefined") return { saved: false, localOnly: true };
 
   const entity = Library.getEntity(entityId);
-  if (!entity) return;
+  if (!entity) return { saved: false, error: "missing_entity" };
 
   const row = {
     user_id: user.id,
@@ -89,7 +102,15 @@ async function saveLivingLibraryEntityToSupabase(entityId) {
 
   if (error) {
     console.error("Living Library save failed:", error);
+    return { saved: false, error: "cloud_save_failed" };
   }
+  return { saved: true };
+}
+
+async function flushLivingLibraryEntitySave(entityId) {
+  window.clearTimeout(livingLibrarySaveTimers[entityId]);
+  delete livingLibrarySaveTimers[entityId];
+  return saveLivingLibraryEntityToSupabase(entityId);
 }
 
 async function saveLivingLibraryRelationToSupabase(fromEntityId, relation, toEntityId, metadata = {}) {
@@ -257,6 +278,7 @@ async function loadLivingLibraryFromSupabase() {
 
   if (!user || typeof db === "undefined" || typeof Library === "undefined") return;
 
+  const revisionsAtRequest = { ...livingLibraryLocalRevisions };
   const { data, error } = await db
     .from(LIVING_LIBRARY_TABLE)
     .select("*")
@@ -269,11 +291,18 @@ async function loadLivingLibraryFromSupabase() {
 
   const layouts = getLivingLibraryLayoutsFromLocal();
 
-  (data || []).forEach((row) => {
+  livingLibraryHydrating = true;
+  try {
+    (data || []).forEach((row) => {
+      const completedMerge = localStorage.getItem(getCanonicalMergeKey(user.id, row.entity_id));
+      if (completedMerge) return;
+      if ((livingLibraryLocalRevisions[row.entity_id] || 0) !== (revisionsAtRequest[row.entity_id] || 0)) return;
+
     let entity = Library.getEntity(row.entity_id);
 
     if (!entity) {
-      entity = Library.getOrCreateEntity({
+      entity = Library.createEntity({
+        id: row.entity_id,
         name: row.name,
         type: row.type,
         image: row.image || ""
@@ -296,6 +325,10 @@ async function loadLivingLibraryFromSupabase() {
       community: {
         ...(row.community || {}),
         ...(entity.community || {})
+      },
+      metadata: {
+        ...(entity.metadata || {}),
+        cloudUpdatedAt: row.updated_at || entity.metadata?.cloudUpdatedAt || null
       }
     });
 
@@ -305,10 +338,15 @@ async function loadLivingLibraryFromSupabase() {
         ...(layouts[entity.id] || {})
       };
     }
-  });
+    });
+  } finally {
+    livingLibraryHydrating = false;
+  }
 
   localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
 }
+
+window.flushLivingLibraryEntitySave = flushLivingLibraryEntitySave;
 
 async function loadLivingLibraryRelationsFromSupabase() {
   const user = getLivingLibraryUser();
@@ -370,7 +408,10 @@ function wrapLivingLibraryMethodsForSupabase() {
   if (originalUpdateEntity) {
     Library.updateEntity = function(entityId, updates) {
       const result = originalUpdateEntity(entityId, updates);
-      scheduleLivingLibraryEntitySave(entityId);
+      if (!livingLibraryHydrating) {
+        livingLibraryLocalRevisions[entityId] = (livingLibraryLocalRevisions[entityId] || 0) + 1;
+        scheduleLivingLibraryEntitySave(entityId);
+      }
       return result;
     };
   }
@@ -513,15 +554,51 @@ async function initLivingLibrarySupabaseSync() {
 
   if (!user || typeof db === "undefined" || typeof Library === "undefined") return;
 
+  const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
   wrapLivingLibraryMethodsForSupabase();
 
   await migrateLocalLivingLibraryToSupabaseOnce();
+  let stageStartedAt = livingLibraryTiming("local migration", startedAt);
   await loadLivingLibraryFromSupabase();
+  stageStartedAt = livingLibraryTiming("Supabase entity hydration", stageStartedAt);
   await loadLivingLibraryRelationsFromSupabase();
+  stageStartedAt = livingLibraryTiming("Supabase relationship hydration", stageStartedAt);
+
+  const canonicalMerges = typeof Library.importTraditionalLibrary === "function"
+    ? Library.importTraditionalLibrary() || []
+    : [];
+  stageStartedAt = livingLibraryTiming("canonical duplicate reconciliation", stageStartedAt);
+
+  if (canonicalMerges.length) {
+    const layouts = getLivingLibraryLayoutsFromLocal();
+    canonicalMerges.forEach(({ canonicalEntityId, sourceEntityIds }) => {
+      sourceEntityIds.forEach((sourceId) => {
+        if (!layouts[sourceId]) return;
+        layouts[canonicalEntityId] = { ...layouts[sourceId], ...(layouts[canonicalEntityId] || {}) };
+        delete layouts[sourceId];
+      });
+    });
+    localStorage.setItem("saltAndSovereigntyLibraryPageLayouts", JSON.stringify(layouts));
+  }
 
   livingLibrarySyncReady = true;
 
+  for (const { canonicalEntityId, sourceEntityIds } of canonicalMerges) {
+    const saveResult = await saveLivingLibraryEntityToSupabase(canonicalEntityId);
+    if (!saveResult?.saved) continue;
+    const connections = Library.getConnections(canonicalEntityId) || [];
+    for (const connection of connections) {
+      await saveLivingLibraryRelationToSupabase(connection.from, connection.relation, connection.to);
+    }
+    sourceEntityIds.forEach((sourceId) => {
+      localStorage.setItem(getCanonicalMergeKey(user.id, sourceId), canonicalEntityId);
+    });
+  }
+  stageStartedAt = livingLibraryTiming("canonical cloud save", stageStartedAt);
+
   await saveAllLivingLibraryLayoutsToSupabase();
+  livingLibraryTiming("total initialization", startedAt);
+  document.dispatchEvent(new CustomEvent("living-library:hydrated", { detail: { canonicalMerges } }));
 }
 
 async function deleteLivingLibraryEntityFromSupabase(entityId) {
