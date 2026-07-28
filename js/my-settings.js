@@ -10,6 +10,7 @@ function getDefaultMySettings() {
     preferred_name: "",
     pronouns: "",
     magical_name: "",
+    sanctuary_greeting_name: "preferred",
     default_altar_background: "",
     default_mundane_mode: false,
     

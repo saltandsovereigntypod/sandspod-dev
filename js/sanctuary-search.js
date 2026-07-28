@@ -99,6 +99,14 @@
       .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
   }
 
+  function rankRecords(records = [], query, options = {}) {
+    const filter = options.group || "all";
+    return dedupe(records).filter((record) => filter === "all" || record.group === filter).map((record) => {
+      const match = matchScore(record, query);
+      return match ? { ...record, score: match.score, matchContext: match.context } : null;
+    }).filter(Boolean).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
+  }
+
   function groupResults(results = []) {
     return Object.entries(GROUP_LABELS).map(([key, label]) => ({
       key, label, results: results.filter((result) => result.group === key)
@@ -124,7 +132,7 @@
     return Boolean(isOpen) && requestId === currentRequestId;
   }
 
-  const api = { GROUP_LABELS, buildIndex, updateSource, getIndex, search, groupResults, resolveDestination, getRecent, isCurrentRequest, createResult };
+  const api = { GROUP_LABELS, buildIndex, updateSource, getIndex, search, rankRecords, groupResults, resolveDestination, getRecent, isCurrentRequest, createResult };
   global.SanctuarySearch = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

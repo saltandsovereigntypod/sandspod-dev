@@ -32,7 +32,7 @@ function createMySanctuaryPanel() {
   panel.innerHTML = `
     <div class="my-sanctuary-backdrop" data-my-sanctuary-close></div>
 
-    <aside class="my-sanctuary-card" aria-label="My Sanctuary">
+    <aside class="my-sanctuary-card" aria-label="Sanctuary">
       <button class="my-sanctuary-close" type="button" data-my-sanctuary-close aria-label="Close">
         ×
       </button>

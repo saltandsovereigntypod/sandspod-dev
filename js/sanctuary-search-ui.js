@@ -192,4 +192,5 @@
   });
   document.addEventListener("living-library:hydrated", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
   document.addEventListener("sanctuary-search:sources-changed", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
+  global.SanctuarySearchUI = { rebuildLocalIndex };
 })(typeof window !== "undefined" ? window : globalThis);

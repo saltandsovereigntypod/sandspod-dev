@@ -2639,3 +2639,39 @@ body:has(.sanctuary-submission-form) h1 {
 @media (prefers-reduced-motion: reduce) {
   .sanctuary-search-backdrop, .sanctuary-search-dialog { scroll-behavior: auto; }
 }
+/* Living Sanctuary: quiet, responsive home, chronicle, and categorized settings. */
+.living-sanctuary-nav,
+.living-sanctuary-continue {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+  margin: 1rem 0;
+}
+.living-sanctuary-nav :is(a, button),
+.living-sanctuary-continue a {
+  min-width: 0;
+  padding: .8rem;
+  border: 1px solid rgba(196, 165, 96, .35);
+  border-radius: .4rem;
+  background: rgba(16, 25, 19, .55);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.living-sanctuary-continue span { display: block; margin-top: .25rem; opacity: .75; font-size: .9rem; }
+.living-sanctuary-section { margin-block: 1.4rem; padding-block: .75rem; border-block: 1px solid rgba(196, 165, 96, .2); }
+.journey-controls { display: grid; grid-template-columns: minmax(10rem, 2fr) 1fr 1fr; gap: .65rem; }
+.journey-controls label { min-width: 0; }
+.journey-filters, .settings-category-nav { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0; }
+.journey-filters button[aria-pressed="true"], .settings-category-nav button[aria-pressed="true"] { border-color: #c4a560; color: #e5cf91; }
+.journey-timeline ol { list-style: none; margin: 0; padding: 0; }
+.journey-timeline li { display: grid; grid-template-columns: minmax(7rem, .35fr) 1fr; gap: 1rem; padding: .9rem 0; border-top: 1px solid rgba(196, 165, 96, .18); }
+.journey-timeline p { margin: .25rem 0; }
+.settings-category { min-width: 0; border: 1px solid rgba(196, 165, 96, .25); padding: 1rem; }
+.settings-save-status { position: sticky; bottom: 0; padding: .65rem; background: rgba(12, 18, 14, .95); border-top: 1px solid rgba(196, 165, 96, .3); }
+@media (max-width: 620px) {
+  .living-sanctuary-nav, .living-sanctuary-continue, .journey-controls { grid-template-columns: 1fr; }
+  .journey-timeline li { grid-template-columns: 1fr; gap: .25rem; }
+  .settings-save-status { padding-bottom: calc(.65rem + env(safe-area-inset-bottom)); }
+}
