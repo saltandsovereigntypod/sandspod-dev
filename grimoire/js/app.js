@@ -191,6 +191,13 @@ async function initGrimoire() {
     if (typeof initLivingLibrarySupabaseSync === "function") {
       await initLivingLibrarySupabaseSync();
     }
+
+    // Canonical entities exist independently of whether the Traditional layer
+    // is visible. Importing here attaches reference metadata without opening or
+    // enabling Traditional pages in the Book of Shadows.
+    if (typeof Library !== "undefined" && typeof TraditionalLibrary !== "undefined") {
+      Library.importTraditionalLibrary();
+    }
     
     const lastView = getLastGrimoireView();
 
@@ -1282,8 +1289,6 @@ async function renderTraditionalLibraryShelf() {
 
   if (!showTraditional) return;
 
-  Library.importTraditionalLibrary();
-
   const search = librarySearchTerm.trim().toLowerCase();
   const types = ["herb", "crystal", "candle", "deity", "tool", "vessel"];
 
@@ -1498,12 +1503,18 @@ async function saveLibraryPracticeFromPage(entityId) {
     Library.syncMyPracticeConnections(entityId);
   }
 
+  const cloudResult = typeof flushLivingLibraryEntitySave === "function"
+    ? await flushLivingLibraryEntitySave(entityId)
+    : { saved: false, localOnly: true };
+
   libraryEditMode = false;
 
   await renderLivingLibraryShelves();
   await renderLibraryEntity(entityId);
 
-  flashStatus("My Practice saved.");
+  flashStatus(cloudResult?.error
+    ? "My Practice saved locally. Cloud sync will retry later."
+    : "My Practice saved.");
 }
 
 function renderCommunityLayer(entity) {
@@ -1866,21 +1877,25 @@ async function renderLibraryEntity(entityId) {
             </label>
 
             ${
-              Object.keys(entity.myPractice || {}).length || entity.type === "apothecary"
-                ? `
-                  <button class="button button--small" type="button" data-toggle-library-edit="${entity.id}">
-                    ${libraryEditMode ? "Preview" : "Edit"}
-                  </button>
+              `
+                <button class="button button--small" type="button" data-toggle-library-edit="${entity.id}">
+                  ${libraryEditMode
+                    ? "Preview"
+                    : Object.keys(entity.myPractice || {}).length
+                      ? "Edit My Practice"
+                      : "Add My Practice"}
+                </button>
 
-                  <button class="button button--small button--ghost" type="button" data-open-library-image-manager="${entity.id}">
-                    Image
-                  </button>
+                <button class="button button--small button--ghost" type="button" data-open-library-image-manager="${entity.id}">
+                  Image
+                </button>
 
+                ${Object.keys(entity.myPractice || {}).length || entity.type === "apothecary" ? `
                   <button class="button button--small button--ghost" type="button" data-delete-library-entry="${entity.id}">
                     Del
                   </button>
-                `
-                : ""
+                ` : ""}
+              `
             }
           </div>
 
@@ -1930,9 +1945,11 @@ function openCreateLibraryEntryModal() {
 
       <div class="book-modal-body">
         <form class="my-sanctuary-form" data-create-library-entry-form>
-          <label>
-            Entry Type
-            <select name="type" required>
+          <fieldset class="book-library-entry-step">
+            <legend>1. Choose a category</legend>
+            <label>
+              Category
+              <select name="type" data-library-entry-type required>
               <option value="herb">Herb</option>
               <option value="crystal">Crystal</option>
               <option value="candle">Candle</option>
@@ -1944,38 +1961,51 @@ function openCreateLibraryEntryModal() {
               <option value="spell">Spell</option>
               <option value="note">Note</option>
               <option value="section">Section</option>
-            </select>
-          </label>
+              </select>
+            </label>
+          </fieldset>
 
-          <label>
-            Name
-            <input type="text" name="name" placeholder="Rosemary, Dream Oil, Full Moon Ritual..." required />
-          </label>
+          <fieldset class="book-library-entry-step">
+            <legend>2. Find or create the entity</legend>
+            <p class="book-section-empty">Search the canonical Traditional Library, even when that layer is hidden.</p>
+            <label>
+              Search
+              <input type="search" data-library-entry-search placeholder="Start typing, such as Bas..." autocomplete="off" />
+            </label>
+            <input type="hidden" name="name" data-library-entry-name />
+            <input type="hidden" name="traditionalReference" data-library-entry-reference />
+            <input type="hidden" name="entryMode" data-library-entry-mode />
+            <div class="book-library-entry-results" data-library-entry-results role="listbox" aria-label="Matching entities"></div>
+            <p class="book-library-entry-selection" data-library-entry-selection role="status">Choose a Traditional entry or create a custom entity.</p>
+          </fieldset>
 
-          <label>
-            Meaning
-            <textarea name="Meaning" rows="3"></textarea>
-          </label>
+          <fieldset class="book-library-entry-step">
+            <legend>3. Add My Practice</legend>
+            <label>
+              Meaning
+              <textarea name="Meaning" rows="3"></textarea>
+            </label>
 
-          <label>
-            Uses
-            <textarea name="Uses" rows="3"></textarea>
-          </label>
+            <label>
+              Uses
+              <textarea name="Uses" rows="3"></textarea>
+            </label>
 
-          <label>
-            Pairs With
-            <textarea name="PairsWith" rows="2"></textarea>
-          </label>
+            <label>
+              Pairs With
+              <textarea name="PairsWith" rows="2"></textarea>
+            </label>
 
-          <label>
-            Substitutions
-            <textarea name="Substitutions" rows="2"></textarea>
-          </label>
+            <label>
+              Substitutions
+              <textarea name="Substitutions" rows="2"></textarea>
+            </label>
 
-          <label>
-            Notes
-            <textarea name="Notes" rows="5"></textarea>
-          </label>
+            <label>
+              Notes
+              <textarea name="Notes" rows="5"></textarea>
+            </label>
+          </fieldset>
 
           <button class="button button--primary" type="submit">
             Create Entry
@@ -1995,19 +2025,81 @@ function closeCreateLibraryEntryModal() {
   modal.remove();
 }
 
+function renderCreateLibraryEntryResults(form) {
+  if (!form || typeof Library === "undefined") return;
+
+  const type = String(form.elements.type?.value || "").trim();
+  const search = String(form.querySelector("[data-library-entry-search]")?.value || "").trim();
+  const results = form.querySelector("[data-library-entry-results]");
+  if (!results) return;
+
+  const matches = Library.searchTraditionalEntries(type, search).slice(0, 8);
+  const matchMarkup = matches.map((entry) => `
+    <button class="button button--small button--ghost" type="button" role="option"
+      data-select-traditional-entry="${escapeHtml(entry.reference)}"
+      data-traditional-entry-name="${escapeHtml(entry.name)}">
+      ${escapeHtml(entry.name)} <small>— ${escapeHtml(getMyPracticeTypeLabel(entry.type).replace(/s$/, ""))}</small>
+    </button>
+  `).join("");
+
+  const customMarkup = search ? `
+    <button class="button button--small" type="button" data-create-custom-library-entity="${escapeHtml(search)}">
+      Create custom entity “${escapeHtml(search)}”
+    </button>
+  ` : "";
+
+  results.innerHTML = matchMarkup || customMarkup
+    ? `${matchMarkup}${customMarkup}`
+    : `<p class="book-section-empty">Type a name to search or create a custom entity.</p>`;
+}
+
+function selectCreateLibraryEntryEntity(form, { name, reference = null, mode }) {
+  const nameInput = form?.querySelector("[data-library-entry-name]");
+  const referenceInput = form?.querySelector("[data-library-entry-reference]");
+  const modeInput = form?.querySelector("[data-library-entry-mode]");
+  const selection = form?.querySelector("[data-library-entry-selection]");
+  if (!nameInput || !referenceInput || !modeInput || !selection) return;
+
+  nameInput.value = name;
+  referenceInput.value = reference || "";
+  modeInput.value = mode;
+  if (!name || !mode) {
+    selection.textContent = "Choose a Traditional entry or create a custom entity.";
+    return;
+  }
+  selection.textContent = reference
+    ? `Selected ${name}. My Practice will be attached to ${reference}.`
+    : `Selected custom entity ${name}. It will not have Traditional Information.`;
+}
+
 function createLibraryEntryFromForm(form) {
   if (typeof Library === "undefined") return null;
 
   const formData = new FormData(form);
   const type = String(formData.get("type") || "").trim();
   const name = String(formData.get("name") || "").trim();
+  const traditionalReference = String(formData.get("traditionalReference") || "").trim();
+  const entryMode = String(formData.get("entryMode") || "").trim();
 
-  if (!type || !name) return null;
+  if (!type || !name || !entryMode) return null;
 
-  const entity = Library.getOrCreateEntity({
-    name,
-    type
-  });
+  let entity = traditionalReference
+    ? Library.getOrCreateTraditionalEntity(traditionalReference)
+    : null;
+
+  if (!entity && entryMode === "custom") {
+    entity = Object.values(Library.exportLibrary().entities || {}).find((candidate) => {
+      return candidate.type === type &&
+        candidate.name.trim().toLowerCase() === name.toLowerCase() &&
+        candidate.metadata?.traditionalReference === null;
+    }) || Library.createEntity({
+      name,
+      type,
+      metadata: { traditionalReference: null }
+    });
+  }
+
+  if (!entity) return null;
 
   const myPractice = {
     ...(entity.myPractice || {}),
@@ -2277,6 +2369,28 @@ document.addEventListener("click", async (event) => {
   const openImageManagerButton = event.target.closest("[data-open-library-image-manager]");
   const closeImageManagerButton = event.target.closest("[data-close-library-image-manager]");
   const restoreDefaultImageButton = event.target.closest("[data-restore-default-library-image]");
+  const traditionalEntryChoice = event.target.closest("[data-select-traditional-entry]");
+  const customEntityChoice = event.target.closest("[data-create-custom-library-entity]");
+
+  if (traditionalEntryChoice || customEntityChoice) {
+    const choice = traditionalEntryChoice || customEntityChoice;
+    const form = choice.closest("[data-create-library-entry-form]");
+    if (!form) return;
+
+    if (traditionalEntryChoice) {
+      selectCreateLibraryEntryEntity(form, {
+        name: traditionalEntryChoice.dataset.traditionalEntryName,
+        reference: traditionalEntryChoice.dataset.selectTraditionalEntry,
+        mode: "traditional"
+      });
+    } else {
+      selectCreateLibraryEntryEntity(form, {
+        name: customEntityChoice.dataset.createCustomLibraryEntity,
+        mode: "custom"
+      });
+    }
+    return;
+  }
 
   if (richCommandButton) {
     document.execCommand(
@@ -2497,6 +2611,16 @@ document.addEventListener("click", async (event) => {
 });
 
 document.addEventListener("change", async (event) => {
+  const entryType = event.target.closest("[data-library-entry-type]");
+  if (entryType) {
+    const form = entryType.closest("[data-create-library-entry-form]");
+    if (form) {
+      selectCreateLibraryEntryEntity(form, { name: "", mode: "" });
+      renderCreateLibraryEntryResults(form);
+    }
+    return;
+  }
+
   const imageInput = event.target.closest("[data-library-image-upload]");
   if (!imageInput) return;
 
@@ -2520,6 +2644,16 @@ document.addEventListener("change", async (event) => {
 });
 
 document.addEventListener("input", (event) => {
+  const entrySearch = event.target.closest("[data-library-entry-search]");
+  if (entrySearch) {
+    const form = entrySearch.closest("[data-create-library-entry-form]");
+    if (form) {
+      selectCreateLibraryEntryEntity(form, { name: "", mode: "" });
+      renderCreateLibraryEntryResults(form);
+    }
+    return;
+  }
+
   const searchInput = event.target.closest("[data-library-page-search]");
   if (!searchInput) return;
 
@@ -2553,6 +2687,42 @@ document.addEventListener("input", (event) => {
       item.classList.add("library-search-hidden");
     }
   });
+});
+
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest("[data-create-library-entry-form]");
+  if (!form) return;
+  event.preventDefault();
+
+  if (form.dataset.submitting === "true") return;
+  form.dataset.submitting = "true";
+  const submitButton = form.querySelector('[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+
+  try {
+    const entity = createLibraryEntryFromForm(form);
+    if (!entity) {
+      flashStatus("Choose a Traditional entry or explicitly create a custom entity.");
+      return;
+    }
+
+    const cloudResult = typeof flushLivingLibraryEntitySave === "function"
+      ? await flushLivingLibraryEntitySave(entity.id)
+      : { saved: false, localOnly: true };
+
+    closeCreateLibraryEntryModal();
+    await renderLivingLibraryShelves();
+    await renderLibraryEntity(entity.id);
+    flashStatus(cloudResult?.error
+      ? "My Practice entry saved locally. Cloud sync will retry later."
+      : "My Practice entry saved.");
+  } catch (error) {
+    console.error("Could not create My Practice entry:", error);
+    flashStatus("The My Practice entry could not be saved. Your form is still open.");
+  } finally {
+    form.dataset.submitting = "false";
+    if (submitButton) submitButton.disabled = false;
+  }
 });
 
 function updateMundaneModeUI() {
@@ -2789,4 +2959,3 @@ document.addEventListener("click", (event) => {
     closeGrimoireSidebar();
   }
 });
-

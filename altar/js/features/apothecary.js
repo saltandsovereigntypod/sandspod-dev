@@ -547,6 +547,22 @@ function renderApothecaryItems() {
   `;
 }
 
+function normalizeApothecaryIngredient(ingredient = {}) {
+  if (typeof ingredient === "string") return { label: ingredient, libraryName: ingredient, type: "custom", amount: "" };
+  const source = ingredient.ingredient && typeof ingredient.ingredient === "object" ? { ...ingredient.ingredient, ...ingredient } : ingredient;
+  const label = String(source.label || source.libraryName || source.name || source.herb || source.crystal || "").trim();
+  return { ...source, label, libraryName: source.libraryName || label, type: source.type || source.libraryType || "custom", entityId: source.entityId || source.entity_id || "", apothecaryItemId: source.apothecaryItemId || source.apothecary_item_id || "", amount: String(source.amount ?? source.quantity ?? "") };
+}
+
+function getAllApothecaryIngredientChoices() {
+  const choices = [];
+  (typeof cabinetItems !== "undefined" ? cabinetItems : []).forEach((item) => (item.forms || []).forEach((form) => choices.push(normalizeApothecaryIngredient({ ...form, label: `${item.name}${form.label === "Place" ? "" : ` ${form.label}`}`, libraryName: item.name, type: form.type || item.category }))));
+  (typeof getCustomCabinetItems === "function" ? getCustomCabinetItems() : []).forEach((item) => choices.push(normalizeApothecaryIngredient({ ...item, label: item.name || item.label, type: item.type || item.category, entityId: item.entityId })));
+  (typeof Library !== "undefined" && typeof Library.getAllEntitiesSorted === "function" ? Library.getAllEntitiesSorted() : []).filter((entity) => ["herb", "crystal", "oil", "incense", "candle"].includes(entity.type)).forEach((entity) => choices.push(normalizeApothecaryIngredient({ label: entity.name, type: entity.type, entityId: entity.id })));
+  getApothecaryItems().forEach((item) => choices.push(normalizeApothecaryIngredient({ label: item.name, type: "apothecary", entityId: item.entityId, apothecaryItemId: item.id })));
+  return choices.filter((choice, index, all) => choice.label && all.findIndex((item) => `${item.type}|${item.entityId}|${item.apothecaryItemId}|${item.label}` === `${choice.type}|${choice.entityId}|${choice.apothecaryItemId}|${choice.label}`) === index);
+}
+
 function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
   const existingItem = editItemId ? getApothecaryItemById(editItemId) : null;
   const ingredients = existingItem ? [] : getSelectedApothecaryIngredients();
@@ -564,12 +580,19 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
     modal.dataset.editItemId = existingItem.id;
   }
 
-  const ingredientSnapshots = existingItem
+  const ingredientSnapshots = (existingItem
     ? existingItem.ingredients || []
-    : ingredients.map(createIngredientSnapshot);
+    : ingredients.map(createIngredientSnapshot)).map(normalizeApothecaryIngredient)
+    .filter((ingredient) => {
+      if (!ingredient) return false;
+      if (ingredient.apothecaryItemId && ingredient.apothecaryItemId === existingItem?.id) return false;
+      if (ingredient.entityId && existingItem?.entityId) return ingredient.entityId !== existingItem.entityId;
+      return !(ingredient.label && !ingredient.entityId && !ingredient.apothecaryItemId && String(ingredient.label).trim().toLowerCase() === String(existingItem?.name || "").trim().toLowerCase());
+    });
 
   const selectedType = existingItem?.type || preselectedType || "spell-jar";
   const selectedImage = existingItem?.imagePath || getApothecaryType(selectedType).presetImage;
+  const availableIngredientSnapshots = getAllApothecaryIngredientChoices().filter((ingredient) => ingredient.apothecaryItemId !== existingItem?.id && (!ingredient.entityId || ingredient.entityId !== existingItem?.entityId));
 
   modal.innerHTML = `
     <div class="apothecary-create-card" role="dialog" aria-modal="true" aria-label="Create Apothecary Item">
@@ -674,12 +697,12 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
           <p class="eyebrow">Image</p>
 
           <label class="my-sanctuary-check">
-            <input type="radio" name="image_choice" value="preset" ${existingItem ? "" : "checked"} />
+            <input type="radio" name="image_choice" value="preset" ${!existingItem || selectedImage === getApothecaryType(selectedType).presetImage ? "checked" : ""} />
             Use preset image
           </label>
 
           <label class="my-sanctuary-check">
-            <input type="radio" name="image_choice" value="upload" />
+            <input type="radio" name="image_choice" value="upload" ${existingItem && selectedImage !== getApothecaryType(selectedType).presetImage ? "checked" : ""} />
             Upload my own image
           </label>
 
@@ -691,19 +714,19 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
         <div class="apothecary-ingredient-list">
           <p class="eyebrow">Ingredients</p>
 
-          ${ingredientSnapshots
+          <div data-apothecary-editable-ingredients>${ingredientSnapshots
             .map((ingredient, index) => `
-              <label class="apothecary-ingredient-amount-row">
-                <span>${ingredient.label}</span>
-                <input
-                  type="text"
-                  name="ingredient_amount_${index}"
-                  value="${ingredient.amount || ""}"
-                  placeholder="Amount, ex: 1 pinch, 3 drops, 2 tsp"
-                />
-              </label>
+              <div class="apothecary-ingredient-amount-row" data-apothecary-ingredient-row data-ingredient="${encodeURIComponent(JSON.stringify(ingredient))}">
+                <input type="text" data-ingredient-label value="${ingredient.label || ingredient.libraryName || ""}" placeholder="Ingredient name" aria-label="Ingredient name">
+                <small>${ingredient.type || "custom"}${ingredient.entityId || ingredient.apothecaryItemId ? " · linked" : ""}</small>
+                <input type="text" data-ingredient-amount value="${ingredient.amount || ""}" placeholder="Amount, ex: 1 pinch">
+                <button type="button" data-move-ingredient="up" aria-label="Move ingredient up">↑</button>
+                <button type="button" data-move-ingredient="down" aria-label="Move ingredient down">↓</button>
+                <button type="button" data-remove-ingredient aria-label="Remove ingredient">×</button>
+              </div>
             `)
-            .join("")}
+            .join("")}</div>
+          <div class="apothecary-add-ingredient"><input type="search" data-apothecary-ingredient-search placeholder="Search cabinet, Library, and apothecary"><select data-apothecary-ingredient-source><option value="">Custom Ingredient</option>${availableIngredientSnapshots.map((ingredient) => `<option value="${encodeURIComponent(JSON.stringify(ingredient))}" data-search="${ingredient.label.toLowerCase()} ${ingredient.type}">${ingredient.label} — ${ingredient.type}</option>`).join("")}</select><button type="button" data-add-apothecary-ingredient>+ Add Ingredient</button></div>
         </div>
 
         <button class="button button--primary" type="submit">
@@ -716,6 +739,11 @@ function openCreateApothecaryModal(preselectedType = "", editItemId = "") {
   modal.dataset.ingredients = JSON.stringify(ingredientSnapshots);
   document.body.appendChild(modal);
   document.body.classList.add("altar-modal-open");
+}
+
+function openApothecaryItemEditor(itemId) {
+  if (!itemId) return;
+  openCreateApothecaryModal("", itemId);
 }
 
 function closeCreateApothecaryModal() {
@@ -845,10 +873,12 @@ async function saveCreatedApothecaryItem(form, modal) {
     imagePath = await readUploadedImage(file);
   }
 
-  const ingredients = JSON.parse(modal.dataset.ingredients || "[]").map((ingredient, index) => ({
-    ...ingredient,
-    amount: String(formData.get(`ingredient_amount_${index}`) || "").trim()
-  }));
+  const ingredients = Array.from(modal.querySelectorAll("[data-apothecary-ingredient-row]")).map((row) => {
+    let ingredient = {};
+    try { ingredient = JSON.parse(decodeURIComponent(row.dataset.ingredient || "%7B%7D")); } catch { ingredient = {}; }
+    const label = String(row.querySelector("[data-ingredient-label]")?.value || "").trim();
+    return { ...ingredient, label, libraryName: ingredient.libraryName || label, amount: String(row.querySelector("[data-ingredient-amount]")?.value || "").trim() };
+  }).filter((ingredient) => ingredient.label);
   const items = getApothecaryItems();
   const existingItem = editItemId ? getApothecaryItemById(editItemId) : null;
 
@@ -879,7 +909,7 @@ async function saveCreatedApothecaryItem(form, modal) {
 
   item = await createOrUpdateApothecaryLibraryEntity(item);
 
-  if (typeof createObjectInstance === "function") {
+  if (!existingItem && typeof createObjectInstance === "function") {
     const instance = await createObjectInstance({
       entity_id: item.entityId || "",
       source: "apothecary",
@@ -928,6 +958,13 @@ async function saveCreatedApothecaryItem(form, modal) {
    
    if (existingItem) {
      syncPlacedApothecaryObjects(item);
+     if (item.instanceId && typeof addObjectInstanceEvent === "function") {
+       await addObjectInstanceEvent(item.instanceId, "recipe_updated", {
+         label: "Apothecary Recipe Updated",
+         notes: `${item.name} · ${item.ingredients.length} ingredient${item.ingredients.length === 1 ? "" : "s"}`,
+         metadata: { apothecaryItemId: item.id }
+       });
+     }
    }
 
   closeCreateApothecaryModal();
@@ -1108,6 +1145,9 @@ document.addEventListener("click", (event) => {
   const placeButton = event.target.closest("[data-apothecary-place]");
   const editButton = event.target.closest("[data-apothecary-edit]");
   const deleteButton = event.target.closest("[data-apothecary-delete]");
+  const addIngredientButton = event.target.closest("[data-add-apothecary-ingredient]");
+  const removeIngredientButton = event.target.closest("[data-remove-ingredient]");
+  const moveIngredientButton = event.target.closest("[data-move-ingredient]");
 
   if (createButton) {
     openCreateApothecaryModal();
@@ -1122,12 +1162,37 @@ document.addEventListener("click", (event) => {
   }
 
   if (editButton) {
-    openCreateApothecaryModal("", editButton.dataset.apothecaryEdit);
+    openApothecaryItemEditor(editButton.dataset.apothecaryEdit);
   }
 
   if (deleteButton) {
     deleteApothecaryItem(deleteButton.dataset.apothecaryDelete);
   }
+
+  if (addIngredientButton) {
+    const list = addIngredientButton.closest("form")?.querySelector("[data-apothecary-editable-ingredients]");
+    const source = addIngredientButton.closest("form")?.querySelector("[data-apothecary-ingredient-source]");
+    let ingredient = {};
+    try { ingredient = JSON.parse(decodeURIComponent(source?.value || "%7B%7D")); } catch { ingredient = {}; }
+    if (list) list.insertAdjacentHTML("beforeend", `<div class="apothecary-ingredient-amount-row" data-apothecary-ingredient-row data-ingredient="${encodeURIComponent(JSON.stringify(ingredient))}"><input type="text" data-ingredient-label value="${ingredient.label || ""}" placeholder="Ingredient name"><small>${ingredient.type || "custom"}${ingredient.entityId || ingredient.apothecaryItemId ? " · linked" : ""}</small><input type="text" data-ingredient-amount value="${ingredient.amount || ""}" placeholder="Amount, ex: 1 pinch"><button type="button" data-move-ingredient="up" aria-label="Move ingredient up">↑</button><button type="button" data-move-ingredient="down" aria-label="Move ingredient down">↓</button><button type="button" data-remove-ingredient aria-label="Remove ingredient">×</button></div>`);
+    if (source) source.value = "";
+  }
+
+  if (removeIngredientButton) removeIngredientButton.closest("[data-apothecary-ingredient-row]")?.remove();
+  if (moveIngredientButton) {
+    const row = moveIngredientButton.closest("[data-apothecary-ingredient-row]");
+    const sibling = moveIngredientButton.dataset.moveIngredient === "up" ? row?.previousElementSibling : row?.nextElementSibling;
+    if (row && sibling) sibling[moveIngredientButton.dataset.moveIngredient === "up" ? "before" : "after"](row);
+  }
+});
+
+document.addEventListener("input", (event) => {
+  const search = event.target.closest("[data-apothecary-ingredient-search]");
+  if (!search) return;
+  const term = search.value.trim().toLowerCase();
+  search.closest("form")?.querySelectorAll("[data-apothecary-ingredient-source] option").forEach((option, index) => {
+    option.hidden = index > 0 && term && !String(option.dataset.search || option.textContent).toLowerCase().includes(term);
+  });
 });
 
 document.addEventListener("submit", async (event) => {
@@ -1138,6 +1203,14 @@ document.addEventListener("submit", async (event) => {
 
   const modal = form.closest("[data-apothecary-create-modal]");
   if (!modal) return;
-
-  await saveCreatedApothecaryItem(form, modal);
+  if (form.dataset.submitting === "true") return;
+  form.dataset.submitting = "true";
+  form.querySelectorAll('[type="submit"]').forEach((button) => { button.disabled = true; });
+  try { await saveCreatedApothecaryItem(form, modal); }
+  finally {
+    if (form.isConnected) {
+      delete form.dataset.submitting;
+      form.querySelectorAll('[type="submit"]').forEach((button) => { button.disabled = false; });
+    }
+  }
 });
