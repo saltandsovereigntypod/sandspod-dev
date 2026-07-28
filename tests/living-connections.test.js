@@ -99,6 +99,13 @@ test("canonical event shape preserves related entity and object identities", () 
 test("reference discovery reuses Library layers and relationship edges", () => {
   const references = LivingConnections.getReferences("basil", createSources());
   assert.equal(references.relationships[0].relation, "pairs_with");
+  assert.deepEqual(references.relatedEntities[0], {
+    entityId: "rosemary",
+    label: "Rosemary",
+    entityType: "herb",
+    relation: "pairs_with",
+    direction: "outgoing"
+  });
   assert.equal(references.layers.traditional, true);
   assert.equal(references.layers.myPractice, false);
   assert.deepEqual(references.traditionalReferences[0].fields, ["Uses"]);

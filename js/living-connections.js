@@ -408,13 +408,36 @@
     const traditionalFields = Object.keys(record?.traditional || {});
     const myPracticeFields = Object.keys(record?.myPractice || {});
     const communityFields = Object.keys(record?.community || {});
+    const relationships = library?.getConnections?.(entityId) || [];
+    const relatedEntities = relationships.map((relationship) => {
+      const relatedEntityId = relationship.from === entityId ? relationship.to : relationship.from;
+      const relatedEntity = library?.getEntity?.(relatedEntityId);
+      if (!relatedEntity) return null;
+      return {
+        entityId: relatedEntity.id,
+        label: relatedEntity.name || "Untitled",
+        entityType: relatedEntity.type || "entry",
+        relation: relationship.relation,
+        direction: relationship.from === entityId ? "outgoing" : "incoming"
+      };
+    }).filter(Boolean);
     const ritualPages = timeline
       .filter((event) => event.metadata.grimoirePageId)
-      .map((event) => ({ pageId: event.metadata.grimoirePageId, ritualId: event.metadata.ritualId, sourceEventId: event.id }));
+      .map((event) => ({
+        id: `${event.id}:page`,
+        label: event.label,
+        timestamp: event.timestamp,
+        metadata: {
+          pageId: event.metadata.grimoirePageId,
+          ritualId: event.metadata.ritualId,
+          sourceEventId: event.id
+        }
+      }));
     const pageEvents = timeline.filter((event) => event.source.startsWith("grimoire_"));
     return {
       entityId,
-      relationships: library?.getConnections?.(entityId) || [],
+      relationships,
+      relatedEntities,
       journals: timeline.filter((event) => event.type === "journal_mention" || (event.type === "ritual_use" && event.metadata.grimoirePageId)),
       rituals: timeline.filter((event) => event.type === "ritual_use"),
       templates: bySource("ritual_template"),
@@ -481,6 +504,8 @@
       usage: getUsage(entityId, computedSources),
       pairings: getPairings(entityId, computedSources),
       references: getReferences(entityId, computedSources),
+      objectPairings: getObjectPairings(entityId, computedSources),
+      ritualTypes: getRitualTypeFrequency(entityId, computedSources),
       sources
     };
   }

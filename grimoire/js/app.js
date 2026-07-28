@@ -199,9 +199,20 @@ async function initGrimoire() {
       Library.importTraditionalLibrary();
     }
     
+    const requestedView = new URLSearchParams(window.location.search);
+    const requestedEntityId = requestedView.get("entity");
+    const requestedPageId = requestedView.get("page");
     const lastView = getLastGrimoireView();
 
-    if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
+    if (requestedEntityId && typeof Library !== "undefined" && Library.getEntity(requestedEntityId)) {
+      renderWelcomeState();
+      renderShelf();
+      await renderLivingLibraryShelves();
+      await renderLibraryEntity(requestedEntityId);
+    } else if (requestedPageId && pages.some((page) => page.id === requestedPageId)) {
+      await openPage(requestedPageId, "read");
+      await renderLivingLibraryShelves();
+    } else if (lastView?.type === "library" && lastView.id && typeof Library !== "undefined") {
       renderWelcomeState();
       renderShelf();
       await renderLivingLibraryShelves();
@@ -1828,6 +1839,96 @@ function renderGlobalLibrarySearchResults(term) {
   toolbar?.insertAdjacentElement("afterend", box);
 }
 
+let livingJourneyRequestId = 0;
+
+function renderJourneyRecord(record) {
+  const content = `
+    <strong>${escapeHtml(record.label)}</strong>
+    ${record.type ? `<small>${escapeHtml(record.type)}</small>` : ""}
+    ${record.relation ? `<small>${escapeHtml(record.relation)}</small>` : ""}
+    ${record.date ? `<small>${escapeHtml(record.date)}</small>` : ""}
+  `;
+  if (record.entityId) {
+    return `<button type="button" class="book-living-connection-link" data-library-entity-id="${escapeHtml(record.entityId)}">${content}</button>`;
+  }
+  if (record.href) return `<a class="book-living-connection-link" href="${escapeHtml(record.href)}">${content}</a>`;
+  return `<span class="book-living-connection-record">${content}</span>`;
+}
+
+function renderJourneyEvent(event) {
+  return `
+    <li class="book-living-timeline-event">
+      <time datetime="${escapeHtml(event.timestamp)}">${escapeHtml(event.date)}</time>
+      ${event.href ? `<a href="${escapeHtml(event.href)}">${escapeHtml(event.label)}</a>` : `<strong>${escapeHtml(event.label)}</strong>`}
+      ${event.context ? `<p>${escapeHtml(event.context)}</p>` : ""}
+    </li>`;
+}
+
+function renderLivingJourney(model) {
+  if (!model) return "";
+  const summary = model.summary.length ? `
+    <dl class="book-living-journey-summary">
+      ${model.summary.map((row) => `<div><dt>${escapeHtml(row.label)}</dt><dd>${escapeHtml(row.value)}</dd></div>`).join("")}
+    </dl>` : "";
+  const pairings = model.pairings.length ? `
+    <section class="book-living-journey-group">
+      <h3>Frequently Paired With</h3>
+      <div class="book-living-pairings">
+        ${model.pairings.map((pairing) => `
+          <button type="button" class="book-living-connection-link" data-library-entity-id="${escapeHtml(pairing.entityId)}">
+            <strong>${escapeHtml(pairing.label)}</strong>
+            <small>${escapeHtml(pairing.type)} · ${escapeHtml(pairing.description)}</small>
+          </button>`).join("")}
+      </div>
+    </section>` : "";
+  const references = model.referenceGroups.length ? `
+    <section class="book-living-journey-group">
+      <h3>Appears Within</h3>
+      <div class="book-living-reference-groups">
+        ${model.referenceGroups.map((group) => `
+          <section>
+            <h4>${escapeHtml(group.label)}</h4>
+            <div class="book-living-record-list">${group.visible.map(renderJourneyRecord).join("")}</div>
+            ${group.remaining.length ? `
+              <details>
+                <summary>View all ${group.total}</summary>
+                <div class="book-living-record-list">${group.remaining.map(renderJourneyRecord).join("")}</div>
+              </details>` : ""}
+          </section>`).join("")}
+      </div>
+    </section>` : "";
+  const timeline = model.recentEvents.length ? `
+    <section class="book-living-journey-group">
+      <h3>Recent Activity</h3>
+      <ol class="book-living-timeline">${model.recentEvents.map(renderJourneyEvent).join("")}</ol>
+      ${model.olderEvents.length ? `
+        <details class="book-living-full-timeline">
+          <summary>View Full Timeline</summary>
+          <ol class="book-living-timeline">${model.olderEvents.map(renderJourneyEvent).join("")}</ol>
+        </details>` : ""}
+    </section>` : "";
+
+  return `
+    <div class="library-section-heading-row"><h2>Your Journey with ${escapeHtml(model.entityName)}</h2></div>
+    ${model.emptyMessage ? `<p class="book-placeholder">${escapeHtml(model.emptyMessage)}</p>` : ""}
+    ${summary}${pairings}${references}${timeline}
+  `;
+}
+
+async function hydrateLivingJourney(entityId, requestId) {
+  const target = [...document.querySelectorAll("[data-living-journey]")]
+    .find((section) => section.dataset.livingJourney === entityId);
+  if (!target || typeof LivingConnections === "undefined" || typeof LivingConnectionsView === "undefined") return;
+  try {
+    const result = await LivingConnections.load(entityId);
+    if (!LivingConnectionsView.isCurrentRequest(requestId, livingJourneyRequestId, entityId, activeLibraryEntityId) || !target.isConnected) return;
+    target.innerHTML = renderLivingJourney(LivingConnectionsView.createJourneyModel(result));
+  } catch (error) {
+    console.warn("Living Connections could not be loaded for this entry.", error);
+    if (requestId === livingJourneyRequestId && target.isConnected) target.remove();
+  }
+}
+
 async function renderLibraryEntity(entityId) {
   if (!entryList || typeof Library === "undefined") return;
 
@@ -1860,6 +1961,7 @@ async function renderLibraryEntity(entityId) {
   const renderedLayers = renderLibraryLayers(entity, settings, layout);
   const entityImage = getLibraryDisplayImage(entity);
 
+  const journeyRequestId = ++livingJourneyRequestId;
   entryList.innerHTML = `
     <section class="book-reader-page book-library-entity-page">
        <div class="book-library-sticky-tools">
@@ -1924,11 +2026,16 @@ async function renderLibraryEntity(entityId) {
 
       <div class="book-reader-body book-library-body">
         ${renderedLayers}
+        <section class="book-library-layer book-library-journey" data-living-journey="${escapeHtml(entity.id)}" aria-live="polite">
+          <div class="library-section-heading-row"><h2>Your Journey with ${escapeHtml(entity.name)}</h2></div>
+          <p class="book-placeholder">Gathering the connections held in your practice…</p>
+        </section>
       </div>
     </section>
   `;
 
   renderLivingLibraryShelves();
+  hydrateLivingJourney(entity.id, journeyRequestId);
 }
 
 function openCreateLibraryEntryModal() {
