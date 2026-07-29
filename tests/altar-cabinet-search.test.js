@@ -38,9 +38,10 @@ test("missing built-in forms use compact add actions instead of placeholder tile
   assert.match(source, /Add \$\{form\.label\} Image/);
   assert.doesNotMatch(source, /partition\.missingForms\.map\(\(form\) => renderCabinetTile/);
   assert.match(source, /formImageFallbackInstalled/);
-  const css = fs.readFileSync("altar/altar.css", "utf8");
-  assert.match(css, /\.cabinet-missing-form-action[\s\S]*?border:\s*0/);
-  assert.doesNotMatch(css, /\.cabinet-missing-form-action[\s\S]{0,250}border-radius:\s*999px/);
+  assert.match(source, /button--tiny button--image-action cabinet-missing-form-action/);
+  const sharedCss = fs.readFileSync("css/styles.css", "utf8");
+  assert.match(sharedCss, /\.button--image-action[\s\S]*?border-color:/);
+  assert.match(sharedCss, /\.button--tiny[\s\S]*?font-size:\s*0\.76rem/);
 });
 
 test("Sage missing assets become actions while its valid shared incense remains available", () => {

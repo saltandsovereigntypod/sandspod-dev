@@ -34,10 +34,10 @@
   }
 
   function pageRecords() {
-    return (global.SanctuarySearchPageSource || []).map((page) => ({
+    return (global.SanctuarySearchPageSource || []).filter((page) => page.type !== "ritual_journal").map((page) => ({
       id: page.id, group: "pages", type: page.type || "page", title: page.title || "Untitled Page",
       aliases: ["journal", "Book of Shadows"],
-      subtitle: page.type === "ritual_journal" ? "Ritual Journal · Book of Shadows" : "Book of Shadows Page",
+      subtitle: "Book of Shadows Page",
       fields: [page.metadata, page._searchBlocks, page.blocks, page.content], href: `/grimoire/?page=${encodeURIComponent(page.id)}`,
       timestamp: page.updated_at || page.created_at
     })).concat((global.SanctuarySearchSectionSource || []).map((section) => ({
@@ -90,14 +90,20 @@
     if (typeof global.getMyRituals === "function") tasks.push(global.getMyRituals().then((records) => ["rituals", records.map((ritual) => ({
       id: ritual.id, group: "rituals", type: ritual.ritual_type || "ritual", title: ritual.title || ritual.name || "Untitled Ritual",
       subtitle: "Ritual", fields: [ritual.intention, ritual.notes, ritual.tags, ritual.altar_snapshot],
-      href: ritual.grimoire_page_id ? `/grimoire/?page=${encodeURIComponent(ritual.grimoire_page_id)}` : null,
+      href: `/grimoire/?entity=${encodeURIComponent(`ritual:${ritual.id}`)}`,
       timestamp: ritual.completed_at || ritual.updated_at || ritual.created_at
     }))]));
     if (typeof global.getRitualTemplates === "function") tasks.push(global.getRitualTemplates().then((records) => ["templates", records.map((template) => ({
       id: template.id, group: "templates", type: template.ritual_type || "template", title: template.name || template.title || "Untitled Template",
       subtitle: "Ritual Template", fields: [template.description, template.intention, template.ritual_template_steps],
-      href: `/altar/?editRitualTemplate=${encodeURIComponent(template.id)}`, timestamp: template.updated_at || template.created_at
+      href: `/grimoire/?entity=${encodeURIComponent(`ritual-template:${template.id}`)}`, timestamp: template.updated_at || template.created_at
     }))]));
+    const activeSession = global.getStoredActiveRitualSession?.();
+    if (activeSession?.id) tasks.push(Promise.resolve(["ritual-sessions", [{
+      id: activeSession.id, group: "rituals", type: "ritual-session", title: activeSession.title || "Active Ritual",
+      subtitle: "Active Ritual Session", fields: [activeSession.id],
+      href: `/altar/?ritualSession=${encodeURIComponent(activeSession.id)}`, timestamp: activeSession.startedAt || activeSession.started_at
+    }]]));
     const settled = await Promise.allSettled(tasks);
     if (!global.SanctuarySearch.isCurrentRequest(token, requestId, Boolean(modal))) return;
     settled.forEach((result) => { if (result.status === "fulfilled") global.SanctuarySearch.updateSource(result.value[0], result.value[1]); });
