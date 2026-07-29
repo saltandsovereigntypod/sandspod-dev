@@ -86,3 +86,7 @@ No migration is required by the JSON backup format. No schema or RLS change is e
 - Replace, guest-to-account migration, readable/PDF export, and guest Grimoire page restoration are not implemented.
 
 Manually test production/guest export counts and credential absence; malformed/wrong-version/tampered files; guest merge; development authenticated staged merge; canonical entities; template/session/journal links; retry checkpoints; image CORS warnings; sign-out during export/restore; and mobile widths. Never run replace tests in production.
+
+## Account-control safety gates
+
+Guest-data clearing requires a freshly downloaded guest backup in the current Account & Data interaction plus the typed phrase `CLEAR MY GUEST DATA`. The backup file is not deleted when local guest keys are cleared. Future account deletion must similarly require a fresh complete authenticated backup before the server-side operation is enabled. Merge-only restore remains unchanged; account controls never implement replace restore.

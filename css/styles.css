@@ -2774,6 +2774,23 @@ body:has(.sanctuary-submission-form) h1 {
 .backup-summary-card, .backup-validation-group { margin: .8rem 0; padding: .85rem 1rem; border: 1px solid rgba(196, 165, 96, .4); border-radius: .8rem; background: rgba(11, 29, 22, .55); }
 .backup-validation-group h5, .backup-validation-group p { margin: 0 0 .45rem; }
 .backup-validation-group details ul { padding-left: 1.2rem; }
+.account-data-controls { display: grid; gap: 1rem; min-width: 0; margin-bottom: 1rem; }
+.account-data-controls > section { min-width: 0; padding: 1rem; border: 1px solid rgba(196, 165, 96, .28); border-radius: .8rem; background: rgba(12, 20, 15, .6); }
+.account-data-controls h3, .account-data-controls h4 { margin: 0 0 .7rem; color: var(--gold); }
+.account-data-controls form { display: grid; gap: .7rem; margin-top: 1rem; }
+.account-data-controls label { display: grid; gap: .35rem; min-width: 0; }
+.account-data-controls input { width: 100%; min-width: 0; }
+.account-summary-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+.account-summary-card dl div { min-width: 0; padding: .65rem; border-radius: .55rem; background: rgba(0, 0, 0, .18); }
+.account-summary-card dt { color: var(--muted); font-size: .85rem; }
+.account-summary-card dd { margin: .2rem 0 0; overflow-wrap: anywhere; }
+.account-danger-zone { border-color: rgba(145, 83, 68, .5) !important; background: rgba(58, 27, 22, .28) !important; }
+.account-reset-page { min-height: 100vh; background: #08120d; color: var(--cream); }
+.account-reset-shell { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+.account-reset-card { width: min(34rem, 100%); padding: clamp(1.2rem, 5vw, 2.5rem); border: 1px solid rgba(196, 165, 96, .38); border-radius: 1rem; background: rgba(13, 25, 18, .96); }
+.account-reset-card form { display: grid; gap: .8rem; margin-block: 1rem; }
+.account-reset-card label { display: grid; gap: .35rem; }
+.account-reset-card input { width: 100%; }
 .sanctuary-background-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .7rem; margin-top: .7rem; }
 .sanctuary-background-option { position: relative; display: grid; gap: .4rem; align-content: start; padding: .55rem; border: 1px solid rgba(196, 165, 96, .28); border-radius: .7rem; background: rgba(12, 20, 15, .62); cursor: pointer; overflow: hidden; }
 .sanctuary-background-option:has(input:checked) { border-color: #c4a560; box-shadow: 0 0 0 2px rgba(196, 165, 96, .15); }
@@ -2787,5 +2804,6 @@ body:has(.sanctuary-submission-form) h1 {
   .journey-controls label:first-child { grid-column: 1 / -1; }
   .journey-timeline li { grid-template-columns: 1fr; gap: .25rem; }
   .settings-save-status { padding-bottom: calc(.65rem + env(safe-area-inset-bottom)); }
+  .account-summary-card dl { grid-template-columns: 1fr; }
 }
 @media (max-width: 390px) { .journey-controls { grid-template-columns: 1fr; } .journey-controls label:first-child { grid-column: auto; } }

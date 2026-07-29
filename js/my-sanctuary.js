@@ -614,7 +614,7 @@ document.addEventListener("submit", async (event) => {
     setMySanctuaryView("dashboard");
     showMySanctuaryNotice("Your sanctuary is open.");
   } catch (error) {
-    showMySanctuaryNotice(error.message);
+    showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
   }
 });
 
@@ -645,7 +645,7 @@ document.addEventListener("click", async (event) => {
      try {
        await signInWithGoogle();
      } catch (error) {
-       showMySanctuaryNotice(error.message);
+       showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
      }
    }
       
@@ -672,7 +672,7 @@ document.addEventListener("click", async (event) => {
       setMySanctuaryView("dashboard");
       showMySanctuaryNotice("Your sanctuary has been created.");
     } catch (error) {
-      showMySanctuaryNotice(error.message);
+      showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
     }
   }
 
@@ -683,7 +683,7 @@ document.addEventListener("click", async (event) => {
       setMySanctuaryView("welcome");
       showMySanctuaryNotice("Signed out.");
     } catch (error) {
-      showMySanctuaryNotice(error.message);
+      showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
     }
   }
 });

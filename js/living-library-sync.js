@@ -94,6 +94,8 @@ async function saveLivingLibraryEntityToSupabase(entityId) {
     updated_at: new Date().toISOString()
   };
 
+  window.SaltSyncStatus?.saving(user.id);
+
   const { error } = await db
     .from(LIVING_LIBRARY_TABLE)
     .upsert(row, {
@@ -101,9 +103,11 @@ async function saveLivingLibraryEntityToSupabase(entityId) {
     });
 
   if (error) {
+    window.SaltSyncStatus?.failure(user.id);
     console.error("Living Library save failed:", error);
     return { saved: false, error: "cloud_save_failed" };
   }
+  window.SaltSyncStatus?.success(user.id);
   return { saved: true };
 }
 

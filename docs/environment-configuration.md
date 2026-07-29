@@ -4,7 +4,7 @@
 
 Shared source is deployed unchanged to development and production. `js/environment.js` is the single authority for choosing a deployment; `js/supabase-config.js` only creates one client from that decision. This prevents a merge from silently moving development users, data, storage, OAuth returns, or moderator presentation into production.
 
-The pre-stabilization audit found a development Supabase URL and publishable key directly in `js/supabase-config.js`, an origin-only OAuth return, production moderator UUIDs in `js/auth.js`, `/sandspod/` PWA paths, a production `CNAME`, and no registered service worker. Relative HTML assets generally worked, but root application links did not preserve the GitHub Pages repository prefix. No email-confirmation override, password-reset flow, magic-link flow, or service-worker registration exists; none was invented in this pass.
+The pre-stabilization audit found a development Supabase URL and publishable key directly in `js/supabase-config.js`, an origin-only OAuth return, production moderator UUIDs in `js/auth.js`, `/sandspod/` PWA paths, a production `CNAME`, and no registered service worker. Relative HTML assets generally worked, but root application links did not preserve the GitHub Pages repository prefix. Password recovery and email-change redirects are now environment-aware. Magic-link authentication and service-worker registration remain intentionally absent.
 
 ## Supported deployments
 
@@ -83,3 +83,17 @@ Any unchecked resource is a production blocker. Project URL selection does not s
 Before merging, obtain and verify the production browser key, run all tests, review both dashboard redirect lists, complete the compatibility checklist, and verify dev custom-domain and GitHub Pages login/data/storage. After merging, use the safe diagnostic on production, test Google and email/password login, moderator presentation, Community Submissions, Altar, Book of Shadows, Apothecary, settings, uploads, and confirm no development records appear.
 
 For rollback, revert the stabilization commit and redeploy only if the previous configuration is known safe for the target host. Prefer reverting the deployment while preserving the fail-closed production guard; never “fix” an incident by inserting the development key into production. Revoke/rotate any credential immediately if a privileged value was ever exposed, then audit Supabase logs and sessions.
+
+## Password recovery and email-change redirects
+
+Account recovery uses the environment resolver rather than hard-coded origins. Configure these exact reset destinations in the matching project:
+
+| Deployment | Site URL | Required reset/email redirect |
+| --- | --- | --- |
+| Production | `https://saltandsovereignty.com/` | `https://saltandsovereignty.com/account/reset-password/` |
+| Production `www` (only when deployed) | production apex remains preferred | `https://www.saltandsovereignty.com/account/reset-password/` |
+| Development custom domain | `https://dev.saltandsovereignty.com/` | `https://dev.saltandsovereignty.com/account/reset-password/` |
+| Development GitHub Pages | development Site URL remains the custom domain | `https://saltandsovereigntypod.github.io/sandspod-dev/account/reset-password/` |
+| Local port 5500 | development project only | `http://localhost:5500/account/reset-password/` and `http://127.0.0.1:5500/account/reset-password/` |
+
+Allow the matching root URL as well for OAuth and email-change confirmation. Never add development URLs to the production project. Supabase's Google callback remains the project's `/auth/v1/callback`; the application's `redirectTo` returns to the deployment-aware root. Unknown hosts remain fail-closed and cannot compose recovery or OAuth returns.
