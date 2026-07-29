@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reset Password | Salt & Sovereignty</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+  </head>
+  <body class="account-reset-page">
+    <main class="account-reset-shell">
+      <section class="account-reset-card" aria-labelledby="reset-password-title">
+        <p class="eyebrow">The Sanctuary</p>
+        <h1 id="reset-password-title">Choose a New Password</h1>
+        <p data-reset-introduction>Open this page from your most recent recovery email, then choose a new password.</p>
+        <form data-reset-password-form hidden>
+          <label>New password<input type="password" name="password" minlength="8" autocomplete="new-password" required></label>
+          <label>Confirm new password<input type="password" name="confirmation" minlength="8" autocomplete="new-password" required></label>
+          <button class="button button--primary" type="submit">Save New Password</button>
+        </form>
+        <p role="status" aria-live="polite" data-reset-password-status>Checking your recovery link…</p>
+        <a class="button button--ghost button--small" data-return-to-sign-in href="../../index.html">Return to Sign In</a>
+      </section>
+    </main>
+    <script src="../../js/environment.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-config.js"></script>
+    <script src="../../js/account-data.js"></script>
+    <script src="../../js/reset-password.js"></script>
+  </body>
+</html>

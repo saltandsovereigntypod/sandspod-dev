@@ -2,7 +2,9 @@
   "name": "salt-and-sovereignty-static-site",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.js && node scripts/validate-static.js",
-    "validate": "node scripts/validate-static.js"
+    "test": "node --test tests/*.test.js && npm run validate:dev && npm run validate:production",
+    "validate": "npm run validate:dev && npm run validate:production",
+    "validate:dev": "node scripts/validate-static.js --environment=development",
+    "validate:production": "node scripts/validate-static.js --environment=production"
   }
 }
