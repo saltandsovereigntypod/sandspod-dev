@@ -8,6 +8,33 @@
   const dateName = (prefix = "salt-and-sovereignty-backup") => `${prefix}-${new Date().toISOString().slice(0, 10)}.json`;
   const countSummary = (backup) => Object.entries(backup.manifest.recordCounts).map(([name, count]) => `${count} ${name}`).join(" · ");
 
+  function renderValidationReport(container, validation) {
+    container.replaceChildren();
+    const errors = validation.errors || [];
+    const warnings = validation.warnings || [];
+    if (!errors.length && !warnings.length) return;
+    const heading = document.createElement("h4");
+    heading.textContent = "Backup Checked";
+    container.append(heading);
+    const addGroup = (title, items, className) => {
+      if (!items.length) return;
+      const group = document.createElement("section");
+      group.className = `backup-validation-group ${className}`;
+      const label = document.createElement("h5");
+      label.textContent = `${title} · ${items.length}`;
+      const summary = document.createElement("p");
+      summary.textContent = title === "Blocking Issues" ? "These issues must be resolved before restore." : "These items do not prevent a merge.";
+      const details = document.createElement("details");
+      const toggle = document.createElement("summary");
+      toggle.textContent = "Technical Details";
+      const list = document.createElement("ul");
+      items.forEach((message) => { const item = document.createElement("li"); item.textContent = message; list.append(item); });
+      details.append(toggle, list); group.append(label, summary, details); container.append(group);
+    };
+    addGroup("Blocking Issues", errors, "has-errors");
+    addGroup("Warnings", warnings, "has-warnings");
+  }
+
   async function gather(scope, onProgress, bookOnly = false) {
     const user = global.getCurrentSaltUser?.() || null;
     let result;
@@ -42,9 +69,10 @@
     if (file.size > global.SanctuaryBackup.MAX_FILE_BYTES) { status.textContent = "That backup is larger than the supported 25 MB JSON limit."; return; }
     status.textContent = "Validating backup…";
     const validation = await global.SanctuaryBackup.validateBackup(await file.text());
-    if (!validation.valid) { status.textContent = validation.errors.join(" "); return; }
+    renderValidationReport(summary, validation);
+    if (!validation.valid) { status.textContent = `${validation.errors.length} blocking issue${validation.errors.length === 1 ? "" : "s"} must be resolved before restore. Nothing was changed.`; return; }
     preview = validation.backup;
-    summary.textContent = `Ready to merge: ${countSummary(preview)}. ${preview.manifest.assetCount} embedded assets. Existing records with matching IDs will be kept.`;
+    const card = document.createElement("p"); card.className = "backup-summary-card"; card.textContent = `Ready to merge: ${countSummary(preview)}. ${preview.manifest.assetCount} embedded assets. Existing records with matching IDs will be kept.`; summary.prepend(card);
     status.textContent = "Backup validated. Download a safety backup before restoring.";
     safetyButton.disabled = false;
   }
@@ -60,9 +88,26 @@
       <h3>Restore a Backup</h3>
       <p>Merge adds records that are not already here. Matching IDs keep the current record. Replace is intentionally unavailable because browser restores cannot be fully transactional.</p>
       <label>Choose a Sanctuary JSON backup<input type="file" accept="application/json,.json" data-backup-file></label>
-      <p data-backup-summary></p>
+      <div class="backup-validation-report" data-backup-summary></div>
       <div class="my-sanctuary-actions"><button class="button button--ghost button--small" type="button" data-backup-safety disabled>Download Pre-Restore Backup</button><button class="button button--primary button--small" type="button" data-backup-restore disabled>Merge With Existing Sanctuary</button></div>
       <p class="settings-save-status" role="status" aria-live="polite" data-backup-status>Nothing is uploaded until you choose and confirm a valid backup.</p>`;
+    if (!user && global.RitualLegacyCleanup) {
+      section.insertAdjacentHTML("beforeend", `
+        <details class="ritual-test-cleanup" data-ritual-test-cleanup>
+          <summary>Remove My Ritual Test Data</summary>
+          <p>This removes ritual sessions, completed ritual records, templates, and ritual-only Library links from this guest browser. Altars, Apothecary items, and unrelated pages remain.</p>
+          <label>Type ${global.RitualLegacyCleanup.CONFIRMATION}<input type="text" autocomplete="off" data-ritual-cleanup-confirm></label>
+          <button class="button button--ghost button--small" type="button" data-ritual-cleanup-run>Remove My Ritual Test Data</button>
+          <p role="status" aria-live="polite" data-ritual-cleanup-status></p>
+        </details>`);
+      const cleanupStatus = section.querySelector("[data-ritual-cleanup-status]");
+      section.querySelector("[data-ritual-cleanup-run]").addEventListener("click", () => {
+        try {
+          const counts = global.RitualLegacyCleanup.clearGuest(localStorage, section.querySelector("[data-ritual-cleanup-confirm]").value);
+          cleanupStatus.textContent = `Guest ritual cleanup complete. ${Object.values(counts).reduce((sum, count) => sum + count, 0)} ritual records or caches were removed. Your Altars and Apothecary were preserved.`;
+        } catch (error) { cleanupStatus.textContent = error.message; }
+      });
+    }
     accountPanel.append(section);
     const status = section.querySelector("[data-backup-status]"); const summary = section.querySelector("[data-backup-summary]"); const restore = section.querySelector("[data-backup-restore]"); const safety = section.querySelector("[data-backup-safety]");
     section.querySelector("[data-backup-complete]").addEventListener("click", () => exportBackup(status));

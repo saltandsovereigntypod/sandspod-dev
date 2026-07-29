@@ -2768,6 +2768,12 @@ body:has(.sanctuary-submission-form) h1 {
 .sanctuary-backup-controls h3 { margin: .75rem 0 0; color: var(--gold); }
 .sanctuary-backup-controls p { margin: 0; }
 .sanctuary-backup-controls input[type="file"] { width: 100%; margin-top: .4rem; padding: .55rem; border: 1px solid rgba(196, 165, 96, .35); border-radius: .55rem; color: var(--cream); background: rgba(9, 17, 12, .7); }
+.sanctuary-backup-controls .my-sanctuary-actions { align-items: center; flex-wrap: wrap; gap: .65rem; }
+.sanctuary-backup-controls .button { max-width: 100%; white-space: normal; }
+.backup-validation-report, .backup-validation-group, .backup-validation-group li { min-width: 0; overflow-wrap: anywhere; }
+.backup-summary-card, .backup-validation-group { margin: .8rem 0; padding: .85rem 1rem; border: 1px solid rgba(196, 165, 96, .4); border-radius: .8rem; background: rgba(11, 29, 22, .55); }
+.backup-validation-group h5, .backup-validation-group p { margin: 0 0 .45rem; }
+.backup-validation-group details ul { padding-left: 1.2rem; }
 .sanctuary-background-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .7rem; margin-top: .7rem; }
 .sanctuary-background-option { position: relative; display: grid; gap: .4rem; align-content: start; padding: .55rem; border: 1px solid rgba(196, 165, 96, .28); border-radius: .7rem; background: rgba(12, 20, 15, .62); cursor: pointer; overflow: hidden; }
 .sanctuary-background-option:has(input:checked) { border-color: #c4a560; box-shadow: 0 0 0 2px rgba(196, 165, 96, .15); }

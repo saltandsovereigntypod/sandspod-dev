@@ -71,7 +71,7 @@ test("validation rejects malformed, unsupported, credential-bearing, unsafe, dup
   unsafe.data.pages[0].access_token = "bad"; unsafe.data.pages[0].text = "<script>alert(1)</script>";
   assert.match((await Backup.validateBackup(unsafe)).errors.join(" "), /Forbidden|Unsafe/);
   const duplicate = await Backup.createBackup({ pages: [{ id: "p1" }, { id: "p1" }] }, { createdAt: "2026-01-01T00:00:00Z" });
-  assert.match((await Backup.validateBackup(duplicate)).errors.join(" "), /duplicate ID/);
+  assert.match((await Backup.validateBackup(duplicate)).errors.join(" "), /duplicate top-level ID/);
   assert.equal((await Backup.validateBackup("x".repeat(Backup.MAX_FILE_BYTES + 1))).valid, false);
 });
 

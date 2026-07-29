@@ -1,5 +1,8 @@
 # Ritual lifecycle architecture
 
+> **Canonical record update:** Completed rituals now save to `user_rituals` and `ritual:<id>` under My Practice → Rituals. The former Ritual Journal Grimoire path is retired; see [ritual-legacy-retirement.md](ritual-legacy-retirement.md).
+
+
 ## Audit findings
 
 The application already had the correct major cloud records, but the workflow was distributed across wrappers:

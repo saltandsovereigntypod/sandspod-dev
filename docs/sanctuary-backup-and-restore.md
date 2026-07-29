@@ -1,5 +1,8 @@
 # Sanctuary backup and restore
 
+> Backup v1 validation now requires IDs only for restorable collection rows. Nested snapshot helper IDs may be blank or repeated; actual row-ID problems remain blocking and are displayed separately from warnings.
+
+
 ## Purpose and supported scopes
 
 Sanctuary backups are user-controlled JSON snapshots available under **Sanctuary Settings → Account & Data**. The format identifier is `salt-and-sovereignty-sanctuary-backup`; the current schema version is `1`. Complete backups are restorable. Book of Shadows exports are structured subsets. A readable print/PDF export is not included in version 1.

@@ -77,7 +77,7 @@ function renderRitualJournalForm(session, mode = "completed_session") {
 
   setRitualPanelMode(true);
   document.body.classList.add("ritual-session-active");
-  if (eyebrow) eyebrow.textContent = mode === "completed_session" ? "Ritual Complete" : "Ritual Journal";
+  if (eyebrow) eyebrow.textContent = mode === "completed_session" ? "Ritual Complete" : "Ritual Reflection";
   if (title) title.textContent = "Record What Remains";
 
   const summary = buildRitualJournalSummary(session);
@@ -133,7 +133,7 @@ function renderRitualJournalForm(session, mode = "completed_session") {
       </div>
 
       <div class="ritual-journal-actions">
-        <button class="ritual-journal-button is-primary" type="submit" data-journal-save-mode="journal">Save to My Ritual Journal</button>
+        <button class="ritual-journal-button is-primary" type="submit" data-journal-save-mode="journal">Save Ritual</button>
         <button class="ritual-journal-button" type="submit" data-journal-save-mode="template">Save and Turn Into a Template</button>
         <button class="ritual-journal-button" type="button" data-finish-without-journal>Finish Without Journaling</button>
       </div>
@@ -142,89 +142,7 @@ function renderRitualJournalForm(session, mode = "completed_session") {
   `;
 }
 
-async function ensureRitualJournalGrimoirePage(user, ritual, formValues, summary) {
-  if (ritual.grimoire_page_id) return ritual.grimoire_page_id;
-  let { data: book, error: bookError } = await db
-    .from("grimoire_books")
-    .select("id")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (bookError) throw bookError;
-
-  if (!book) {
-    const result = await db.from("grimoire_books").insert({ user_id: user.id, title: "Book of Shadows" }).select("id").single();
-    if (result.error) throw result.error;
-    book = result.data;
-  }
-
-  let { data: section, error: sectionError } = await db
-    .from("grimoire_sections")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("book_id", book.id)
-    .eq("title", "Ritual Journal")
-    .maybeSingle();
-  if (sectionError) throw sectionError;
-
-  if (!section) {
-    const result = await db.from("grimoire_sections").insert({
-      user_id: user.id,
-      book_id: book.id,
-      title: "Ritual Journal",
-      sort_order: 1
-    }).select("id").single();
-    if (result.error) throw result.error;
-    section = result.data;
-  }
-
-  const { data: page, error: pageError } = await db.from("grimoire_pages").insert({
-    user_id: user.id,
-    book_id: book.id,
-    section_id: section.id,
-    title: ritual.title,
-    icon: "🕯️",
-    page_type: "ritual_journal",
-    metadata: {
-      ritualId: ritual.id,
-      sessionId: ritual.session_id,
-      templateId: ritual.template_id,
-      ritualDate: ritual.ritual_date,
-      durationSeconds: ritual.duration_seconds,
-      moonPhase: ritual.moon_phase,
-      altarItems: summary.objects
-    }
-  }).select("id").single();
-  if (pageError) throw pageError;
-
-  const blocks = [
-    ["heading", "Intention"], ["text", formValues.intention],
-    ["heading", "What Happened During"], ["text", formValues.what_happened_during],
-    ["heading", "Feelings and Impressions"], ["text", [formValues.feelings_before, formValues.feelings_during, formValues.feelings_after].filter(Boolean).join("\n\n")],
-    ["heading", "Signs and Symbols"], ["text", formValues.signs_and_symbols],
-    ["heading", "Afterward"], ["text", formValues.what_happened_after],
-    ["heading", "Follow-up"], ["text", [formValues.dreams_and_follow_up, formValues.results, formValues.changes_for_next_time].filter(Boolean).join("\n\n")],
-    ["heading", "Private Notes"], ["text", formValues.notes]
-  ].filter(([, value]) => value);
-
-  if (blocks.length) {
-    const { error: blocksError } = await db.from("grimoire_blocks").insert(blocks.map(([block_type, content], index) => ({
-      user_id: user.id,
-      book_id: book.id,
-      page_id: page.id,
-      block_type,
-      content,
-      sort_order: index,
-      metadata: { ritualId: ritual.id }
-    })));
-    if (blocksError) throw blocksError;
-  }
-
-  return page.id;
-}
-
-async function createRitualJournalLinks(user, ritual, pageId, summary) {
+async function createRitualJournalLinks(user, ritual, summary) {
   const links = [];
   const seenEntities = new Set();
 
@@ -241,7 +159,6 @@ async function createRitualJournalLinks(user, ritual, pageId, summary) {
     }
   });
 
-  if (pageId) links.push({ user_id: user.id, ritual_id: ritual.id, link_type: "grimoire_page", grimoire_page_id: pageId, label: ritual.title });
   if (ritual.linked_altar_id) links.push({ user_id: user.id, ritual_id: ritual.id, link_type: "altar", saved_altar_id: ritual.linked_altar_id, label: "Linked altar" });
 
   if (links.length) {
@@ -320,7 +237,7 @@ async function saveRitualJournal(form, saveMode = "journal") {
     const reflectedSession = window.RitualLifecycle.saveReflection(session, [payload.what_happened_during, payload.what_happened_after, payload.notes].filter(Boolean).join("\n\n"));
     repository.saveSession(reflectedSession, false);
     const { journal } = repository.upsertJournal(reflectedSession, { ...payload, reflection: reflectedSession.reflection });
-    if (typeof saveMyRitual === "function") await saveMyRitual({ ...payload, id: journal.id, ritual_type: "ritual_journal", lifecycle_session_id: session.id });
+    if (typeof saveMyRitual === "function") await saveMyRitual({ ...payload, id: journal.id, ritual_type: "ritual", lifecycle_session_id: session.id });
     renderRitualJournalSaved(journal);
     return journal;
   }
@@ -353,12 +270,7 @@ async function saveRitualJournal(form, saveMode = "journal") {
     ritual = data;
   }
 
-  const pageId = await ensureRitualJournalGrimoirePage(user, ritual, values, summary);
-  const { error: updateError } = await db.from("user_rituals").update({ grimoire_page_id: pageId }).eq("id", ritual.id).eq("user_id", user.id);
-  if (updateError) throw updateError;
-
-  ritual.grimoire_page_id = pageId;
-  await createRitualJournalLinks(user, ritual, pageId, summary);
+  await createRitualJournalLinks(user, ritual, summary);
   if (typeof upsertRitualJournalLivingLibraryEntity === "function") {
     await upsertRitualJournalLivingLibraryEntity(user, ritual, values, summary);
   }
@@ -384,15 +296,16 @@ async function saveRitualJournal(form, saveMode = "journal") {
 
 function renderRitualJournalSaved(ritual) {
   const { eyebrow, title, content } = getRitualCompanionElements();
-  if (eyebrow) eyebrow.textContent = "Ritual Journal";
-  if (title) title.textContent = "Entry Preserved";
+  if (eyebrow) eyebrow.textContent = "Completed Ritual";
+  if (title) title.textContent = "Ritual Preserved";
   if (!content) return;
 
   content.innerHTML = `
     <div class="ritual-journal-saved">
-      <p class="ritual-companion-kicker">Held in your Book of Shadows</p>
+      <p class="ritual-companion-kicker">Held in My Practice</p>
       <h3 class="ritual-companion-title">${escapeRitualHtml(ritual.title)}</h3>
-      <p>Your reflections, altar details, timing, and Living Library connections have been saved.</p>
+      <p>Your reflections, altar details, timing, and Living Library connections have been saved as one ritual record.</p>
+      <a class="ritual-journal-button is-primary" href="../grimoire/?entity=${encodeURIComponent(`ritual:${ritual.id}`)}">View in My Practice</a>
       <button type="button" class="ritual-journal-button is-primary" data-close-ritual-journal>Return to the Altar</button>
     </div>
   `;
@@ -467,7 +380,7 @@ document.addEventListener(
     }
 
     const now = new Date();
-    const snapshot = typeof createAltarSnapshot === "function" ? createAltarSnapshot("Ritual Journal Entry") : {};
+    const snapshot = typeof createAltarSnapshot === "function" ? createAltarSnapshot("Completed Ritual") : {};
     pendingRitualJournalSteps = [];
     renderRitualJournalForm({
       id: null,

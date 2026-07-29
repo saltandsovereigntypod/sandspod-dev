@@ -78,6 +78,6 @@ test("ritual integrations distinguish references and preserve exact search IDs",
   const search = fs.readFileSync("js/sanctuary-search-ui.js", "utf8");
   assert.match(connections, /referenceType: "template", countsAsUse: false/);
   assert.match(search, /type: "ritual-session"[\s\S]+ritualSession=\$\{encodeURIComponent\(activeSession\.id\)}/);
-  assert.match(search, /editRitualTemplate=\$\{encodeURIComponent\(template\.id\)}/);
-  assert.match(search, /grimoire_page_id \? `\/grimoire\/\?page=\$\{encodeURIComponent\(ritual\.grimoire_page_id\)}/);
+  assert.match(search, /ritual-template:\$\{template\.id\}/);
+  assert.match(search, /ritual:\$\{ritual\.id\}/);
 });

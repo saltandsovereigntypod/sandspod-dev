@@ -167,12 +167,33 @@
     return { assets, warnings };
   }
 
+  function restorableCollections(data) {
+    const collections = [];
+    const cloudTables = new Set(Object.values(CLOUD_SECTIONS).flat());
+    for (const [sectionName, section] of Object.entries(data || {})) {
+      if (Array.isArray(section)) collections.push({ path: `data.${sectionName}`, records: section });
+      if (!section || typeof section !== "object" || Array.isArray(section)) continue;
+      for (const [collectionName, records] of Object.entries(section)) {
+        if (!Array.isArray(records)) continue;
+        if (cloudTables.has(collectionName) || sectionName === "ritualLifecycle") {
+          collections.push({ path: `data.${sectionName}.${collectionName}`, records });
+        }
+      }
+    }
+    return collections;
+  }
+
   function validateIds(data, errors) {
-    const visit = (value, path) => {
-      if (Array.isArray(value)) {
-        const ids = new Set(); value.forEach((record, index) => { if (record && typeof record === "object" && record.id != null) { const id = String(record.id); if (!id) errors.push(`${path}[${index}] has an empty ID.`); if (ids.has(id)) errors.push(`${path} contains duplicate ID ${id}.`); ids.add(id); } visit(record, `${path}[${index}]`); });
-      } else if (value && typeof value === "object") Object.entries(value).forEach(([key, child]) => visit(child, path ? `${path}.${key}` : key));
-    }; visit(data, "data");
+    for (const { path, records } of restorableCollections(data)) {
+      const ids = new Set();
+      records.forEach((record, index) => {
+        if (!record || typeof record !== "object") return;
+        const id = String(record.id ?? "").trim();
+        if (!id) errors.push(`${path}[${index}] has an empty top-level ID.`);
+        else if (ids.has(id)) errors.push(`${path} contains duplicate top-level ID ${id}.`);
+        else ids.add(id);
+      });
+    }
   }
 
   function scanForbidden(value, errors, path = "") {
@@ -201,7 +222,7 @@
     for (const asset of backup?.assets || []) if (!/^data:image\/(?:png|jpeg|webp);base64,/i.test(asset.dataUrl || "") || String(asset.dataUrl).length > MAX_ASSET_BYTES * 1.4) errors.push("Backup contains an invalid or oversized asset.");
     if (backup?.integrity?.digest) { const unsigned = clone(backup); unsigned.integrity.digest = ""; if (await sha256(stableStringify(unsigned)) !== backup.integrity.digest) errors.push("Backup integrity check failed."); }
     else errors.push("Backup has no integrity digest.");
-    return { valid: errors.length === 0, errors, backup: errors.length ? null : sanitize(backup) };
+    return { valid: errors.length === 0, errors, warnings: backup?.manifest?.warnings || [], backup: errors.length ? null : sanitize(backup) };
   }
 
   function buildGuestMergePlan(backup, storage) {
@@ -270,7 +291,7 @@
     const url = URL.createObjectURL(blob); const anchor = documentRef.createElement("a"); anchor.href = url; anchor.download = filename; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  const api = { FORMAT, VERSION, MAX_FILE_BYTES, MAX_ASSET_BYTES, MAX_ASSETS, PAGE_SIZE, GUEST_KEYS, CLOUD_SECTIONS, RESTORE_ORDER, sanitize, stableStringify, sha256, recordCounts, createBackup, collectGuest, fetchAllOwned, collectCloud, findAssetReferences, collectAssets, validateBackup, buildGuestMergePlan, applyGuestMergePlan, flattenCloudData, buildCloudMergePlan, applyCloudMergePlan, downloadJson };
+  const api = { FORMAT, VERSION, MAX_FILE_BYTES, MAX_ASSET_BYTES, MAX_ASSETS, PAGE_SIZE, GUEST_KEYS, CLOUD_SECTIONS, RESTORE_ORDER, sanitize, stableStringify, sha256, recordCounts, createBackup, collectGuest, fetchAllOwned, collectCloud, findAssetReferences, collectAssets, restorableCollections, validateIds, validateBackup, buildGuestMergePlan, applyGuestMergePlan, flattenCloudData, buildCloudMergePlan, applyCloudMergePlan, downloadJson };
   global.SanctuaryBackup = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);
