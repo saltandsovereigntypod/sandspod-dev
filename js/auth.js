@@ -105,7 +105,7 @@ async function signInWithGoogle() {
   const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://dev.saltandsovereignty.com/"
+      redirectTo: `${window.location.origin}/`
     }
   });
 
