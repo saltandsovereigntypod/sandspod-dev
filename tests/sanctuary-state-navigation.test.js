@@ -55,3 +55,13 @@ test("late moderator readiness updates state without discarding hydrated setting
   assert.equal(updated.canModerate, true);
   assert.deepEqual(updated.settings, hydrated.settings);
 });
+
+test("render-time moderator state supersedes a stale cached denial", () => {
+  const previous = global.getSaltCommunityModeratorState;
+  global.getSaltCommunityModeratorState = () => ({ resolved: true, user: { id: "admin" }, canModerate: true });
+  const state = Sanctuary.authoritativeState({ authResolved: false, user: null, settings: { preferred_name: "Ash" }, settingsResolved: true, canModerate: false });
+  assert.equal(state.canModerate, true);
+  assert.equal(state.user.id, "admin");
+  assert.equal(state.settings.preferred_name, "Ash");
+  global.getSaltCommunityModeratorState = previous;
+});

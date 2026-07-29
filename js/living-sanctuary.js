@@ -58,6 +58,10 @@
     if (!moderatorState.resolved) return state;
     return { ...state, authResolved: true, user: moderatorState.user || null, isGuest: !moderatorState.user, canModerate: Boolean(moderatorState.canModerate) };
   }
+  function authoritativeState(state = sanctuaryState) {
+    const moderatorState = global.getSaltCommunityModeratorState?.();
+    return moderatorState ? applyModeratorState(state, moderatorState) : state;
+  }
 
   function indexRecords() {
     global.SanctuarySearchUI?.rebuildLocalIndex?.();
@@ -74,6 +78,8 @@
   }
 
   function renderHome(panel, state = sanctuaryState) {
+    state = authoritativeState(state);
+    sanctuaryState = state;
     const section = panel.querySelector('[data-sanctuary-view="dashboard"]');
     if (!section) return;
     const records = indexRecords();
@@ -119,7 +125,7 @@
       if (view === "journey") renderJourney(panel, {});
       if (view === "settings") global.LivingSettingsView?.render?.(panel);
     };
-    sanctuaryState = createViewState({ settings: global.getLocalMySettings?.() || {} });
+    sanctuaryState = authoritativeState(createViewState({ settings: global.getLocalMySettings?.() || {} }));
     renderHome(panel, sanctuaryState);
   }
 
@@ -154,8 +160,20 @@
   });
   if (typeof window !== "undefined") window.addEventListener("saltSettingsChanged", () => refreshForAuth({ detail: { user: global.getCurrentSaltUser?.() || null } }));
 
-  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, createViewState, applyModeratorState, getState: () => ({ ...sanctuaryState }), install };
+  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, createViewState, applyModeratorState, authoritativeState, getState: () => ({ ...sanctuaryState }), install };
   global.LivingSanctuary = api;
+  if (typeof location !== "undefined" && new URLSearchParams(location.search).get("debugSanctuary") === "1") {
+    global.debugSanctuaryModeratorState = () => {
+      const moderatorState = global.getSaltCommunityModeratorState?.() || { resolved: false, user: null, canModerate: false };
+      const helperResult = typeof global.isSaltCommunityModerator === "function" ? global.isSaltCommunityModerator(moderatorState.user) : null;
+      const liveState = authoritativeState(sanctuaryState);
+      return {
+        sanctuary: { userId: liveState.user?.id || null, authResolved: liveState.authResolved, settingsResolved: liveState.settingsResolved, helperAvailable: typeof global.isSaltCommunityModerator === "function", helperResult, canModerate: liveState.canModerate, sourceUserObject: "shared-auth-current-user" },
+        moderationPage: { userId: moderatorState.user?.id || null, helperAvailable: typeof global.isSaltCommunityModerator === "function", helperResult: moderatorState.canModerate, sourceUserObject: "shared-auth-current-user" },
+        equality: { sameUserId: (liveState.user?.id || null) === (moderatorState.user?.id || null), sameHelperFunction: true, sameResult: liveState.canModerate === moderatorState.canModerate }
+      };
+    };
+  }
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document !== "undefined") install();
 })(typeof window !== "undefined" ? window : globalThis);

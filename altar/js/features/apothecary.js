@@ -45,28 +45,14 @@ const apothecaryTypes = [
 ];
 
 let apothecaryItemsCache = [];
+let apothecaryHydrationRevision = 0;
 
-function mapApothecaryRowToItem(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    type: row.type,
-    typeLabel: row.type_label || "",
-    imagePath: row.image_url || "",
-    intention: row.intention || "",
-    notes: row.notes || "",
-    details: row.details || {},
-    ingredients: row.ingredients || [],
-    livingState: row.living_state || {},
-    entityId: row.entity_id || "",
-    instanceId: row.instance_id || "",
-    grimoireEntryId: row.grimoire_entry_id || "",
-    grimoireStatus: row.grimoire_status || "",
-    logToGrimoire: Boolean(row.log_to_grimoire),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
+function normalizeApothecaryItem(row = {}) {
+  return window.ApothecaryNormalization.normalize(row);
 }
+
+const mapApothecaryRowToItem = normalizeApothecaryItem;
+window.normalizeApothecaryItem = normalizeApothecaryItem;
 
 function mapApothecaryItemToRow(item, userId) {
   return {
@@ -101,20 +87,29 @@ function announceApothecarySearchChange() {
   document.dispatchEvent(new CustomEvent("sanctuary-search:sources-changed", { detail: { source: "apothecary" } }));
 }
 
+function announceApothecaryHydrated(source) {
+  window.dispatchEvent(new CustomEvent("apothecary:hydrated", { detail: { count: apothecaryItemsCache.length, source } }));
+}
+
 async function loadApothecaryItems() {
+  const revision = ++apothecaryHydrationRevision;
   const user =
     typeof getCurrentAssetUser === "function"
       ? await getCurrentAssetUser()
       : await ensureAltarUser();
 
   if (!user) {
+    let localItems = [];
     try {
-      apothecaryItemsCache = JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || [];
+      localItems = (JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || []).map(normalizeApothecaryItem).filter((item) => item.id);
     } catch {
-      apothecaryItemsCache = [];
+      localItems = [];
     }
 
+    if (revision !== apothecaryHydrationRevision) return apothecaryItemsCache;
+    apothecaryItemsCache = localItems;
     announceApothecarySearchChange();
+    announceApothecaryHydrated("local");
     return apothecaryItemsCache;
   }
 
@@ -127,12 +122,14 @@ async function loadApothecaryItems() {
   if (error) {
     console.error(error);
     showAltarToast("Could not load My Apothecary");
-    apothecaryItemsCache = [];
-    return [];
+    if (revision === apothecaryHydrationRevision) announceApothecaryHydrated("cloud-error");
+    return apothecaryItemsCache;
   }
 
+  if (revision !== apothecaryHydrationRevision) return apothecaryItemsCache;
   apothecaryItemsCache = (data || []).map(mapApothecaryRowToItem);
   announceApothecarySearchChange();
+  announceApothecaryHydrated("cloud");
   return apothecaryItemsCache;
 }
 
@@ -147,7 +144,7 @@ async function saveApothecaryItems(items) {
     return false;
   }
 
-  const rows = items.map((item) => mapApothecaryItemToRow(item, user.id));
+  const rows = items.map(normalizeApothecaryItem).map((item) => mapApothecaryItemToRow(item, user.id));
 
   const { data, error } = await db
     .from("apothecary_items")
@@ -198,7 +195,7 @@ async function migrateLocalApothecaryToCloud() {
     return;
   }
 
-  const rows = localItems.map((item) => mapApothecaryItemToRow(item, user.id));
+  const rows = localItems.map(normalizeApothecaryItem).map((item) => mapApothecaryItemToRow(item, user.id));
 
   const { error } = await db
     .from("apothecary_items")

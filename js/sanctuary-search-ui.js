@@ -86,6 +86,7 @@
 
   async function enrichIndex(token) {
     const tasks = [];
+    if (typeof global.loadApothecaryItems === "function") tasks.push(global.loadApothecaryItems().then((records) => ["apothecary", records.map((item) => global.SanctuarySearch.createApothecaryResult(item)).filter(Boolean)]));
     if (typeof global.getMyRituals === "function") tasks.push(global.getMyRituals().then((records) => ["rituals", records.map((ritual) => ({
       id: ritual.id, group: "rituals", type: ritual.ritual_type || "ritual", title: ritual.title || ritual.name || "Untitled Ritual",
       subtitle: "Ritual", fields: [ritual.intention, ritual.notes, ritual.tags, ritual.altar_snapshot],
@@ -201,6 +202,7 @@
   });
   document.addEventListener("living-library:hydrated", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
   document.addEventListener("sanctuary-search:sources-changed", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
+  window.addEventListener("apothecary:hydrated", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
   window.addEventListener("altarCabinetReady", () => { if (modal) { rebuildLocalIndex(); renderResults(); } });
   global.SanctuarySearchUI = { rebuildLocalIndex };
 })(typeof window !== "undefined" ? window : globalThis);

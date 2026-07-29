@@ -38,18 +38,21 @@ const cabinetItems = [
     ["mugwort", "Mugwort", ["dreams", "divination", "intuition", "thresholds"]],
     ["rosemary", "Rosemary", ["protection", "purification", "remembrance", "healing"]],
     ["sage", "Sage", ["cleansing", "wisdom", "protection", "purification"]],
-  ].map(([id, name, keywords, folder = id.replaceAll("_", "-"), fileBase = folder]) => ({
+  ].map(([id, name, keywords, folder = id.replaceAll("_", "-"), fileBase = folder]) => {
+    const hasBuiltInImages = new Set(["basil", "bay", "cedar", "chamomile", "cinnamon", "lavender", "mugwort", "rosemary"]).has(id);
+    const herbImage = (form) => hasBuiltInImages ? `../assets/altar/objects/herbs/${folder}/${fileBase}-${form}.png` : "";
+    return {
     category: "herbs",
     name,
     icon: "🌿",
     keywords,
     forms: [
-      { label: "Sprig", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-sprig.png`, type: "herb", herb: id, form: "sprig" },
-      { label: "Loose", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-loose.png`, type: "herb", herb: id, form: "loose" },
-      { label: "Oil", image: `../assets/altar/objects/herbs/${folder}/${fileBase}-oil.png`, type: "oil", herb: id, form: "oil" },
+      { label: "Sprig", image: herbImage("sprig"), type: "herb", herb: id, form: "sprig" },
+      { label: "Loose", image: herbImage("loose"), type: "herb", herb: id, form: "loose" },
+      { label: "Oil", image: herbImage("oil"), type: "oil", herb: id, form: "oil" },
       { label: "Incense", image: "../assets/altar/objects/herbs/incense/incense.png", type: "herb", herb: id, form: "incense" }
     ]
-  })),
+  }; }),
 
   ...[
     ["amethyst", "Amethyst", ["intuition", "dreams", "meditation", "protection"]],
@@ -274,6 +277,7 @@ function renderCabinetTile(item, form, isMultiForm = false) {
       class="cabinet-tile ${isMultiForm ? "cabinet-form-tile" : ""}"
       data-image="${displayImage}"
       data-label="${label}"
+      data-form-label="${form.label || item.name}"
       data-entity-id="${form.entityId || item.entityId || ""}"
       data-type="${form.type || ""}"
       data-herb="${form.herb || ""}"
@@ -305,7 +309,7 @@ function partitionCabinetForms(item, forms = item.forms || []) {
 }
 
 function renderMissingFormAction(item, form) {
-  return `<button type="button" class="cabinet-missing-form-action" data-upload-cabinet-image data-image="" data-label="${item.name} ${form.label}" data-type="${form.type || ""}" data-form="${form.form || ""}" data-color="${form.color || ""}" data-herb="${form.herb || ""}" data-crystal="${form.crystal || ""}" data-entity-id="${form.entityId || item.entityId || ""}">Add ${form.label} Image</button>`;
+  return `<button type="button" class="cabinet-missing-form-action" data-upload-cabinet-image data-image="" data-label="${item.name} ${form.label}" data-form-label="${form.label}" data-type="${form.type || ""}" data-form="${form.form || ""}" data-color="${form.color || ""}" data-herb="${form.herb || ""}" data-crystal="${form.crystal || ""}" data-entity-id="${form.entityId || item.entityId || ""}">Add ${form.label} Image</button>`;
 }
 
 function renderCabinetBackgroundTile(item) {
@@ -527,4 +531,17 @@ function renderCabinetItems() {
 function renderCabinet() {
   renderCabinetTabs();
   renderCabinetItems();
+}
+
+if (typeof cabinetContent !== "undefined" && cabinetContent && !cabinetContent.dataset.formImageFallbackInstalled) {
+  cabinetContent.dataset.formImageFallbackInstalled = "true";
+  cabinetContent.addEventListener("error", (event) => {
+    const image = event.target.closest?.(".cabinet-tile-image");
+    const tile = image?.closest?.(".cabinet-form-tile[data-image]");
+    if (!tile) return;
+    tile.dataset.image = "";
+    tile.className = "cabinet-missing-form-action";
+    tile.setAttribute("data-upload-cabinet-image", "");
+    tile.textContent = `Add ${tile.dataset.formLabel || "Form"} Image`;
+  }, true);
 }

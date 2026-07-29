@@ -37,4 +37,14 @@ test("missing built-in forms use compact add actions instead of placeholder tile
   assert.match(source, /cabinet-missing-form-actions/);
   assert.match(source, /Add \$\{form\.label\} Image/);
   assert.doesNotMatch(source, /partition\.missingForms\.map\(\(form\) => renderCabinetTile/);
+  assert.match(source, /formImageFallbackInstalled/);
+  const css = fs.readFileSync("altar/altar.css", "utf8");
+  assert.match(css, /\.cabinet-missing-form-action[\s\S]*?border:\s*0/);
+  assert.doesNotMatch(css, /\.cabinet-missing-form-action[\s\S]{0,250}border-radius:\s*999px/);
+});
+
+test("Sage missing assets become actions while its valid shared incense remains available", () => {
+  const presentation = cabinetApi().getFormPresentation("herbs:sage");
+  assert.deepEqual(Array.from(presentation.availableForms), ["incense"]);
+  assert.deepEqual(Array.from(presentation.missingForms), ["sprig", "loose", "oil"]);
 });

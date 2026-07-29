@@ -23,3 +23,5 @@ Relationship labels on Living Library results are derived through `LivingConnect
 ## Progressive and stale-safe behavior
 
 Opening search builds the local index synchronously. Existing cloud loaders may add sources afterward through `updateSource()`. A request token prevents late enrichment from rendering after the search closes or a newer search session opens. Searches themselves only scan the current in-memory index and never issue per-keystroke database requests.
+
+Apothecary enrichment explicitly hydrates persisted items when Search opens. Legacy and current records are normalized to the same authored-name, type, ingredient, intention, tag, entity-link, image, and timestamp shape before indexing. Hydration revisions prevent stale empty responses from clearing newer results, and updates rerender without moving focus from the active search field or result.
