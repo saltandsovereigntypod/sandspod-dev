@@ -13,7 +13,7 @@
       projectRef: "outksqvhusvvtjgiveoh",
       // REQUIRED: set this to the production project's browser-safe publishable
       // (or legacy anon) key. It was not present in this repository's history.
-      publishableKey: "",
+      publishableKey: "sb_publishable_5jdmOHUh1Vzu_JoOVejXNA_cxK7aFaS",
       moderatorIds: Object.freeze([
         "ddc5463e-1551-498b-b5af-79ce52ac591c",
         "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
