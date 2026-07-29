@@ -10,10 +10,22 @@
   <body>
     <header class="site-header" data-header>
       <nav class="nav" aria-label="Primary navigation">
-        <a class="brand" href="../../index.html">
+        <a class="brand" href="../../index.html" aria-label="Salt & Sovereignty home">
           <span class="brand-mark" aria-hidden="true">S&S</span>
           <span>Salt & Sovereignty</span>
         </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+          <span class="sr-only">Toggle navigation</span>
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-menu">
+          <a href="../../index.html#about">About</a>
+          <a href="../../index.html#podcast">Podcast</a>
+          <a href="../../index.html#books">Books</a>
+          <a href="../../index.html#blog">Blog</a>
+          <a href="../../index.html#contact">Contact</a>
+          <a class="nav-sanctuary-button" href="../../index.html">Sanctuary</a>
+        </div>
       </nav>
     </header>
 
@@ -30,13 +42,13 @@
 
       <div class="creator-dashboard-layout">
         <aside class="creator-dashboard-sidebar">
-          <button type="button" data-admin-filter="pending">Pending</button>
-          <button type="button" data-admin-filter="needs_revision">Needs Revision</button>
-          <button type="button" data-admin-filter="approved">Approved</button>
-          <button type="button" data-admin-filter="published">Published</button>
-          <button type="button" data-admin-filter="rejected">Rejected</button>
-          <button type="button" data-admin-filter="archived">Archived</button>
-          <button type="button" data-admin-filter="all">All</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="pending">Pending</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="needs_revision">Needs Revision</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="approved">Approved</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="published">Published</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="rejected">Rejected</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="archived">Archived</button>
+          <button class="button button--small button--ghost" type="button" data-admin-filter="all">All</button>
         </aside>
 
         <section class="creator-dashboard-inbox">
@@ -48,9 +60,9 @@
           <div class="admin-submission-list" data-admin-submission-list></div>
 
           <div class="admin-pagination">
-            <button type="button" data-admin-page="prev">← Previous</button>
+            <button class="button button--tiny button--ghost" type="button" data-admin-page="prev">← Previous</button>
             <span data-admin-page-label>Page 1</span>
-            <button type="button" data-admin-page="next">Next →</button>
+            <button class="button button--tiny button--ghost" type="button" data-admin-page="next">Next →</button>
           </div>
         </section>
 

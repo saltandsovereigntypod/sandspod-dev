@@ -37,7 +37,7 @@
     populateBackgroundSelect(background, saved.default_altar_background);
     const nav = document.createElement("nav"); nav.className = "settings-category-nav"; nav.setAttribute("aria-label", "Settings categories");
     const labels = { identity: "Identity", appearance: "Appearance", book: "Book of Shadows", library: "Living Library", companion: "Companion", objects: "Living Objects", account: "Account & Data" };
-    CATEGORIES.forEach((category, index) => nav.insertAdjacentHTML("beforeend", `<button type="button" data-settings-category="${category}" aria-pressed="${index === 0}">${labels[category]}</button>`));
+    CATEGORIES.forEach((category, index) => nav.insertAdjacentHTML("beforeend", `<button class="button button--small button--pill" type="button" data-settings-category="${category}" aria-pressed="${index === 0}">${labels[category]}</button>`));
     form.prepend(nav);
     const buckets = Object.fromEntries(CATEGORIES.map((category) => { const fieldset = document.createElement("fieldset"); fieldset.className = "settings-category"; fieldset.dataset.settingsPanel = category; fieldset.hidden = category !== "identity"; fieldset.innerHTML = `<legend>${labels[category]}</legend>`; form.insertBefore(fieldset, form.querySelector('button[type="submit"]')); return [category, fieldset]; }));
     [...form.querySelectorAll(":scope > label, :scope > fieldset:not(.settings-category)")].forEach((node) => { const name = node.querySelector("[name]")?.name || ""; buckets[categoryForName(name)]?.append(node); });
