@@ -54,6 +54,10 @@
   function createViewState({ authResolved = false, user = null, settings = {}, settingsResolved = false } = {}, permission = global.isSaltCommunityModerator) {
     return { authResolved, user, isGuest: authResolved && !user, settings, settingsResolved, canModerate: Boolean(authResolved && user && permission?.(user)) };
   }
+  function applyModeratorState(state, moderatorState = {}) {
+    if (!moderatorState.resolved) return state;
+    return { ...state, authResolved: true, user: moderatorState.user || null, isGuest: !moderatorState.user, canModerate: Boolean(moderatorState.canModerate) };
+  }
 
   function indexRecords() {
     global.SanctuarySearchUI?.rebuildLocalIndex?.();
@@ -126,21 +130,31 @@
     sanctuaryRequestId += 1;
     const token = sanctuaryRequestId;
     global.SanctuarySearch?.buildIndex?.({});
-    const user = event?.detail?.user ?? global.getCurrentSaltUser?.() ?? null;
+    const moderatorState = global.getSaltCommunityModeratorState?.();
+    const user = moderatorState?.user ?? event?.detail?.user ?? global.getCurrentSaltUser?.() ?? null;
     sanctuaryState = createViewState({ authResolved: true, user, settings: user ? {} : global.getLocalMySettings?.() || {}, settingsResolved: !user });
+    if (moderatorState) sanctuaryState = applyModeratorState(sanctuaryState, moderatorState);
     const panel = document.querySelector("[data-my-sanctuary-panel]");
     const home = panel?.querySelector('[data-sanctuary-view="dashboard"]');
     if (home && !home.hidden) renderHome(panel, sanctuaryState);
     const settings = user ? await global.getMySettings?.() : global.getLocalMySettings?.();
     if (token !== sanctuaryRequestId) return;
     sanctuaryState = createViewState({ authResolved: true, user, settings: settings || {}, settingsResolved: true });
+    const resolvedModeratorState = global.getSaltCommunityModeratorState?.();
+    if (resolvedModeratorState) sanctuaryState = applyModeratorState(sanctuaryState, resolvedModeratorState);
     if (home && !home.hidden) renderHome(panel, sanctuaryState);
   }
   if (typeof document !== "undefined") document.addEventListener("saltAuthChanged", refreshForAuth);
   if (typeof document !== "undefined") document.addEventListener("saltAuthReady", refreshForAuth);
+  if (typeof window !== "undefined") window.addEventListener("saltModeratorStateReady", (event) => {
+    sanctuaryState = applyModeratorState(sanctuaryState, event.detail);
+    const panel = document.querySelector("[data-my-sanctuary-panel]");
+    const home = panel?.querySelector('[data-sanctuary-view="dashboard"]');
+    if (home && !home.hidden) renderHome(panel, sanctuaryState);
+  });
   if (typeof window !== "undefined") window.addEventListener("saltSettingsChanged", () => refreshForAuth({ detail: { user: global.getCurrentSaltUser?.() || null } }));
 
-  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, createViewState, install };
+  const api = { greeting, validDestination, continueItems, scopeKey, isCurrentRequest, buildSnapshot, companionObservation, moderatorDestination, createViewState, applyModeratorState, getState: () => ({ ...sanctuaryState }), install };
   global.LivingSanctuary = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document !== "undefined") install();

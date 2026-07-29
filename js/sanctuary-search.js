@@ -57,7 +57,9 @@
       subtitle: `${typeLabel} · Apothecary`, aliases: typeAliases,
       fields: [title, item.intention, item.notes, item.tags, item.details, item.formName, ingredientNames],
       relationshipText: ingredientNames, relationshipContext: ingredientNames.length ? `Contains ${ingredientNames.slice(0, 3).join(", ")}` : "",
-      action: item.action || null, timestamp: item.updatedAt || item.updated_at || item.createdAt || item.created_at
+      action: item.action || null,
+      destination: item.destination || { kind: "place-apothecary-item", itemId: item.id, href: `/altar/?placeApothecaryItem=${encodeURIComponent(item.id)}` },
+      timestamp: item.updatedAt || item.updated_at || item.createdAt || item.created_at
     });
   }
 

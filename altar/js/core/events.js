@@ -376,9 +376,36 @@ document.addEventListener("click", (event) => {
   }
 });
 
+window.AltarPlacement = {
+  placeCabinetItem(request) { return window.AltarCabinet?.placeItem?.(request) || false; },
+  placeApothecaryItem(itemId) { return typeof placeApothecaryItem === "function" ? placeApothecaryItem(itemId) : false; },
+  selectInstance(instanceId) {
+    const object = [...document.querySelectorAll(".altar-object")].find((item) => item.dataset.altarObjectId === instanceId || item.dataset.instanceId === instanceId);
+    if (!object || typeof selectObject !== "function") return false;
+    selectObject(object);
+    return true;
+  }
+};
+
+function consumeAltarSearchAction(names) {
+  const url = new URL(window.location.href);
+  names.forEach((name) => url.searchParams.delete(name));
+  history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
 window.addEventListener("load", () => {
   const params = new URLSearchParams(window.location.search);
-  window.setTimeout(() => {
+  window.setTimeout(async () => {
+    const cabinetItemId = params.get("placeCabinetItem");
+    if (cabinetItemId) {
+      const placed = window.AltarPlacement.placeCabinetItem({ itemId: cabinetItemId, formId: params.get("form") || "" });
+      if (placed) consumeAltarSearchAction(["placeCabinetItem", "form"]);
+    }
+    const placeApothecaryItemId = params.get("placeApothecaryItem");
+    if (placeApothecaryItemId) {
+      if (typeof loadApothecaryItems === "function") await loadApothecaryItems();
+      if (window.AltarPlacement.placeApothecaryItem(placeApothecaryItemId)) consumeAltarSearchAction(["placeApothecaryItem"]);
+    }
     const apothecaryItemId = params.get("apothecaryItem");
     if (apothecaryItemId && typeof openApothecaryItemEditor === "function") openApothecaryItemEditor(apothecaryItemId);
     const instanceId = params.get("selectObject");

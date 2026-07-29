@@ -4,12 +4,20 @@
    ========================================================= */
 
 let currentUser = null;
+let saltAuthResolved = false;
 window.getCurrentSaltUser = () => currentUser;
 const SALT_COMMUNITY_MODERATOR_IDS = new Set([
   "ddc5463e-1551-498b-b5af-79ce52ac591c",
   "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
 ]);
 window.isSaltCommunityModerator = (user = currentUser) => Boolean(user && SALT_COMMUNITY_MODERATOR_IDS.has(user.id));
+window.getSaltCommunityModeratorState = () => ({ resolved: saltAuthResolved, user: currentUser, canModerate: saltAuthResolved && window.isSaltCommunityModerator(currentUser) });
+function announceModeratorState() {
+  window.dispatchEvent(new CustomEvent("saltModeratorStateReady", { detail: window.getSaltCommunityModeratorState() }));
+}
+// Let later-loaded Sanctuary consumers observe that the shared helper exists,
+// even when Supabase has not resolved the user yet.
+queueMicrotask(announceModeratorState);
 
 const authForms = document.querySelectorAll("[data-auth-form]");
 const authStatuses = document.querySelectorAll("[data-auth-status]");
@@ -50,12 +58,16 @@ async function getCurrentUser() {
 
   if (error) {
     currentUser = null;
+    saltAuthResolved = true;
     updateAuthUI(null);
+    announceModeratorState();
     return null;
   }
 
   currentUser = data.user;
+  saltAuthResolved = true;
   updateAuthUI(currentUser);
+  announceModeratorState();
   return currentUser;
 }
 
@@ -68,7 +80,9 @@ async function signUpWithEmail(email, password) {
   if (error) throw error;
 
   currentUser = data.user;
+  saltAuthResolved = true;
   updateAuthUI(currentUser);
+  announceModeratorState();
   return data.user;
 }
 
@@ -81,7 +95,9 @@ async function signInWithEmail(email, password) {
   if (error) throw error;
 
   currentUser = data.user;
+  saltAuthResolved = true;
   updateAuthUI(currentUser);
+  announceModeratorState();
   return data.user;
 }
 
@@ -102,7 +118,9 @@ async function signOutUser() {
   if (error) throw error;
 
   currentUser = null;
+  saltAuthResolved = true;
   updateAuthUI(null);
+  announceModeratorState();
 
   document.dispatchEvent(
     new CustomEvent("saltAuthSignedOut", {
@@ -178,6 +196,7 @@ document.addEventListener("click", async (event) => {
 
 db.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
+  saltAuthResolved = true;
   updateAuthUI(currentUser);
 
   document.dispatchEvent(
@@ -188,12 +207,15 @@ db.auth.onAuthStateChange((event, session) => {
       }
     })
   );
+  announceModeratorState();
 });
 
 getCurrentUser().then((user) => {
+  saltAuthResolved = true;
   document.dispatchEvent(
     new CustomEvent("saltAuthReady", {
       detail: { user }
     })
   );
+  announceModeratorState();
 });

@@ -22,7 +22,7 @@ let activeAdminSubmission = null;
 let adminUnreadCounts = {};
 
 function isSaltSubmissionAdmin() {
-  return window.isSaltCommunityModerator?.(currentUser) || false;
+  return window.getSaltCommunityModeratorState?.().canModerate || false;
 }
 
 function adminSubmissionStatus(message) {

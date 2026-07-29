@@ -989,7 +989,7 @@ function placeApothecaryItem(itemId) {
 
   if (!item) {
     showAltarToast("Apothecary item not found");
-    return;
+    return false;
   }
 
   placeObject({
@@ -1011,6 +1011,7 @@ function placeApothecaryItem(itemId) {
 
   closeAltarApothecaryOverlay();
   showAltarToast(`${item.name} placed`);
+  return true;
 }
 
 function syncPlacedApothecaryObjects(item) {

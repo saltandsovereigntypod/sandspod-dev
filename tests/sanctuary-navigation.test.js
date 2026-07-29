@@ -14,8 +14,8 @@ test("Sanctuary and moderation use one shared moderator permission path", () => 
   const sanctuary = fs.readFileSync("js/living-sanctuary.js", "utf8");
   const moderation = fs.readFileSync("js/admin-submissions.js", "utf8");
   assert.match(auth, /isSaltCommunityModerator/);
-  assert.match(sanctuary, /isSaltCommunityModerator/);
-  assert.match(moderation, /isSaltCommunityModerator/);
+  assert.match(sanctuary, /getSaltCommunityModeratorState/);
+  assert.match(moderation, /getSaltCommunityModeratorState/);
   assert.doesNotMatch(sanctuary, /isSanctuaryAdmin/);
 });
 

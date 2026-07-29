@@ -148,12 +148,43 @@ function cabinetSearchAliases(item) {
   return [...new Set([...(item.keywords || []), ...formWords, ...variants].filter(Boolean))];
 }
 
+function cabinetItemId(item) {
+  return `${item.category}:${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
+function placeCabinetDefinition({ itemId, formId } = {}) {
+  const item = cabinetItems.find((candidate) => cabinetItemId(candidate) === itemId);
+  if (!item) { showAltarToast("Cabinet item not found"); return false; }
+  const availableForms = partitionCabinetForms(item).availableForms;
+  const form = formId ? availableForms.find((candidate) => (candidate.form || candidate.label) === formId) : availableForms.length === 1 ? availableForms[0] : null;
+  if (!form) {
+    activeCabinetCategory = item.category;
+    cabinetSearchTerm = item.name;
+    if (cabinetSearch) cabinetSearch.value = item.name;
+    renderCabinet();
+    openAltarCabinetOverlay();
+    showAltarToast(availableForms.length ? "Choose a form to place" : "Add a form image before placing this item");
+    return true;
+  }
+  placeObject({ imagePath: getCabinetDisplayImage(item, form), label: item.forms.length > 1 ? `${item.name} ${form.label}` : item.name, type: form.type || "", herb: form.herb || "", form: form.form || "", color: form.color || "", crystal: form.crystal || "", tool: form.tool || "", vessel: form.vessel || "", deity: form.deity || "", entityId: form.entityId || item.entityId || "" });
+  return true;
+}
+
 window.AltarCabinet = {
+  placeItem: placeCabinetDefinition,
+  partitionForms: partitionCabinetForms,
+  getFormPresentation(itemId) {
+    const item = cabinetItems.find((candidate) => cabinetItemId(candidate) === itemId);
+    if (!item) return null;
+    const partition = partitionCabinetForms(item);
+    return { availableForms: partition.availableForms.map((form) => form.form || form.label), missingForms: partition.missingForms.map((form) => form.form || form.label) };
+  },
   getSearchRecords() {
     return cabinetItems.filter((item) => item.category !== "backgrounds").flatMap((item, index) => {
-      const base = `/altar/?cabinet=${encodeURIComponent(item.category)}&item=${encodeURIComponent(item.name)}`;
-      const itemRecord = { id: `cabinet:${item.category}:${item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${index}`, group: "cabinet", source: "altar-cabinet", type: item.forms?.[0]?.type || item.category, title: item.name, subtitle: "Altar Cabinet", aliases: cabinetSearchAliases(item), fields: [item.category, "cabinet asset"], href: base };
-      const formRecords = (item.forms || []).map((form) => ({ id: `${itemRecord.id}:form:${form.form || form.label}`, group: "cabinet", source: "altar-cabinet-form", type: form.type || item.category, title: form.label, subtitle: `${form.type === "candle" ? "Candle" : "Object"} Form · ${item.name}`, aliases: [item.name, `${item.name} ${form.label}`, ...(form.aliases || [])], fields: [item.category, item.name, form.form], href: `${base}&form=${encodeURIComponent(form.form || form.label)}` }));
+      const stableId = cabinetItemId(item);
+      const base = `/altar/?placeCabinetItem=${encodeURIComponent(stableId)}`;
+      const itemRecord = { id: `cabinet:${stableId}:${index}`, group: "cabinet", source: "altar-cabinet", type: item.forms?.[0]?.type || item.category, title: item.name, subtitle: "Altar Cabinet", aliases: cabinetSearchAliases(item), fields: [item.category, "cabinet asset"], href: base, destination: { kind: "place-cabinet-item", category: item.category, itemId: stableId, entityId: item.entityId || "", href: base } };
+      const formRecords = (item.forms || []).map((form) => { const formId = form.form || form.label; const href = `${base}&form=${encodeURIComponent(formId)}`; return { id: `${itemRecord.id}:form:${formId}`, group: "cabinet", source: "altar-cabinet-form", type: form.type || item.category, title: form.label, subtitle: `${form.type === "candle" ? "Candle" : "Object"} Form · ${item.name}`, aliases: [item.name, `${item.name} ${form.label}`, ...(form.aliases || [])], fields: [item.category, item.name, form.form], href, destination: { kind: "place-cabinet-item", category: item.category, itemId: stableId, entityId: form.entityId || item.entityId || "", formId, href } }; });
       return [itemRecord, ...formRecords];
     });
   }
@@ -264,6 +295,17 @@ function renderCabinetTile(item, form, isMultiForm = false) {
       </span>
     </button>
   `;
+}
+
+function partitionCabinetForms(item, forms = item.forms || []) {
+  const availableForms = [];
+  const missingForms = [];
+  forms.forEach((form) => (getCabinetDisplayImage(item, form) ? availableForms : missingForms).push(form));
+  return { availableForms, missingForms };
+}
+
+function renderMissingFormAction(item, form) {
+  return `<button type="button" class="cabinet-missing-form-action" data-upload-cabinet-image data-image="" data-label="${item.name} ${form.label}" data-type="${form.type || ""}" data-form="${form.form || ""}" data-color="${form.color || ""}" data-herb="${form.herb || ""}" data-crystal="${form.crystal || ""}" data-entity-id="${form.entityId || item.entityId || ""}">Add ${form.label} Image</button>`;
 }
 
 function renderCabinetBackgroundTile(item) {
@@ -411,6 +453,7 @@ function renderCabinetItems() {
           `;
         }
 
+        const partition = !item.customCabinetItemId ? partitionCabinetForms(item, forms) : { availableForms: forms, missingForms: [] };
         const missingForms =
         item.customCabinetItemId && typeof CUSTOM_FORM_PRESETS !== "undefined"
           ? (CUSTOM_FORM_PRESETS[item.category] || [])
@@ -425,7 +468,7 @@ function renderCabinetItems() {
           </div>
 
           <div class="cabinet-form-grid">
-            ${forms.map((form) => renderCabinetTile(item, form, true)).join("")}
+            ${partition.availableForms.map((form) => renderCabinetTile(item, form, true)).join("")}
 
             ${
               missingForms.length
@@ -444,6 +487,7 @@ function renderCabinetItems() {
                 : ""
             }
           </div>
+          ${partition.missingForms.length ? `<div class="cabinet-missing-form-actions">${partition.missingForms.map((form) => renderMissingFormAction(item, form)).join("")}</div>` : ""}
 
           ${
             item.customCabinetItemId

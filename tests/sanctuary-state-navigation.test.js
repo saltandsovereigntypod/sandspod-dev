@@ -26,7 +26,7 @@ test("destination adapter preserves exact source destinations", () => {
   const library = { resolveCanonicalEntityId: (id) => id === "legacy" ? "canonical" : id };
   assert.equal(Navigation.destinationFor({ entityId: "legacy" }, library).href, "/grimoire/?entity=canonical");
   assert.equal(Navigation.destinationFor({ href: "/grimoire/?page=page-1" }, library).href, "/grimoire/?page=page-1");
-  assert.deepEqual(Navigation.destinationFor({ action: { kind: "apothecary", id: "jar-1" } }, library), { kind: "apothecary-item", itemId: "jar-1", href: "/altar/?apothecaryItem=jar-1" });
+  assert.deepEqual(Navigation.destinationFor({ action: { kind: "apothecary", id: "jar-1" } }, library), { kind: "place-apothecary-item", itemId: "jar-1", href: "/altar/?placeApothecaryItem=jar-1" });
   assert.equal(Navigation.destinationFor({ href: "/altar/?cabinet=candles&item=White%20Candle&form=tea-light" }, library).href, "/altar/?cabinet=candles&item=White%20Candle&form=tea-light");
   assert.equal(Navigation.destinationFor({}, library), null);
 });
@@ -37,6 +37,21 @@ test("dispatcher captures destination before closing and passes exact IDs", () =
   assert.equal(Navigation.open(result, { close: () => calls.push("close"), selectObject: (id) => calls.push(id) }), true);
   assert.deepEqual(calls, ["close", "instance-7"]);
   const apothecary = [];
-  Navigation.open({ action: { kind: "apothecary", id: "jar-2" } }, { close() {}, openApothecary: (id) => apothecary.push(id) });
+  Navigation.open({ action: { kind: "apothecary", id: "jar-2" } }, { close() {}, placeApothecary: (id) => apothecary.push(id) });
   assert.deepEqual(apothecary, ["jar-2"]);
+});
+
+test("placement destinations remain distinct from selecting an existing instance", () => {
+  const calls = [];
+  Navigation.open({ destination: { kind: "place-cabinet-item", itemId: "candles:white-candle", formId: "vigil" } }, { close() {}, placeCabinet: (request) => calls.push(["cabinet", request.itemId, request.formId]) });
+  Navigation.open({ destination: { kind: "place-apothecary-item", itemId: "jar-3" } }, { close() {}, placeApothecary: (id) => calls.push(["apothecary", id]) });
+  Navigation.open({ destination: { kind: "current-altar", instanceId: "placed-1" } }, { close() {}, selectObject: (id) => calls.push(["select", id]) });
+  assert.deepEqual(calls, [["cabinet", "candles:white-candle", "vigil"], ["apothecary", "jar-3"], ["select", "placed-1"]]);
+});
+
+test("late moderator readiness updates state without discarding hydrated settings", () => {
+  const hydrated = Sanctuary.createViewState({ authResolved: true, user: { id: "admin" }, settings: { preferred_name: "Ash" }, settingsResolved: true }, () => false);
+  const updated = Sanctuary.applyModeratorState(hydrated, { resolved: true, user: hydrated.user, canModerate: true });
+  assert.equal(updated.canModerate, true);
+  assert.deepEqual(updated.settings, hydrated.settings);
 });

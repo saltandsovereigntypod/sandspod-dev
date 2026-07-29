@@ -6,7 +6,7 @@
       const entityId = library?.resolveCanonicalEntityId?.(result.entityId);
       return entityId ? { kind: "library-entity", entityId, href: `/grimoire/?entity=${encodeURIComponent(entityId)}` } : null;
     }
-    if (result.action?.kind === "apothecary") return { kind: "apothecary-item", itemId: result.action.id, href: `/altar/?apothecaryItem=${encodeURIComponent(result.action.id)}` };
+    if (result.action?.kind === "apothecary") return { kind: "place-apothecary-item", itemId: result.action.id, href: `/altar/?placeApothecaryItem=${encodeURIComponent(result.action.id)}` };
     if (result.href) return { kind: "url", href: result.href };
     return null;
   }
@@ -14,6 +14,8 @@
     const destination = destinationFor(result, options.library);
     if (!destination) return false;
     options.close?.();
+    if (destination.kind === "place-cabinet-item" && typeof options.placeCabinet === "function") { options.placeCabinet(destination); return true; }
+    if (destination.kind === "place-apothecary-item" && typeof options.placeApothecary === "function") { options.placeApothecary(destination.itemId); return true; }
     if (destination.kind === "apothecary-item" && typeof options.openApothecary === "function") { options.openApothecary(destination.itemId); return true; }
     if (destination.kind === "current-altar" && typeof options.selectObject === "function") { options.selectObject(destination.instanceId); return true; }
     const navigate = options.navigate || ((href) => { global.location.href = href; });
