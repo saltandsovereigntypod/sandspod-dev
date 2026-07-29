@@ -71,7 +71,7 @@ async function upsertRitualJournalLivingLibraryEntity(user, ritual, formValues =
   const altarItems = (summary.objects || []).map((item) => item.label).filter(Boolean);
 
   const myPractice = {
-    EntryType: "Ritual Journal",
+    EntryType: "Completed Ritual",
     Date: ritual.ritual_date || "",
     DayOfWeek: ritual.day_of_week || "",
     TimeOfDay: ritual.time_of_day || "",
@@ -100,7 +100,7 @@ async function upsertRitualJournalLivingLibraryEntity(user, ritual, formValues =
     ritualId: ritual.id,
     sessionId: ritual.session_id || null,
     ritualTemplateId: ritual.template_id || null,
-    recordType: "ritual_journal",
+    recordType: "ritual",
     source: ritual.source || "digital_altar"
   };
 
@@ -134,7 +134,7 @@ async function upsertRitualJournalLivingLibraryEntity(user, ritual, formValues =
         entity.id,
         LIBRARY_RELATIONS.CONTAINS,
         linkedEntityId,
-        { source: "ritual_journal", ritualId: ritual.id }
+        { source: "ritual", ritualId: ritual.id }
       );
     }
   }

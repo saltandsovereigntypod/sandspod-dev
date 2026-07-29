@@ -119,7 +119,7 @@ function createMySanctuaryPanel() {
         <nav class="my-sanctuary-links" aria-label="Sanctuary navigation">
            <a href="/altar/">🕯 My Digital Altar</a>
            <a href="/grimoire/index.html">📖 My Book of Shadows</a>
-           <button type="button" data-my-sanctuary-view-button="rituals">🌙 My Saved Rituals</button>
+           <a href="/grimoire/?entityType=ritual">🌙 Completed Rituals</a>
            <a href="/submit/">✦ Offer to the Sanctuary</a>
            <a href="/grimoire/community-grimoire.html">✨ Community Grimoire</a>
            <button type="button" data-my-sanctuary-view-button="submissions">📬 My Submissions</button>
@@ -138,7 +138,7 @@ function createMySanctuaryPanel() {
       </section>
 
       <section class="my-sanctuary-view" data-sanctuary-view="rituals" hidden>
-        <h2>My Rituals</h2>
+        <h2>Completed Rituals</h2>
 
         <p class="my-sanctuary-intro">
           Save ritual notes, intentions, moon phases, altar links, and tags.
