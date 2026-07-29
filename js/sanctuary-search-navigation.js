@@ -18,7 +18,7 @@
     if (destination.kind === "place-apothecary-item" && typeof options.placeApothecary === "function") { options.placeApothecary(destination.itemId); return true; }
     if (destination.kind === "apothecary-item" && typeof options.openApothecary === "function") { options.openApothecary(destination.itemId); return true; }
     if (destination.kind === "current-altar" && typeof options.selectObject === "function") { options.selectObject(destination.instanceId); return true; }
-    const navigate = options.navigate || ((href) => { global.location.href = href; });
+    const navigate = options.navigate || ((href) => { global.location.href = global.SaltEnvironment?.resolvePath(href) || href; });
     if (destination.href) { navigate(destination.href); return true; }
     return false;
   }

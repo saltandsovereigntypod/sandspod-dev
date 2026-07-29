@@ -6,10 +6,9 @@
 let currentUser = null;
 let saltAuthResolved = false;
 window.getCurrentSaltUser = () => currentUser;
-const SALT_COMMUNITY_MODERATOR_IDS = new Set([
-  "ddc5463e-1551-498b-b5af-79ce52ac591c",
-  "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
-]);
+// Presentation only. TODO: replace with RLS-protected membership/roles or
+// server-authoritative custom claims; database authorization remains decisive.
+const SALT_COMMUNITY_MODERATOR_IDS = new Set(window.SaltEnvironment.moderatorIds);
 window.isSaltCommunityModerator = (user = currentUser) => Boolean(user && SALT_COMMUNITY_MODERATOR_IDS.has(user.id));
 window.getSaltCommunityModeratorState = () => ({ resolved: saltAuthResolved, user: currentUser, canModerate: saltAuthResolved && window.isSaltCommunityModerator(currentUser) });
 function announceModeratorState() {
@@ -105,7 +104,7 @@ async function signInWithGoogle() {
   const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/`
+      redirectTo: window.SaltEnvironment.oauthReturnUrl("/")
     }
   });
 
