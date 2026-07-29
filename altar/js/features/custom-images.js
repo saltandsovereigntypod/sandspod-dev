@@ -336,7 +336,12 @@ async function promptCustomCabinetImage(button) {
 
     await setCustomCabinetImage(button.dataset, uploaded.url, uploaded.path);
 
+    const focusIdentity = { label: button.dataset.label || "", form: button.dataset.form || "" };
     renderCabinetItems();
+    requestAnimationFrame(() => {
+      const createdForm = [...document.querySelectorAll("[data-image][data-label]")].find((item) => item.dataset.label === focusIdentity.label && item.dataset.form === focusIdentity.form);
+      createdForm?.focus();
+    });
     showAltarToast("Custom cabinet image saved");
   });
 

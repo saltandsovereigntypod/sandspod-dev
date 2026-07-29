@@ -687,6 +687,172 @@
   overflow-y: hidden;
 }
 
+.altar-action-bar.has-object-selection > .altar-action-group,
+.altar-action-bar.has-object-selection > .altar-action-divider {
+  display: none;
+}
+
+.altar-action-bar .altar-toolbar.is-in-action-bar {
+  position: static;
+  inset: auto;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.altar-action-bar .altar-toolbar.is-in-action-bar[hidden] {
+  display: none;
+}
+
+.altar-object-actions-visible {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(6rem, 1fr));
+  gap: 0.45rem;
+}
+
+.altar-object-actions-more-wrap {
+  position: relative;
+  margin-left: 0.45rem;
+}
+
+.altar-action-bar .altar-toolbar.is-in-action-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: auto;
+  min-width: 6rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.65rem;
+  aspect-ratio: auto;
+  border-radius: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.1;
+}
+
+.altar-object-actions-overflow {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.6rem);
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(8.5rem, 1fr));
+  gap: 0.35rem;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2rem));
+  max-height: min(60vh, 25rem);
+  overflow-y: auto;
+  padding: 0.55rem;
+  border: 1px solid rgba(185, 160, 93, 0.4);
+  border-radius: 0.85rem;
+  background: rgba(10, 8, 6, 0.98);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+}
+
+.altar-object-actions-overflow[hidden] {
+  display: none;
+}
+
+.altar-object-actions-backdrop[hidden] { display: none; }
+.altar-object-actions-overflow-title { display: block; grid-column: 1 / -1; padding: .2rem; color: var(--gold); }
+
+.altar-object-actions-overflow button {
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
+
+.object-action-modal-card form {
+  display: grid;
+  gap: 1rem;
+}
+
+.object-action-modal-card label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.object-action-modal-card input,
+.object-action-modal-card select,
+.object-action-modal-card textarea {
+  width: 100%;
+}
+
+.object-workflow-card {
+  box-sizing: border-box;
+  width: min(720px, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  min-width: 0;
+  max-height: min(88vh, 850px);
+  overflow-y: auto;
+}
+
+.object-workflow-card *,
+.object-workflow-card form,
+.object-workflow-card section,
+.object-workflow-card label,
+.object-workflow-card input,
+.object-workflow-card select,
+.object-workflow-card textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.object-workflow-card form,
+.object-workflow-card section {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.object-workflow-card section {
+  padding: 0.85rem;
+  border: 1px solid rgba(185, 160, 93, 0.24);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.object-workflow-card h3 { margin: 0; color: var(--gold); font-size: 1rem; }
+.object-workflow-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
+.object-workflow-options label { display: block; }
+.object-workflow-options input { position: absolute; opacity: 0; pointer-events: none; }
+.object-workflow-options span { display: block; height: 100%; padding: 0.6rem; border: 1px solid rgba(185,160,93,.25); border-radius: .65rem; cursor: pointer; }
+.object-workflow-options input:checked + span { border-color: var(--gold); background: rgba(185,160,93,.16); }
+.object-workflow-muted { opacity: .72; }
+.object-workflow-intention { margin: 0; color: var(--cream); font-family: Georgia, serif; font-size: 1.08rem; line-height: 1.5; }
+.object-workflow-intention-entry { border-color: rgba(185,160,93,.55) !important; background: rgba(185,160,93,.1) !important; }
+.relationship-manager-table { display: grid; gap: .35rem; }
+.relationship-manager-group { margin: .75rem 0 .1rem; color: var(--gold); }
+.relationship-duplicate-notice { padding: .55rem; border: 1px solid rgba(185,160,93,.25); border-radius: .65rem; }
+.relationship-manager-heading,
+.relationship-manager-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: .75rem; align-items: center; padding: .55rem; border-bottom: 1px solid rgba(185,160,93,.2); }
+.relationship-manager-heading { color: var(--gold); font-weight: 700; }
+.relationship-manager-row small { display: block; opacity: .7; }
+.relationship-manager-row.is-editing form { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr auto; gap: .5rem; }
+.apothecary-ingredient-amount-row { display: grid; grid-template-columns: minmax(8rem, 1fr) auto minmax(7rem, 1fr) auto auto auto; gap: .35rem; align-items: center; }
+.apothecary-add-ingredient { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(10rem, 1fr) auto; gap: .45rem; }
+.offering-manager-choice { display: block; }
+.offering-manager-choice > input { position: absolute; opacity: 0; }
+.offering-manager-choice > span { display: grid; gap: .2rem; padding: .7rem; border: 1px solid rgba(185,160,93,.25); border-radius: .65rem; cursor: pointer; }
+.offering-manager-choice > input:checked + span { border-color: var(--gold); background: rgba(185,160,93,.14); }
+
+@media (max-width: 600px) {
+  .object-workflow-options { grid-template-columns: 1fr; }
+  .relationship-manager-heading { display: none; }
+  .relationship-manager-row,
+  .relationship-manager-row.is-editing form { grid-template-columns: 1fr; }
+  .apothecary-ingredient-amount-row { grid-template-columns: 1fr auto; }
+  .apothecary-add-ingredient { grid-template-columns: 1fr; }
+}
+
 .altar-action-group {
   display: flex;
   gap: clamp(0.2rem, 0.7vw, 0.45rem);
@@ -3101,4 +3267,43 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
 
 .custom-form-upload-row input[type="file"] {
   width: 100%;
+}
+.cabinet-form-unavailable {
+  display: grid;
+  place-items: center;
+  min-height: 5rem;
+  padding: .5rem;
+  color: rgba(244, 236, 216, .72);
+  border: 1px dashed rgba(185, 160, 93, .45);
+  border-radius: .45rem;
+  font-size: .8rem;
+  text-align: center;
+}
+.cabinet-missing-form-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .15rem;
+  margin-top: .25rem;
+}
+.cabinet-missing-form-action {
+  min-height: 1.75rem;
+  max-width: 100%;
+  padding: .15rem .2rem;
+  border: 0;
+  border-radius: .25rem;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-size: .78rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.cabinet-missing-form-action:hover,
+.cabinet-missing-form-action:focus-visible {
+  color: var(--cream);
+  background: rgba(185, 160, 93, .1);
+  outline: 1px solid rgba(185, 160, 93, .5);
+  outline-offset: 2px;
 }
