@@ -46,16 +46,21 @@ async function getMyRituals() {
 async function saveMyRitual(ritual) {
   if (!currentUser) {
     const rituals = getLocalMyRituals();
-
-    rituals.unshift({
-      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    const sessionId = ritual.session_id || ritual.lifecycle_session_id || null;
+    const existingIndex = sessionId ? rituals.findIndex((item) => (item.session_id || item.lifecycle_session_id) === sessionId) : -1;
+    const now = new Date().toISOString();
+    const saved = {
+      ...(existingIndex >= 0 ? rituals[existingIndex] : {}),
+      id: existingIndex >= 0 ? rituals[existingIndex].id : ritual.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
       ...ritual,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
+      session_id: sessionId,
+      created_at: existingIndex >= 0 ? rituals[existingIndex].created_at : now,
+      updated_at: now
+    };
+    if (existingIndex >= 0) rituals[existingIndex] = saved; else rituals.unshift(saved);
 
     saveLocalMyRituals(rituals);
-    return;
+    return saved;
   }
 
   const { error } = await db.from("user_rituals").insert({

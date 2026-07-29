@@ -68,6 +68,7 @@ Static source can identify expectations but cannot verify either remote project 
 - [ ] Living Library: its canonical entity and relation tables used by the sync layer; preserve the existing architecture.
 - [ ] Book of Shadows: `grimoire_books`, `grimoire_sections`, `grimoire_pages`, `grimoire_blocks`, and `grimoire_page_links`.
 - [ ] Rituals: `ritual_templates`, `ritual_template_steps`, `ritual_sessions`, `ritual_session_steps`, and `ritual_links`.
+- [ ] Ritual lifecycle retry constraints from `docs/ritual-lifecycle-migration.sql` are reviewed in development, duplicate rows are audited, and equivalent production indexes are applied deliberately.
 - [ ] Living object instance/event tables used by `js/object-instances.js`.
 - [ ] Community: `community_submissions` and `community_submission_messages`, including moderator-only policies.
 - [ ] Storage buckets: `user-assets` and `living-library-images`, including size/type rules and ownership policies.
