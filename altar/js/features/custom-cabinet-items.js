@@ -4,11 +4,12 @@
    ========================================================= */
 
 let customCabinetItemsCache = [];
+const CUSTOM_CABINET_LOCAL_KEY = "saltAndSovereigntyCustomCabinetItems";
 
 const CUSTOM_FORM_PRESETS = {
-  herbs: ["Sprig", "Loose", "Oil", "Incense"],
-  crystals: ["Point", "Chips", "Cluster"],
-  candles: ["Place"],
+  herbs: (window.SanctuaryAssetCatalog?.getForms?.("herb") || []).map((form) => form.label),
+  crystals: (window.SanctuaryAssetCatalog?.getForms?.("crystal") || []).map((form) => form.label),
+  candles: (window.SanctuaryAssetCatalog?.getForms?.("candle") || []).map((form) => form.label),
   tools: ["Place"],
   deities: ["Place"],
   vessels: ["Place"]
@@ -46,8 +47,8 @@ async function loadCustomCabinetItems() {
   const user = await getCurrentAssetUser();
 
   if (!user) {
-    customCabinetItemsCache = [];
-    return [];
+    try { customCabinetItemsCache = JSON.parse(localStorage.getItem(CUSTOM_CABINET_LOCAL_KEY)) || []; } catch { customCabinetItemsCache = []; }
+    return customCabinetItemsCache;
   }
 
   const { data, error } = await db
@@ -274,7 +275,7 @@ function closeCustomCabinetItemModal() {
   document.body.classList.remove("altar-modal-open");
 }
 
-async function collectCustomCabinetForms(formData, category, itemType, entityId, existingForms = []) {
+async function collectCustomCabinetForms(formData, category, itemType, entityId, existingForms = [], guest = false) {
   const presetForms = CUSTOM_FORM_PRESETS[category] || ["Place"];
   const forms = [];
   const deletedStoragePaths = [];
@@ -303,7 +304,7 @@ async function collectCustomCabinetForms(formData, category, itemType, entityId,
     let storagePath = existingStoragePath;
 
     if (file && file.size > 0) {
-      const uploaded = await uploadUserAsset(file, "custom-cabinet-items", {
+      const uploaded = guest ? { url: await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file); }), path: "" } : await uploadUserAsset(file, "custom-cabinet-items", {
         maxWidth: 1200,
         maxHeight: 1200
       });
@@ -339,11 +340,6 @@ async function collectCustomCabinetForms(formData, category, itemType, entityId,
 
 async function saveCustomCabinetItem(form) {
   const user = await getCurrentAssetUser();
-
-  if (!user) {
-    showAltarToast("Please sign in to save custom cabinet items");
-    return;
-  }
 
   const modal = form.closest("[data-custom-cabinet-item-modal]");
   const editItemId = modal?.dataset.editItemId || "";
@@ -404,7 +400,8 @@ async function saveCustomCabinetItem(form) {
     category,
     itemType,
     entityId,
-    existingItem?.forms || []
+    existingItem?.forms || [],
+    !user
   );
 
   const forms = formResult.forms || [];
@@ -416,7 +413,7 @@ async function saveCustomCabinetItem(form) {
   }
 
   const row = {
-    user_id: user.id,
+    user_id: user?.id || "guest",
     category,
     name,
     icon: "✦",
@@ -433,6 +430,16 @@ async function saveCustomCabinetItem(form) {
     },
     updated_at: new Date().toISOString()
   };
+
+  if (!user) {
+    const localItem = { id: editItemId || (crypto.randomUUID?.() || String(Date.now())), category, name, icon: "✦", keywords, entityId, customCabinetItemId: editItemId || "", forms, createdAt: existingItem?.createdAt || new Date().toISOString() };
+    localItem.customCabinetItemId = localItem.id;
+    customCabinetItemsCache = editItemId ? customCabinetItemsCache.map((item) => item.id === editItemId ? localItem : item) : [...customCabinetItemsCache, localItem];
+    localStorage.setItem(CUSTOM_CABINET_LOCAL_KEY, JSON.stringify(customCabinetItemsCache));
+    closeCustomCabinetItemModal(); activeCabinetCategory = category; renderCabinet();
+    document.dispatchEvent(new CustomEvent("sanctuary-search:sources-changed", { detail: { source: "cabinet" } }));
+    showAltarToast(existingItem ? `${name} updated` : `${name} added to Cabinet`); return;
+  }
 
   const query = editItemId
     ? db.from("custom_cabinet_items").update(row).eq("user_id", user.id).eq("id", editItemId)
@@ -461,7 +468,7 @@ async function saveCustomCabinetItem(form) {
 
 async function deleteCustomCabinetItem(itemId) {
   const user = await getCurrentAssetUser();
-  if (!user || !itemId) return;
+  if (!itemId) return;
 
   const existingItem = getCustomItemById(itemId);
 
@@ -477,6 +484,14 @@ async function deleteCustomCabinetItem(itemId) {
 
   const confirmed = window.confirm("Delete this custom cabinet item? This will not delete the Living Library entry.");
   if (!confirmed) return;
+
+  if (!user) {
+    customCabinetItemsCache = customCabinetItemsCache.filter((item) => item.id !== itemId);
+    localStorage.setItem(CUSTOM_CABINET_LOCAL_KEY, JSON.stringify(customCabinetItemsCache));
+    renderCabinetItems();
+    document.dispatchEvent(new CustomEvent("sanctuary-search:sources-changed", { detail: { source: "cabinet" } }));
+    showAltarToast("Custom cabinet item deleted"); return;
+  }
 
   const { error } = await db
     .from("custom_cabinet_items")

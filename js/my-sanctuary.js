@@ -32,7 +32,7 @@ function createMySanctuaryPanel() {
   panel.innerHTML = `
     <div class="my-sanctuary-backdrop" data-my-sanctuary-close></div>
 
-    <aside class="my-sanctuary-card" aria-label="My Sanctuary">
+    <aside class="my-sanctuary-card" aria-label="Sanctuary">
       <button class="my-sanctuary-close" type="button" data-my-sanctuary-close aria-label="Close">
         ×
       </button>
@@ -207,7 +207,7 @@ function createMySanctuaryPanel() {
       </section>
 
       <section class="my-sanctuary-view" data-sanctuary-view="settings" hidden>
-        <h2>My Settings</h2>
+        <h2>Sanctuary Settings</h2>
 
         <p class="my-sanctuary-intro">
           Shape your sanctuary so it feels more like yours.
@@ -515,12 +515,7 @@ function updateSanctuaryAdminLink() {
   const adminLink = document.querySelector("[data-sanctuary-admin-link]");
   if (!adminLink) return;
 
-  const adminIds = [
-    "ddc5463e-1551-498b-b5af-79ce52ac591c",
-    "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
-  ];
-
-  adminLink.hidden = !currentUser || !adminIds.includes(currentUser.id);
+  adminLink.hidden = !window.isSaltCommunityModerator?.(currentUser);
 }
 
 function updateMySanctuaryPanel() {
@@ -586,6 +581,8 @@ function closeMySanctuaryPanel() {
   const panel = document.querySelector("[data-my-sanctuary-panel]");
   if (!panel) return;
 
+  const settingsForm = panel.querySelector("[data-my-settings-form]");
+  if (settingsForm?.dataset.dirty === "true" && !window.confirm("Discard unsaved settings changes?")) return;
   panel.classList.remove("is-visible");
 
   window.setTimeout(() => {
