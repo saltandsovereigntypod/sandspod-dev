@@ -153,11 +153,10 @@ function renderCustomFormUploadFields(category = "tools", existingForms = [], fo
                 : ""
             }
 
-            <input
-              type="file"
-              name="form_image_${formLabel}"
-              accept="image/png,image/webp,image/jpeg"
-            />
+            <label class="button button--tiny button--image-action">
+              ${existing ? "Manage" : "Add"} ${formLabel} Image
+              <input type="file" name="form_image_${formLabel}" accept="image/png,image/webp,image/jpeg" />
+            </label>
 
             <input type="hidden" name="existing_form_image_${formLabel}" value="${existing?.image || ""}" />
           </div>

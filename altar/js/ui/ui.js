@@ -124,7 +124,7 @@ if (altarStage) {
 
   const companionToggle = document.createElement("button");
   companionToggle.type = "button";
-  companionToggle.className = "altar-companion-toggle";
+  companionToggle.className = "button button--icon button--pill altar-companion-toggle";
   companionToggle.setAttribute("data-companion-toggle", "");
   companionToggle.setAttribute("aria-label", "Minimize companion panel");
   companionToggle.setAttribute("aria-expanded", "true");

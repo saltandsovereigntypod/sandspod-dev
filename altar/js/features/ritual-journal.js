@@ -271,8 +271,6 @@ async function createRitualJournalLinks(user, ritual, pageId, summary) {
 
 async function saveRitualJournal(form, saveMode = "journal") {
   const user = await getRitualUser();
-  if (!user) throw new Error("Sign in to save this ritual journal entry.");
-
   const session = pendingRitualJournalSession;
   if (!session) throw new Error("No ritual is ready to journal.");
 
@@ -284,7 +282,7 @@ async function saveRitualJournal(form, saveMode = "journal") {
   const started = session.started_at ? new Date(session.started_at) : new Date();
 
   const payload = {
-    user_id: user.id,
+    user_id: user?.id || null,
     title: String(values.title || summary.title).trim(),
     intention: String(values.intention || "").trim() || null,
     notes: String(values.notes || "").trim() || null,
@@ -319,6 +317,16 @@ async function saveRitualJournal(form, saveMode = "journal") {
       completedSteps: pendingRitualJournalSteps.map((step) => ({ title: step.title, status: step.status, elapsedSeconds: step.elapsed_seconds }))
     }
   };
+
+  if (!user) {
+    const repository = window.RitualLifecycle.createLocalRepository(localStorage, "guest");
+    const reflectedSession = window.RitualLifecycle.saveReflection(session, [payload.what_happened_during, payload.what_happened_after, payload.notes].filter(Boolean).join("\n\n"));
+    repository.saveSession(reflectedSession, false);
+    const { journal } = repository.upsertJournal(reflectedSession, { ...payload, reflection: reflectedSession.reflection });
+    if (typeof saveMyRitual === "function") await saveMyRitual({ ...payload, id: journal.id, ritual_type: "ritual_journal", lifecycle_session_id: session.id });
+    renderRitualJournalSaved(journal);
+    return journal;
+  }
 
   let ritual;
   if (payload.session_id) {

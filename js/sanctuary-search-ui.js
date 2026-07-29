@@ -98,6 +98,12 @@
       subtitle: "Ritual Template", fields: [template.description, template.intention, template.ritual_template_steps],
       href: `/altar/?editRitualTemplate=${encodeURIComponent(template.id)}`, timestamp: template.updated_at || template.created_at
     }))]));
+    const activeSession = global.getStoredActiveRitualSession?.();
+    if (activeSession?.id) tasks.push(Promise.resolve(["ritual-sessions", [{
+      id: activeSession.id, group: "rituals", type: "ritual-session", title: activeSession.title || "Active Ritual",
+      subtitle: "Active Ritual Session", fields: [activeSession.id],
+      href: `/altar/?ritualSession=${encodeURIComponent(activeSession.id)}`, timestamp: activeSession.startedAt || activeSession.started_at
+    }]]));
     const settled = await Promise.allSettled(tasks);
     if (!global.SanctuarySearch.isCurrentRequest(token, requestId, Boolean(modal))) return;
     settled.forEach((result) => { if (result.status === "fulfilled") global.SanctuarySearch.updateSource(result.value[0], result.value[1]); });

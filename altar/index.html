@@ -61,21 +61,12 @@
 
       <section class="altar-workspace" aria-label="Digital altar workspace">
         <div class="altar-workspace-tools" aria-label="Altar tools">
-          <button class="altar-workspace-tool" type="button" data-open-cabinet-overlay>
-            🗄 Cabinet
-          </button>
-      
-          <button class="altar-workspace-tool" type="button" data-open-apothecary-overlay>
-            🧪 My Apothecary
-          </button>
-
-          <button class="altar-workspace-tool" type="button" data-tool-guide="altar">
-            How This Works
-          </button>
-
-          <button class="altar-workspace-tool" type="button" data-open-sanctuary-search>
-            Search the Sanctuary
-          </button>
+          <div class="altar-workspace-tool-group">
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-open-cabinet-overlay>🗄 Cabinet</button>
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-open-apothecary-overlay>🧪 My Apothecary</button>
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-tool-guide="altar">How This Works</button>
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-open-sanctuary-search>Search the Sanctuary</button>
+          </div>
         </div>
       
         <div class="altar-stage-wrap">
@@ -236,6 +227,7 @@
     </div>
 
   <!-- Supabase -->
+  <script src="../js/environment.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
   <script src="../js/auth.js"></script>
@@ -288,6 +280,7 @@
   <script src="js/core/storage.js"></script>
   <script src="js/features/living-object-state.js"></script>
   <script src="js/features/object-actions.js"></script>
+  <script src="../js/ritual-lifecycle.js"></script>
   <script src="js/features/ritual-system.js"></script>
   <script src="js/features/ritual-automation.js"></script>
   <script src="js/features/ritual-template-editor.js"></script>
