@@ -2764,6 +2764,10 @@ body:has(.sanctuary-submission-form) h1 {
 .my-sanctuary-form > button[type="submit"] { margin-block: .75rem 0; }
 .my-sanctuary-form > button[type="submit"]:disabled { opacity: .45; cursor: default; }
 .settings-save-status { margin: .65rem 0 0; padding: .65rem; color: var(--muted); background: rgba(12, 18, 14, .72); border-top: 1px solid rgba(196, 165, 96, .2); }
+.sanctuary-backup-controls { display: grid; gap: .7rem; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(196, 165, 96, .28); }
+.sanctuary-backup-controls h3 { margin: .75rem 0 0; color: var(--gold); }
+.sanctuary-backup-controls p { margin: 0; }
+.sanctuary-backup-controls input[type="file"] { width: 100%; margin-top: .4rem; padding: .55rem; border: 1px solid rgba(196, 165, 96, .35); border-radius: .55rem; color: var(--cream); background: rgba(9, 17, 12, .7); }
 .sanctuary-background-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .7rem; margin-top: .7rem; }
 .sanctuary-background-option { position: relative; display: grid; gap: .4rem; align-content: start; padding: .55rem; border: 1px solid rgba(196, 165, 96, .28); border-radius: .7rem; background: rgba(12, 20, 15, .62); cursor: pointer; overflow: hidden; }
 .sanctuary-background-option:has(input:checked) { border-color: #c4a560; box-shadow: 0 0 0 2px rgba(196, 165, 96, .15); }

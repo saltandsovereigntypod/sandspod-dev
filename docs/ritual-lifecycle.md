@@ -91,6 +91,8 @@ Visible handlers retain drafts/pointers on failures, show a restrained status/to
 
 The optional, non-destructive indexes in `docs/ritual-lifecycle-migration.sql` should be reviewed against both projects and duplicate rows audited before execution. No production migration is run by this repository.
 
+Ritual journal link persistence normalizes every `ritual_links.metadata` value to a plain object at the shared boundary. Missing, null, or array metadata becomes `{}`; meaningful object metadata is preserved. Link identity is checked before insert, so retrying a partially completed journal save does not duplicate existing links or its already-linked Grimoire page. The UI reports partial connection failure without exposing the database constraint text or discarding the reflection.
+
 ## Known limitations and manual verification
 
 - Guest templates still originate from the existing template editor, which is cloud-backed; free and already-available template sessions can persist locally.

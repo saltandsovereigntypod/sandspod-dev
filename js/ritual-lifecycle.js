@@ -104,6 +104,27 @@
     return Date.parse(local.updated_at || local.created_at || 0) >= Date.parse(remote.updated_at || remote.created_at || 0) ? clone(local) : clone(remote);
   }
 
+  function normalizeRitualLink(link = {}) {
+    const metadata = link.metadata && typeof link.metadata === "object" && !Array.isArray(link.metadata)
+      ? clone(link.metadata)
+      : {};
+    return { ...clone(link), metadata };
+  }
+
+  function ritualLinkIdentity(link = {}) {
+    return [link.link_type, link.entity_id || "", link.object_instance_id || "", link.apothecary_item_id || "", link.grimoire_page_id || "", link.saved_altar_id || ""].join(":");
+  }
+
+  function uniqueRitualLinks(links = [], existingLinks = []) {
+    const existing = new Set(existingLinks.map(ritualLinkIdentity));
+    const next = [];
+    links.map(normalizeRitualLink).forEach((link) => {
+      const identity = ritualLinkIdentity(link);
+      if (!existing.has(identity)) { existing.add(identity); next.push(link); }
+    });
+    return next;
+  }
+
   function createLocalRepository(storage, scope = "guest") {
     const key = `${STORAGE_PREFIX}:${scope}`;
     const read = () => { try { return JSON.parse(storage.getItem(key)) || { version: VERSION, activeSessionId: null, sessions: [], journals: [] }; } catch { return { version: VERSION, activeSessionId: null, sessions: [], journals: [] }; } };
@@ -120,7 +141,7 @@
     };
   }
 
-  const api = { VERSION, STORAGE_PREFIX, appendEvent, snapshotTemplate, createSession, completeSession, saveReflection, upsertJournal, newestRecord, createLocalRepository };
+  const api = { VERSION, STORAGE_PREFIX, appendEvent, snapshotTemplate, createSession, completeSession, saveReflection, upsertJournal, newestRecord, normalizeRitualLink, ritualLinkIdentity, uniqueRitualLinks, createLocalRepository };
   global.RitualLifecycle = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

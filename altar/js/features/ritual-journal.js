@@ -252,20 +252,17 @@ async function createRitualJournalLinks(user, ritual, pageId, summary) {
       .eq("ritual_id", ritual.id);
     if (existingError) throw existingError;
 
-    const identity = (link) => [
-      link.link_type,
-      link.entity_id || "",
-      link.object_instance_id || "",
-      link.apothecary_item_id || "",
-      link.grimoire_page_id || "",
-      link.saved_altar_id || ""
-    ].join(":");
-    const existing = new Set((existingLinks || []).map(identity));
-    const newLinks = links.filter((link) => !existing.has(identity(link)));
+    const newLinks = window.RitualLifecycle.uniqueRitualLinks(links, existingLinks || []);
     if (!newLinks.length) return;
 
     const { error } = await db.from("ritual_links").insert(newLinks);
-    if (error) throw error;
+    if (error) {
+      const linkError = new Error("Ritual connections could not be finished.");
+      linkError.name = "RitualLinkPersistenceError";
+      linkError.cause = error;
+      linkError.ritualPrimarySaved = true;
+      throw linkError;
+    }
   }
 }
 
@@ -440,7 +437,9 @@ document.addEventListener("submit", async (event) => {
     await saveRitualJournal(form, mode);
   } catch (error) {
     console.error(error);
-    if (status) status.textContent = error.message || "The ritual could not be saved.";
+    if (status) status.textContent = error?.ritualPrimarySaved
+      ? "Your ritual was saved, but some of its connections could not be finished. Please try saving again."
+      : "Your ritual journal could not be saved. Your reflection is still here so you can try again.";
   }
 });
 
