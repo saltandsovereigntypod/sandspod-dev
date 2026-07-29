@@ -252,27 +252,22 @@ async function createRitualJournalLinks(user, ritual, pageId, summary) {
       .eq("ritual_id", ritual.id);
     if (existingError) throw existingError;
 
-    const identity = (link) => [
-      link.link_type,
-      link.entity_id || "",
-      link.object_instance_id || "",
-      link.apothecary_item_id || "",
-      link.grimoire_page_id || "",
-      link.saved_altar_id || ""
-    ].join(":");
-    const existing = new Set((existingLinks || []).map(identity));
-    const newLinks = links.filter((link) => !existing.has(identity(link)));
+    const newLinks = window.RitualLifecycle.uniqueRitualLinks(links, existingLinks || []);
     if (!newLinks.length) return;
 
     const { error } = await db.from("ritual_links").insert(newLinks);
-    if (error) throw error;
+    if (error) {
+      const linkError = new Error("Ritual connections could not be finished.");
+      linkError.name = "RitualLinkPersistenceError";
+      linkError.cause = error;
+      linkError.ritualPrimarySaved = true;
+      throw linkError;
+    }
   }
 }
 
 async function saveRitualJournal(form, saveMode = "journal") {
   const user = await getRitualUser();
-  if (!user) throw new Error("Sign in to save this ritual journal entry.");
-
   const session = pendingRitualJournalSession;
   if (!session) throw new Error("No ritual is ready to journal.");
 
@@ -284,7 +279,7 @@ async function saveRitualJournal(form, saveMode = "journal") {
   const started = session.started_at ? new Date(session.started_at) : new Date();
 
   const payload = {
-    user_id: user.id,
+    user_id: user?.id || null,
     title: String(values.title || summary.title).trim(),
     intention: String(values.intention || "").trim() || null,
     notes: String(values.notes || "").trim() || null,
@@ -319,6 +314,16 @@ async function saveRitualJournal(form, saveMode = "journal") {
       completedSteps: pendingRitualJournalSteps.map((step) => ({ title: step.title, status: step.status, elapsedSeconds: step.elapsed_seconds }))
     }
   };
+
+  if (!user) {
+    const repository = window.RitualLifecycle.createLocalRepository(localStorage, "guest");
+    const reflectedSession = window.RitualLifecycle.saveReflection(session, [payload.what_happened_during, payload.what_happened_after, payload.notes].filter(Boolean).join("\n\n"));
+    repository.saveSession(reflectedSession, false);
+    const { journal } = repository.upsertJournal(reflectedSession, { ...payload, reflection: reflectedSession.reflection });
+    if (typeof saveMyRitual === "function") await saveMyRitual({ ...payload, id: journal.id, ritual_type: "ritual_journal", lifecycle_session_id: session.id });
+    renderRitualJournalSaved(journal);
+    return journal;
+  }
 
   let ritual;
   if (payload.session_id) {
@@ -432,7 +437,9 @@ document.addEventListener("submit", async (event) => {
     await saveRitualJournal(form, mode);
   } catch (error) {
     console.error(error);
-    if (status) status.textContent = error.message || "The ritual could not be saved.";
+    if (status) status.textContent = error?.ritualPrimarySaved
+      ? "Your ritual was saved, but some of its connections could not be finished. Please try saving again."
+      : "Your ritual journal could not be saved. Your reflection is still here so you can try again.";
   }
 });
 

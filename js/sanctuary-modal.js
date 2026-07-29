@@ -77,7 +77,7 @@ function continueToSanctuaryDestination() {
   if (typeof WelcomeDiscovery === "undefined") return false;
   const destination = WelcomeDiscovery.consumeDestination(sessionStorage);
   if (!destination) return false;
-  window.location.assign(destination);
+  window.location.assign(window.SaltEnvironment.resolvePath(destination));
   return true;
 }
 
