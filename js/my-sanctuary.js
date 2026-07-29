@@ -633,7 +633,11 @@ document.addEventListener("click", async (event) => {
   if (openButton) openMySanctuaryPanel();
   if (closeButton) closeMySanctuaryPanel();
   if (showAuthButton) setMySanctuaryView("auth");
-  if (guestButton) setMySanctuaryView("dashboard");
+  if (guestButton) {
+    localStorage.setItem("saltAndSovereigntyGuestScope", "true");
+    localStorage.removeItem("saltAndSovereigntyPendingGuestMigrationSnapshot");
+    setMySanctuaryView("dashboard");
+  }
   if (backButton) setMySanctuaryView("welcome");
   if (dashboardButton) setMySanctuaryView("dashboard");
 

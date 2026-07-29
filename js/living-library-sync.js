@@ -236,45 +236,9 @@ function scheduleLivingLibraryEntitySave(entityId) {
 }
 
 async function migrateLocalLivingLibraryToSupabaseOnce() {
-  const user = getLivingLibraryUser();
-
-  if (!user || typeof db === "undefined" || typeof Library === "undefined") return;
-
-  const migrationKey = `${LIVING_LIBRARY_LOCAL_MIGRATION_KEY}:${user.id}`;
-
-  if (localStorage.getItem(migrationKey) === "true") return;
-
-  const entities = getLivingLibraryExportEntities();
-
-  if (!entities.length) {
-    localStorage.setItem(migrationKey, "true");
-    return;
-  }
-
-  const rows = entities.map((entity) => ({
-    user_id: user.id,
-    entity_id: entity.id,
-    name: entity.name || "Untitled",
-    type: entity.type || "note",
-    image: cleanLivingLibraryImage(entity.image) || null,
-    my_practice: entity.myPractice || {},
-    community: entity.community || {},
-    layout: getLivingLibraryLayoutForEntity(entity.id) || {},
-    updated_at: new Date().toISOString()
-  }));
-
-  const { error } = await db
-    .from(LIVING_LIBRARY_TABLE)
-    .upsert(rows, {
-      onConflict: "user_id,entity_id"
-    });
-
-  if (error) {
-    console.error("Living Library migration failed:", error);
-    return;
-  }
-
-  localStorage.setItem(migrationKey, "true");
+  // Explicit Account & Data migration replaces the former sign-in side effect.
+  // Hydration may read cloud data, but it must never claim local guest entries.
+  return { pending: getLivingLibraryExportEntities().length > 0 };
 }
 
 async function loadLivingLibraryFromSupabase() {

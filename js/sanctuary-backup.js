@@ -291,7 +291,7 @@
     const url = URL.createObjectURL(blob); const anchor = documentRef.createElement("a"); anchor.href = url; anchor.download = filename; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  const api = { FORMAT, VERSION, MAX_FILE_BYTES, MAX_ASSET_BYTES, MAX_ASSETS, PAGE_SIZE, GUEST_KEYS, CLOUD_SECTIONS, RESTORE_ORDER, sanitize, stableStringify, sha256, recordCounts, createBackup, collectGuest, fetchAllOwned, collectCloud, findAssetReferences, collectAssets, restorableCollections, validateIds, validateBackup, buildGuestMergePlan, applyGuestMergePlan, flattenCloudData, buildCloudMergePlan, applyCloudMergePlan, downloadJson };
+  const api = { FORMAT, VERSION, MAX_FILE_BYTES, MAX_ASSET_BYTES, MAX_ASSETS, PAGE_SIZE, GUEST_KEYS, CLOUD_SECTIONS, RESTORE_ORDER, sanitize, scanForbidden, stableStringify, sha256, recordCounts, createBackup, collectGuest, fetchAllOwned, collectCloud, findAssetReferences, collectAssets, restorableCollections, validateIds, validateBackup, buildGuestMergePlan, applyGuestMergePlan, flattenCloudData, buildCloudMergePlan, applyCloudMergePlan, downloadJson };
   global.SanctuaryBackup = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

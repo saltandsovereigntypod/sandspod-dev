@@ -76,6 +76,7 @@ async function getCurrentUser() {
 }
 
 async function signUpWithEmail(email, password) {
+  window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   const { data, error } = await db.auth.signUp({
     email,
     password
@@ -91,6 +92,7 @@ async function signUpWithEmail(email, password) {
 }
 
 async function signInWithEmail(email, password) {
+  window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   const { data, error } = await db.auth.signInWithPassword({
     email,
     password
@@ -106,6 +108,7 @@ async function signInWithEmail(email, password) {
 }
 
 async function signInWithGoogle() {
+  window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -224,6 +227,7 @@ document.addEventListener("click", async (event) => {
 });
 
 db.auth.onAuthStateChange((event, session) => {
+  if (session?.user) window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   currentUser = session?.user || null;
   saltAuthResolved = true;
   updateAuthUI(currentUser);

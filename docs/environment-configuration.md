@@ -97,3 +97,7 @@ Account recovery uses the environment resolver rather than hard-coded origins. C
 | Local port 5500 | development project only | `http://localhost:5500/account/reset-password/` and `http://127.0.0.1:5500/account/reset-password/` |
 
 Allow the matching root URL as well for OAuth and email-change confirmation. Never add development URLs to the production project. Supabase's Google callback remains the project's `/auth/v1/callback`; the application's `redirectTo` returns to the deployment-aware root. Unknown hosts remain fail-closed and cannot compose recovery or OAuth returns.
+
+## Guest migration environment behavior
+
+Guest migration uses the already-selected browser Supabase client, so development guest records can migrate only into the authenticated development project and production records only into production. It contains no project URL, publishable key, auth token, moderator state, or ownership value from guest storage. Unknown hosts remain fail-closed. Development and production table/RLS/storage compatibility must be reviewed independently before live migration testing.

@@ -14,6 +14,7 @@ function getLocalMyRituals() {
 }
 
 function saveLocalMyRituals(rituals) {
+  window.SaltAccountData?.markGuestDataChanged?.(localStorage);
   localStorage.setItem(MY_RITUALS_LOCAL_KEY, JSON.stringify(rituals));
 }
 

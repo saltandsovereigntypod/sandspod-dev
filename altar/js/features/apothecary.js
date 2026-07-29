@@ -172,43 +172,11 @@ async function saveApothecaryItems(items) {
 }
 
 async function migrateLocalApothecaryToCloud() {
-  const user =
-    typeof getCurrentAssetUser === "function"
-      ? await getCurrentAssetUser()
-      : await ensureAltarUser();
-
-  if (!user) return;
-
-  const migrationKey = "saltAndSovereigntyApothecaryMigratedToCloud";
-  if (localStorage.getItem(migrationKey) === "true") return;
-
+  // Deliberately no-op: signing in must not claim or delete browser guest data.
+  // Account & Data provides the explicit, backup-gated migration workflow.
   let localItems = [];
-
-  try {
-    localItems = JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || [];
-  } catch {
-    localItems = [];
-  }
-
-  if (localItems.length === 0) {
-    localStorage.setItem(migrationKey, "true");
-    return;
-  }
-
-  const rows = localItems.map(normalizeApothecaryItem).map((item) => mapApothecaryItemToRow(item, user.id));
-
-  const { error } = await db
-    .from("apothecary_items")
-    .upsert(rows, { onConflict: "id" });
-
-  if (error) {
-    console.error(error);
-    showAltarToast("Apothecary migration failed");
-    return;
-  }
-
-  localStorage.setItem(migrationKey, "true");
-  localStorage.removeItem(APOTHECARY_STORAGE_KEY);
+  try { localItems = JSON.parse(localStorage.getItem(APOTHECARY_STORAGE_KEY)) || []; } catch {}
+  return { pending: localItems.length > 0 };
 }
 
 /* =========================================================

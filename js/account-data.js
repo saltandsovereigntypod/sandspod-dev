@@ -4,6 +4,8 @@
   const MIN_PASSWORD_LENGTH = 8;
   const GUEST_CLEAR_CONFIRMATION = "CLEAR MY GUEST DATA";
   const DELETE_CONFIRMATION = "DELETE MY SALT AND SOVEREIGNTY ACCOUNT";
+  const PENDING_GUEST_SNAPSHOT_KEY = "saltAndSovereigntyPendingGuestMigrationSnapshot";
+  const GUEST_MIGRATION_KEYS = Object.freeze({ settings: "saltAndSovereigntyUserSettings", altars: "saltAndSovereigntySavedAltars", altarDraft: "saltAndSovereigntyWorkingAltarDraft", livingLibrary: "saltAndSovereigntyLibrary", livingLibraryLayouts: "saltAndSovereigntyLibraryPageLayouts", apothecary: "saltAndSovereigntyApothecaryItems", ritualJournals: "saltAndSovereigntyUserRituals", ritualLifecycle: "saltAndSovereigntyRitualLifecycle:guest", customCabinet: "saltAndSovereigntyCustomCabinetItems", mundaneMode: "saltAndSovereigntyMundaneMode" });
   const GUEST_KEYS = Object.freeze([
     "saltAndSovereigntyUserSettings",
     "saltAndSovereigntySavedAltars",
@@ -17,7 +19,8 @@
     "saltAndSovereigntyCustomCabinetItems",
     "saltAndSovereigntyMundaneMode",
     "saltAndSovereigntyAltarToGrimoire",
-    "saltAndSovereigntyApothecaryToGrimoire"
+    "saltAndSovereigntyApothecaryToGrimoire",
+    PENDING_GUEST_SNAPSHOT_KEY
   ]);
 
   function authMessage(error, context = "account") {
@@ -101,6 +104,25 @@
     return { removed, count: removed.length };
   }
 
+  function preserveGuestSnapshotBeforeAuth(storage) {
+    const existing = storage.getItem(PENDING_GUEST_SNAPSHOT_KEY);
+    if (existing) { try { return JSON.parse(existing); } catch {} }
+    if (storage.getItem("saltAndSovereigntyGuestScope") !== "true" && storage.getItem("saltAndSovereigntySanctuaryChoice") !== "true") return null;
+    const data = {};
+    for (const [section, key] of Object.entries(GUEST_MIGRATION_KEYS)) {
+      const raw = storage.getItem(key); if (raw == null) continue;
+      try { data[section] = JSON.parse(raw); } catch { data[section] = raw; }
+    }
+    if (!Object.keys(data).length) return null;
+    storage.setItem(PENDING_GUEST_SNAPSHOT_KEY, JSON.stringify(data));
+    return data;
+  }
+  function markGuestDataChanged(storage) {
+    if (global.getCurrentSaltUser?.()) return;
+    storage.removeItem(PENDING_GUEST_SNAPSHOT_KEY);
+    global.dispatchEvent?.(new CustomEvent("saltGuestDataChanged"));
+  }
+
   const SyncStatus = (() => {
     let state = { userId: null, status: "guest", lastSuccess: null };
     const key = (userId) => `saltAndSovereigntyLastCloudSync:${userId}`;
@@ -127,7 +149,7 @@
   global.document?.addEventListener("saltAuthChanged", (event) => SyncStatus.setUser(event.detail?.user || null));
   global.document?.addEventListener("saltAuthSignedOut", () => SyncStatus.setUser(null));
 
-  global.SaltAccountData = { MIN_PASSWORD_LENGTH, GUEST_CLEAR_CONFIRMATION, DELETE_CONFIRMATION, GUEST_KEYS, authMessage, providerSummary, hasPasswordIdentity, recoveryRedirect, validatePasswordPair, validateEmailChange, requestRecovery, updatePassword, requestEmailChange, clearGuestData, SyncStatus };
+  global.SaltAccountData = { MIN_PASSWORD_LENGTH, GUEST_CLEAR_CONFIRMATION, DELETE_CONFIRMATION, PENDING_GUEST_SNAPSHOT_KEY, GUEST_MIGRATION_KEYS, GUEST_KEYS, authMessage, providerSummary, hasPasswordIdentity, recoveryRedirect, validatePasswordPair, validateEmailChange, requestRecovery, updatePassword, requestEmailChange, clearGuestData, preserveGuestSnapshotBeforeAuth, markGuestDataChanged, SyncStatus };
   global.SaltSyncStatus = SyncStatus;
   if (typeof module !== "undefined" && module.exports) module.exports = global.SaltAccountData;
 })(typeof window !== "undefined" ? window : globalThis);

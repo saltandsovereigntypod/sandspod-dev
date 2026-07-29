@@ -90,3 +90,7 @@ Manually test production/guest export counts and credential absence; malformed/w
 ## Account-control safety gates
 
 Guest-data clearing requires a freshly downloaded guest backup in the current Account & Data interaction plus the typed phrase `CLEAR MY GUEST DATA`. The backup file is not deleted when local guest keys are cleared. Future account deletion must similarly require a fresh complete authenticated backup before the server-side operation is enabled. Merge-only restore remains unchanged; account controls never implement replace restore.
+
+## Guest migration safety backup
+
+Guest-to-account migration reuses backup format version 1 rather than inventing an import payload. The preview digest gates plan review and cloud writes; if local guest data changes, a fresh backup is required. Migration uses authenticated RLS writes, keeps cloud conflicts, checkpoints table stages, and never clears guest records automatically. See [guest-to-account-migration.md](guest-to-account-migration.md).

@@ -434,6 +434,7 @@ async function saveCustomCabinetItem(form) {
     const localItem = { id: editItemId || (crypto.randomUUID?.() || String(Date.now())), category, name, icon: "✦", keywords, entityId, customCabinetItemId: editItemId || "", forms, createdAt: existingItem?.createdAt || new Date().toISOString() };
     localItem.customCabinetItemId = localItem.id;
     customCabinetItemsCache = editItemId ? customCabinetItemsCache.map((item) => item.id === editItemId ? localItem : item) : [...customCabinetItemsCache, localItem];
+    window.SaltAccountData?.markGuestDataChanged?.(localStorage);
     localStorage.setItem(CUSTOM_CABINET_LOCAL_KEY, JSON.stringify(customCabinetItemsCache));
     closeCustomCabinetItemModal(); activeCabinetCategory = category; renderCabinet();
     document.dispatchEvent(new CustomEvent("sanctuary-search:sources-changed", { detail: { source: "cabinet" } }));
@@ -486,6 +487,7 @@ async function deleteCustomCabinetItem(itemId) {
 
   if (!user) {
     customCabinetItemsCache = customCabinetItemsCache.filter((item) => item.id !== itemId);
+    window.SaltAccountData?.markGuestDataChanged?.(localStorage);
     localStorage.setItem(CUSTOM_CABINET_LOCAL_KEY, JSON.stringify(customCabinetItemsCache));
     renderCabinetItems();
     document.dispatchEvent(new CustomEvent("sanctuary-search:sources-changed", { detail: { source: "cabinet" } }));

@@ -28,12 +28,14 @@
       <section class="account-summary-card"><h3>Guest Sanctuary</h3><p>Your work is stored only in this browser. Clearing browser storage can remove it, and guest data does not automatically move into an account. Download a complete guest backup before clearing anything.</p></section>
       <section class="account-guest-clear"><h3>This Browser</h3><p>Clear known guest settings, Altars, drafts, Book of Shadows data, Living Library records, Apothecary items, and rituals from this browser only. Cloud records and unrelated website data are not touched.</p><button class="button button--ghost button--small" type="button" data-prepare-guest-clear>Download Required Guest Backup</button><div data-guest-clear-confirmation hidden><label>Type ${global.SaltAccountData.GUEST_CLEAR_CONFIRMATION}<input type="text" autocomplete="off" data-guest-clear-phrase></label><button class="button button--ghost button--small" type="button" data-clear-guest-data>Clear This Browser’s Guest Data</button></div><p role="status" aria-live="polite" data-guest-clear-status></p></section>`;
     panel.prepend(section);
+    if (user) global.GuestAccountMigrationUI?.mount?.(panel, user);
     if (!panel.dataset.accountStateBound) {
       panel.dataset.accountStateBound = "true";
       document.addEventListener("saltAuthChanged", (event) => {
         const nextUser = event.detail?.user || null;
         panel.querySelector("[data-account-data-controls]")?.remove();
         panel.querySelector("[data-sanctuary-backup-controls]")?.remove();
+        panel.querySelector("[data-guest-migration]")?.remove();
         const actions = panel.querySelector("[data-account-auth-actions]");
         if (actions) actions.innerHTML = nextUser ? '<button type="button" class="button button--ghost" data-my-sanctuary-signout>Sign Out</button>' : '<button type="button" class="button button--ghost" data-my-sanctuary-show-auth>Sign In or Create Account</button>';
         mount(panel, nextUser);
