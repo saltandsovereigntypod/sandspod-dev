@@ -47,7 +47,8 @@ if (typeof saveRitualTemplateFromEditor === "function") {
     const shouldStartAfterSave =
       ritualTemplateShouldStartAfterSave
       && !templateIdBeforeSave
-      && !activeRitualSession;
+      && !activeRitualSession
+      && !(typeof hasStoredRitualForCurrentScope === "function" && hasStoredRitualForCurrentScope());
 
     await originalSaveRitualTemplateFromEditor(form);
 

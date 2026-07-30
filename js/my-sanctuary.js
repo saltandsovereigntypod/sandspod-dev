@@ -119,7 +119,7 @@ function createMySanctuaryPanel() {
         <nav class="my-sanctuary-links" aria-label="Sanctuary navigation">
            <a href="/altar/">🕯 My Digital Altar</a>
            <a href="/grimoire/index.html">📖 My Book of Shadows</a>
-           <button type="button" data-my-sanctuary-view-button="rituals">🌙 My Saved Rituals</button>
+           <a href="/grimoire/?entityType=ritual">🌙 Completed Rituals</a>
            <a href="/submit/">✦ Offer to the Sanctuary</a>
            <a href="/grimoire/community-grimoire.html">✨ Community Grimoire</a>
            <button type="button" data-my-sanctuary-view-button="submissions">📬 My Submissions</button>
@@ -138,7 +138,7 @@ function createMySanctuaryPanel() {
       </section>
 
       <section class="my-sanctuary-view" data-sanctuary-view="rituals" hidden>
-        <h2>My Rituals</h2>
+        <h2>Completed Rituals</h2>
 
         <p class="my-sanctuary-intro">
           Save ritual notes, intentions, moon phases, altar links, and tags.
@@ -614,7 +614,7 @@ document.addEventListener("submit", async (event) => {
     setMySanctuaryView("dashboard");
     showMySanctuaryNotice("Your sanctuary is open.");
   } catch (error) {
-    showMySanctuaryNotice(error.message);
+    showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
   }
 });
 
@@ -633,7 +633,11 @@ document.addEventListener("click", async (event) => {
   if (openButton) openMySanctuaryPanel();
   if (closeButton) closeMySanctuaryPanel();
   if (showAuthButton) setMySanctuaryView("auth");
-  if (guestButton) setMySanctuaryView("dashboard");
+  if (guestButton) {
+    localStorage.setItem("saltAndSovereigntyGuestScope", "true");
+    localStorage.removeItem("saltAndSovereigntyPendingGuestMigrationSnapshot");
+    setMySanctuaryView("dashboard");
+  }
   if (backButton) setMySanctuaryView("welcome");
   if (dashboardButton) setMySanctuaryView("dashboard");
 
@@ -645,7 +649,7 @@ document.addEventListener("click", async (event) => {
      try {
        await signInWithGoogle();
      } catch (error) {
-       showMySanctuaryNotice(error.message);
+       showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
      }
    }
       
@@ -672,7 +676,7 @@ document.addEventListener("click", async (event) => {
       setMySanctuaryView("dashboard");
       showMySanctuaryNotice("Your sanctuary has been created.");
     } catch (error) {
-      showMySanctuaryNotice(error.message);
+      showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
     }
   }
 
@@ -683,7 +687,7 @@ document.addEventListener("click", async (event) => {
       setMySanctuaryView("welcome");
       showMySanctuaryNotice("Signed out.");
     } catch (error) {
-      showMySanctuaryNotice(error.message);
+      showMySanctuaryNotice(window.SaltAccountData?.authMessage?.(error) || "That account request could not be completed.");
     }
   }
 });
