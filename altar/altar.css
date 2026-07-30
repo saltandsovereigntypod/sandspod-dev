@@ -104,18 +104,19 @@
   gap: 1rem;
 }
 
+.altar-workspace-tool-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-left: auto;
+}
+
 .altar-workspace-tool {
-  border: 1px solid rgba(185, 160, 93, 0.35);
-  border-radius: 999px;
-  padding: 0.6rem 0.9rem;
-  color: var(--cream);
   background:
     radial-gradient(circle at top, rgba(185, 160, 93, 0.14), transparent 70%),
     rgba(10, 8, 6, 0.72);
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
-  font: inherit;
-  font-size: 0.9rem;
-  cursor: pointer;
 }
 
 .altar-workspace-tool:hover,
@@ -126,7 +127,12 @@
 
 @media (max-width: 560px) {
   .altar-workspace-tools {
+    align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .altar-workspace-tool-group {
+    gap: 0.4rem;
   }
 
   .altar-workspace-tool {
@@ -764,6 +770,11 @@
 
 .altar-object-actions-backdrop[hidden] { display: none; }
 .altar-object-actions-overflow-title { display: block; grid-column: 1 / -1; padding: .2rem; color: var(--gold); }
+
+.altar-object-actions-close {
+  grid-column: 1 / -1;
+  min-height: 2.75rem;
+}
 
 .altar-object-actions-overflow button {
   width: 100% !important;
@@ -3281,29 +3292,16 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
 }
 .cabinet-missing-form-actions {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: .15rem;
+  gap: .3rem;
   margin-top: .25rem;
 }
 .cabinet-missing-form-action {
-  min-height: 1.75rem;
-  max-width: 100%;
-  padding: .15rem .2rem;
-  border: 0;
-  border-radius: .25rem;
-  background: transparent;
-  color: var(--gold);
-  font: inherit;
-  font-size: .78rem;
-  line-height: 1.35;
-  text-align: left;
-  cursor: pointer;
+  text-align: center;
 }
 .cabinet-missing-form-action:hover,
 .cabinet-missing-form-action:focus-visible {
   color: var(--cream);
   background: rgba(185, 160, 93, .1);
-  outline: 1px solid rgba(185, 160, 93, .5);
-  outline-offset: 2px;
 }

@@ -3326,3 +3326,14 @@ body.library-page-open .book-toc .book-toc-section:not(.my-practice-shelf):not(.
     grid-template-columns: 1fr;
   }
 }
+
+.ritual-record { display: grid; gap: 1rem; max-width: 52rem; margin-inline: auto; }
+.ritual-record-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .7rem; margin: 0; }
+.ritual-record-facts div, .ritual-record-section { padding: 1rem; border: 1px solid rgba(196, 165, 96, .3); border-radius: .75rem; background: rgba(18, 13, 10, .62); }
+.ritual-record-facts dt { color: var(--gold); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+.ritual-record-facts dd { margin: .3rem 0 0; }
+.ritual-record-section h2 { margin: 0 0 .6rem; color: var(--gold); font-size: 1.25rem; }
+.ritual-record-section p { margin: 0; white-space: pre-wrap; line-height: 1.65; }
+.ritual-record-chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+.ritual-record-chips span { padding: .35rem .65rem; border: 1px solid rgba(196, 165, 96, .35); border-radius: 999px; }
+.ritual-record-details { overflow-wrap: anywhere; color: var(--muted); }
