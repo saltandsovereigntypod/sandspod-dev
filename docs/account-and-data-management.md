@@ -49,3 +49,9 @@ Verify password recovery and redirects on each supported deployment, reset with 
 ## Guest-to-account migration
 
 Signing in never transfers local guest work. If allow-listed guest data remains, Account & Data offers an explicit preview, category selection, version 1 safety backup, keep-cloud conflict plan, staged RLS-protected inserts, verification, and retry checkpoints. Guest data remains after success; selective cleanup is intentionally unavailable. See [guest-to-account-migration.md](guest-to-account-migration.md).
+
+## Deletion readiness and Library health
+
+Account & Data can query the authenticated Edge Function capability and request a write-free count preview, but execution remains disabled. The local 20-minute Complete Backup gate binds user ID, backup integrity digest, and source snapshot digest; the server does not yet accept it because recent authentication and backup freshness require a server challenge. See `docs/account-deletion.md` and `docs/user-data-inventory.md`.
+
+Living Library Health provides an authenticated, write-free strong-identity scan. Name-only matches remain separate, technical evidence is expandable, and no reconciliation button is enabled. See `docs/living-library-duplicate-audit.md` and `docs/living-library-reconciliation.md`.

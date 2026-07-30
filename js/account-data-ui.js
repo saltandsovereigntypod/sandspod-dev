@@ -23,12 +23,13 @@
         <form data-recovery-form><h4>Send Password Recovery Link</h4><input type="hidden" name="email" value="${safe(user.email || "")}"><button class="button button--ghost button--small" type="submit">Send Recovery Link</button><p role="status" aria-live="polite" data-recovery-status></p></form>
       </section>
       <section class="account-device"><h3>This Device</h3><p>Local cache clearing is not offered because this version cannot reliably separate rebuildable cloud caches from unsynchronized drafts. A complete backup is the safe option.</p></section>
-      <section class="account-danger-zone"><h3>Danger Zone</h3><p>Account deletion requires the secure server-side deletion function. It is unavailable until that function and its retention policy are deployed and verified.</p><details><summary>Safeguards required before deletion can be enabled</summary><p>A fresh complete backup, a recent sign-in, and the typed phrase <strong>${global.SaltAccountData.DELETE_CONFIRMATION}</strong> will be required. Published community work may remain only in anonymized form.</p></details><button class="button button--ghost button--small" type="button" disabled>Delete Account — Not Yet Configured</button></section>
+      <section class="account-danger-zone"><h3>Danger Zone</h3><p>Account deletion remains disabled until the development Edge Function, complete inventory, recent-authentication challenge, Storage cleanup, and disposable-account test are verified.</p><details><summary>Safeguards required before deletion can be enabled</summary><p>A fresh Complete Sanctuary Backup valid for 20 minutes, a server-generated write-free preview, recent authentication, and the typed phrase <strong>${global.SaltAccountData.DELETE_CONFIRMATION}</strong> are required. Published community work may remain only in anonymized form.</p></details><div class="account-danger-actions"><button class="button button--ghost button--small" type="button" data-check-deletion-readiness>Check Deletion Readiness</button><button class="button button--ghost button--small" type="button" data-preview-account-deletion disabled>Preview What Would Be Affected</button><button class="button button--ghost button--small" type="button" disabled>Delete Account — Development Verification Required</button></div><p role="status" aria-live="polite" data-deletion-status>Deletion execution is unavailable and fails closed.</p><div data-deletion-preview hidden></div></section>
     ` : `
       <section class="account-summary-card"><h3>Guest Sanctuary</h3><p>Your work is stored only in this browser. Clearing browser storage can remove it, and guest data does not automatically move into an account. Download a complete guest backup before clearing anything.</p></section>
       <section class="account-guest-clear"><h3>This Browser</h3><p>Clear known guest settings, Altars, drafts, Book of Shadows data, Living Library records, Apothecary items, and rituals from this browser only. Cloud records and unrelated website data are not touched.</p><button class="button button--ghost button--small" type="button" data-prepare-guest-clear>Download Required Guest Backup</button><div data-guest-clear-confirmation hidden><label>Type ${global.SaltAccountData.GUEST_CLEAR_CONFIRMATION}<input type="text" autocomplete="off" data-guest-clear-phrase></label><button class="button button--ghost button--small" type="button" data-clear-guest-data>Clear This Browser’s Guest Data</button></div><p role="status" aria-live="polite" data-guest-clear-status></p></section>`;
     panel.prepend(section);
     if (user) global.GuestAccountMigrationUI?.mount?.(panel, user);
+    if (user) global.LivingLibraryReconciliationUI?.mount?.(panel, user);
     if (!panel.dataset.accountStateBound) {
       panel.dataset.accountStateBound = "true";
       document.addEventListener("saltAuthChanged", (event) => {
@@ -36,6 +37,7 @@
         panel.querySelector("[data-account-data-controls]")?.remove();
         panel.querySelector("[data-sanctuary-backup-controls]")?.remove();
         panel.querySelector("[data-guest-migration]")?.remove();
+        panel.querySelector("[data-library-health]")?.remove();
         const actions = panel.querySelector("[data-account-auth-actions]");
         if (actions) actions.innerHTML = nextUser ? '<button type="button" class="button button--ghost" data-my-sanctuary-signout>Sign Out</button>' : '<button type="button" class="button button--ghost" data-my-sanctuary-show-auth>Sign In or Create Account</button>';
         mount(panel, nextUser);
@@ -56,6 +58,27 @@
     emailForm?.addEventListener("submit", async (event) => { event.preventDefault(); const status = emailForm.querySelector("[data-change-email-status]"); status.textContent = "Requesting your email change…"; const data = new FormData(emailForm); try { await global.SaltAccountData.requestEmailChange(global.getCurrentSaltUser?.(), data.get("email"), data.get("confirmation")); emailForm.reset(); status.textContent = "Your request was sent. The account email will update after the required confirmations."; } catch (error) { status.textContent = error.message; } });
     const recoveryForm = section.querySelector("[data-recovery-form]");
     recoveryForm?.addEventListener("submit", async (event) => { event.preventDefault(); const status = recoveryForm.querySelector("[data-recovery-status]"); status.textContent = "Sending a recovery link…"; try { status.textContent = await global.SaltAccountData.requestRecovery(new FormData(recoveryForm).get("email")); } catch (error) { status.textContent = error.message; } });
+
+    const deletionStatus = section.querySelector("[data-deletion-status]");
+    const deletionPreviewButton = section.querySelector("[data-preview-account-deletion]");
+    section.querySelector("[data-check-deletion-readiness]")?.addEventListener("click", async () => {
+      deletionStatus.textContent = "Checking the server-side deletion safeguards…";
+      const capability = await global.SaltAccountData.requestDeletionCapability();
+      deletionPreviewButton.disabled = !capability.functionAvailable;
+      deletionStatus.textContent = capability.executeEnabled ? "Deletion safeguards report ready in development." : `Deletion remains disabled. ${capability.blockers?.length || 0} readiness requirement${capability.blockers?.length === 1 ? "" : "s"} remain.`;
+    });
+    deletionPreviewButton?.addEventListener("click", async () => {
+      deletionPreviewButton.disabled = true; deletionStatus.textContent = "Preparing a write-free deletion preview…";
+      try {
+        const preview = await global.SaltAccountData.requestDeletionPreview();
+        if (global.getCurrentSaltUser?.()?.id !== user.id) throw new Error("The signed-in account changed. Preview discarded.");
+        const box = section.querySelector("[data-deletion-preview]"); box.hidden = false; box.replaceChildren();
+        const summary = document.createElement("p"); summary.textContent = `${preview.records?.length || 0} data groups and ${preview.storage?.reduce((sum, item) => sum + (item.count || 0), 0) || 0} uploaded files were inspected. ${preview.community?.publicAnonymize || 0} published contributions would be anonymized.`;
+        const details = document.createElement("details"); const heading = document.createElement("summary"); heading.textContent = "Preview blockers and retained content"; const list = document.createElement("ul"); [...(preview.blockers || []), ...(preview.warnings || [])].forEach((message) => { const item = document.createElement("li"); item.textContent = message; list.append(item); }); details.append(heading, list); box.append(summary, details);
+        deletionStatus.textContent = "Preview complete. No data was changed; execution remains disabled.";
+      } catch (error) { deletionStatus.textContent = error.message; }
+      finally { deletionPreviewButton.disabled = false; }
+    });
 
     let guestBackupReady = false;
     const guestStatus = section.querySelector("[data-guest-clear-status]");

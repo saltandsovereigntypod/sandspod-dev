@@ -94,3 +94,5 @@ Guest-data clearing requires a freshly downloaded guest backup in the current Ac
 ## Guest migration safety backup
 
 Guest-to-account migration reuses backup format version 1 rather than inventing an import payload. The preview digest gates plan review and cloud writes; if local guest data changes, a fresh backup is required. Migration uses authenticated RLS writes, keeps cloud conflicts, checkpoints table stages, and never clears guest records automatically. See [guest-to-account-migration.md](guest-to-account-migration.md).
+
+Account deletion and Living Library reconciliation require distinct fresh Complete Backup gates. The deletion helper uses a 20-minute user/digest/snapshot-bound local gate, but destructive execution remains disabled until a server challenge verifies it. Reconciliation is preview-only and cannot reuse guest migration or deletion checkpoints.

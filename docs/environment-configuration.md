@@ -103,3 +103,7 @@ Allow the matching root URL as well for OAuth and email-change confirmation. Nev
 ## Guest migration environment behavior
 
 Guest migration uses the already-selected browser Supabase client, so development guest records can migrate only into the authenticated development project and production records only into production. It contains no project URL, publishable key, auth token, moderator state, or ownership value from guest storage. Unknown hosts remain fail-closed. Development and production table/RLS/storage compatibility must be reviewed independently before live migration testing.
+
+## Account deletion deployment flags
+
+The Edge Function requires `ACCOUNT_DELETE_ENVIRONMENT=development` for readiness work and separate `ACCOUNT_DELETE_ALLOWED_ORIGINS`. Inventory, Storage, Community policy, and disposable-test flags default false; source keeps recent-auth verification and production execution false regardless of query strings or browser storage. Development and production projects must be linked, reviewed, and deployed independently. See `docs/account-deletion.md` for CLI steps and rollback.

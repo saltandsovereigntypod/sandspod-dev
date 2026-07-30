@@ -2859,6 +2859,11 @@ body:has(.sanctuary-submission-form) h1 {
 .account-reset-card label { display: grid; gap: .35rem; }
 .account-reset-card input { width: 100%; }
 .guest-migration-card, .guest-migration-notice { min-width: 0; padding: 1rem; border: 1px solid rgba(196, 165, 96, .4); border-radius: .85rem; background: rgba(11, 29, 22, .68); overflow-wrap: anywhere; }
+.library-health-card, .account-danger-zone { min-width: 0; margin-block: 1rem; padding: 1rem; border: 1px solid rgba(196, 165, 96, .4); border-radius: .85rem; background: rgba(11, 29, 22, .68); overflow-wrap: anywhere; }
+.library-health-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .65rem; margin-block: 1rem; }
+.library-health-counts span { min-width: 0; padding: .65rem; border: 1px solid var(--line); border-radius: .65rem; }
+.library-health-card code, .account-danger-zone code { white-space: normal; overflow-wrap: anywhere; }
+.account-danger-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
 .guest-migration-heading, .guest-migration-notice, .guest-migration-notice > div, .guest-migration-selection-actions { display: flex; align-items: flex-start; justify-content: space-between; gap: .7rem; flex-wrap: wrap; }
 .guest-migration-heading h3 { margin: .2rem 0 0; }
 .guest-migration-summary { margin-block: 1rem; padding: .8rem; border-radius: .65rem; background: rgba(0, 0, 0, .18); }

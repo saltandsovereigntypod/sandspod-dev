@@ -4,6 +4,8 @@
   const MIN_PASSWORD_LENGTH = 8;
   const GUEST_CLEAR_CONFIRMATION = "CLEAR MY GUEST DATA";
   const DELETE_CONFIRMATION = "DELETE MY SALT AND SOVEREIGNTY ACCOUNT";
+  const DELETE_BACKUP_MAX_AGE_MS = 20 * 60 * 1000;
+  const DELETE_CAPABILITY = Object.freeze({ functionAvailable: false, inventoryVerified: false, storageVerified: false, communityPolicyVerified: false, recentAuthVerified: false, disposableAccountTestPassed: false, productionEnabled: false, executeEnabled: false });
   const PENDING_GUEST_SNAPSHOT_KEY = "saltAndSovereigntyPendingGuestMigrationSnapshot";
   const GUEST_MIGRATION_KEYS = Object.freeze({ settings: "saltAndSovereigntyUserSettings", altars: "saltAndSovereigntySavedAltars", altarDraft: "saltAndSovereigntyWorkingAltarDraft", livingLibrary: "saltAndSovereigntyLibrary", livingLibraryLayouts: "saltAndSovereigntyLibraryPageLayouts", apothecary: "saltAndSovereigntyApothecaryItems", ritualJournals: "saltAndSovereigntyUserRituals", ritualLifecycle: "saltAndSovereigntyRitualLifecycle:guest", customCabinet: "saltAndSovereigntyCustomCabinetItems", mundaneMode: "saltAndSovereigntyMundaneMode" });
   const GUEST_KEYS = Object.freeze([
@@ -104,6 +106,29 @@
     return { removed, count: removed.length };
   }
 
+  function createDeletionBackupGate(user, backup, snapshotDigest, now = Date.now()) {
+    if (!user?.id || !backup?.integrity?.digest || !snapshotDigest) throw new Error("A fresh Complete Sanctuary Backup is required.");
+    return { userId: user.id, backupDigest: backup.integrity.digest, snapshotDigest, createdAt: new Date(now).toISOString(), expiresAt: new Date(now + DELETE_BACKUP_MAX_AGE_MS).toISOString() };
+  }
+
+  function validateDeletionBackupGate(gate, user, snapshotDigest, now = Date.now()) {
+    return Boolean(gate?.userId && gate.userId === user?.id && gate.snapshotDigest === snapshotDigest && gate.backupDigest && Date.parse(gate.expiresAt) > now && now - Date.parse(gate.createdAt) <= DELETE_BACKUP_MAX_AGE_MS);
+  }
+
+  async function requestDeletionCapability() {
+    try {
+      const { data, error } = await global.db.functions.invoke("delete-account", { body: { action: "capability" } });
+      if (error || !data?.capability) return { ...DELETE_CAPABILITY, blockers: ["functionUnavailable"] };
+      return { ...DELETE_CAPABILITY, ...data.capability, executeEnabled: false };
+    } catch { return { ...DELETE_CAPABILITY, blockers: ["functionUnavailable"] }; }
+  }
+
+  async function requestDeletionPreview() {
+    const { data, error } = await global.db.functions.invoke("delete-account", { body: { action: "preview" } });
+    if (error || !data?.preview) throw new Error("The deletion preview is unavailable. No data was changed.");
+    return data.preview;
+  }
+
   function preserveGuestSnapshotBeforeAuth(storage) {
     const existing = storage.getItem(PENDING_GUEST_SNAPSHOT_KEY);
     if (existing) { try { return JSON.parse(existing); } catch {} }
@@ -149,7 +174,7 @@
   global.document?.addEventListener("saltAuthChanged", (event) => SyncStatus.setUser(event.detail?.user || null));
   global.document?.addEventListener("saltAuthSignedOut", () => SyncStatus.setUser(null));
 
-  global.SaltAccountData = { MIN_PASSWORD_LENGTH, GUEST_CLEAR_CONFIRMATION, DELETE_CONFIRMATION, PENDING_GUEST_SNAPSHOT_KEY, GUEST_MIGRATION_KEYS, GUEST_KEYS, authMessage, providerSummary, hasPasswordIdentity, recoveryRedirect, validatePasswordPair, validateEmailChange, requestRecovery, updatePassword, requestEmailChange, clearGuestData, preserveGuestSnapshotBeforeAuth, markGuestDataChanged, SyncStatus };
+  global.SaltAccountData = { MIN_PASSWORD_LENGTH, GUEST_CLEAR_CONFIRMATION, DELETE_CONFIRMATION, DELETE_BACKUP_MAX_AGE_MS, DELETE_CAPABILITY, PENDING_GUEST_SNAPSHOT_KEY, GUEST_MIGRATION_KEYS, GUEST_KEYS, authMessage, providerSummary, hasPasswordIdentity, recoveryRedirect, validatePasswordPair, validateEmailChange, requestRecovery, updatePassword, requestEmailChange, clearGuestData, createDeletionBackupGate, validateDeletionBackupGate, requestDeletionCapability, requestDeletionPreview, preserveGuestSnapshotBeforeAuth, markGuestDataChanged, SyncStatus };
   global.SaltSyncStatus = SyncStatus;
   if (typeof module !== "undefined" && module.exports) module.exports = global.SaltAccountData;
 })(typeof window !== "undefined" ? window : globalThis);

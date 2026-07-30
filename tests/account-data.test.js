@@ -85,18 +85,19 @@ test("reset page and account UI preserve accessible security controls", () => {
   assert.match(page, /aria-live="polite"/);
   assert.match(reset, /PASSWORD_RECOVERY/);
   assert.match(ui, /This account currently uses Google sign-in/);
-  assert.match(ui, /Delete Account — Not Yet Configured/);
+  assert.match(ui, /Delete Account — Development Verification Required/);
   assert.match(ui, /data-prepare-guest-clear/);
 });
 
-test("account deletion remains server-side, current-user scoped, and auth-last", () => {
+test("account deletion remains server-side, current-user scoped, and fail-closed", () => {
   const frontend = ["js/account-data.js", "js/account-data-ui.js", "js/auth.js"].map((file) => fs.readFileSync(file, "utf8")).join("\n");
   const edge = fs.readFileSync("supabase/functions/delete-account/index.ts", "utf8");
   assert.doesNotMatch(frontend, /SUPABASE_SERVICE_ROLE_KEY|service_role/);
   assert.match(edge, /auth\.getUser\(\)/);
   assert.match(edge, /const userId = authData\.user\.id/);
   assert.match(edge, /\.eq\("user_id", userId\)/);
-  assert.match(edge, /deleteUser\(userId\)/);
-  assert.ok(edge.indexOf("deleteUser(userId)") > edge.indexOf('completed.push("storage")'));
-  assert.match(edge, /display_as: "anonymous"/);
+  assert.match(edge, /recentAuthVerified: false/);
+  assert.match(edge, /productionEnabled: false/);
+  assert.match(edge, /account_deletion_not_verified/);
+  assert.doesNotMatch(edge, /body\.userId|body\.user_id/);
 });
