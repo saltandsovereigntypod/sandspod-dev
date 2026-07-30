@@ -287,4 +287,168 @@
     },
     true
   );
+
+  /* =========================================================
+     PERSISTENT MOBILE ACTION DRAWER
+     Keep See More open across repeated actions for the same object,
+     while preserving explicit and accessible ways to close it.
+     ========================================================= */
+
+  const mobileActionQuery = window.matchMedia("(max-width: 900px)");
+  let keepActionDrawerOpen = false;
+  let actionDrawerObject = null;
+  let actionDrawerRestoreQueued = false;
+
+  function selectedAltarObject() {
+    return typeof selectedObject !== "undefined" && selectedObject
+      ? selectedObject
+      : document.querySelector(".altar-object.is-selected");
+  }
+
+  function closePersistentActionDrawer() {
+    keepActionDrawerOpen = false;
+    actionDrawerObject = null;
+
+    if (typeof window.closeObjectActionOverflow === "function") {
+      window.closeObjectActionOverflow();
+    }
+  }
+
+  function addActionDrawerCloseButton(popup) {
+    if (!popup || popup.querySelector("[data-close-persistent-actions]")) return;
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = "button button--small button--ghost altar-action-drawer-close";
+    closeButton.dataset.closePersistentActions = "";
+    closeButton.setAttribute("role", "menuitem");
+    closeButton.innerHTML = '<span aria-hidden="true">×</span><span>Close Actions</span>';
+    popup.prepend(closeButton);
+  }
+
+  function restorePersistentActionDrawer() {
+    actionDrawerRestoreQueued = false;
+
+    if (!mobileActionQuery.matches || !keepActionDrawerOpen) return;
+
+    const current = selectedAltarObject();
+    if (!current || current !== actionDrawerObject || !current.isConnected) {
+      closePersistentActionDrawer();
+      return;
+    }
+
+    const toolbarElement = document.querySelector(".altar-toolbar");
+    const more = toolbarElement?.querySelector("[data-object-action-more]");
+    const popup = toolbarElement?.querySelector("[data-object-action-overflow]");
+    const backdrop = toolbarElement?.querySelector("[data-object-action-backdrop]");
+
+    if (!more || !popup) return;
+
+    addActionDrawerCloseButton(popup);
+    popup.hidden = false;
+    if (backdrop) backdrop.hidden = false;
+    more.setAttribute("aria-expanded", "true");
+    document.body.classList.add("altar-action-sheet-open");
+  }
+
+  function queueActionDrawerRestore() {
+    if (actionDrawerRestoreQueued) return;
+    actionDrawerRestoreQueued = true;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(restorePersistentActionDrawer);
+    });
+  }
+
+  const actionToolbar = document.querySelector(".altar-toolbar");
+  if (actionToolbar) {
+    const actionToolbarObserver = new MutationObserver(() => {
+      if (keepActionDrawerOpen) queueActionDrawerRestore();
+    });
+
+    actionToolbarObserver.observe(actionToolbar, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      const more = event.target.closest?.("[data-object-action-more]");
+      if (more && mobileActionQuery.matches) {
+        const wasOpen = more.getAttribute("aria-expanded") === "true";
+
+        if (wasOpen) {
+          keepActionDrawerOpen = false;
+          actionDrawerObject = null;
+        } else {
+          keepActionDrawerOpen = true;
+          actionDrawerObject = selectedAltarObject();
+          queueActionDrawerRestore();
+        }
+
+        return;
+      }
+
+      const closeButton = event.target.closest?.("[data-close-persistent-actions]");
+      if (closeButton) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closePersistentActionDrawer();
+        document.querySelector("[data-object-action-more]")?.focus();
+        return;
+      }
+
+      const overflowAction = event.target.closest?.(
+        "[data-object-action-overflow] [data-action], " +
+        "[data-object-action-overflow] [data-global-action]"
+      );
+
+      if (overflowAction && mobileActionQuery.matches) {
+        const actionId = overflowAction.dataset.action || "";
+
+        if (["back-to-altar", "delete"].includes(actionId)) {
+          keepActionDrawerOpen = false;
+          actionDrawerObject = null;
+          return;
+        }
+
+        keepActionDrawerOpen = true;
+        actionDrawerObject = selectedAltarObject();
+        queueActionDrawerRestore();
+        return;
+      }
+
+      if (
+        keepActionDrawerOpen &&
+        event.target.closest?.("[data-object-action-backdrop]")
+      ) {
+        closePersistentActionDrawer();
+      }
+    },
+    true
+  );
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key !== "Escape" || !keepActionDrawerOpen) return;
+      closePersistentActionDrawer();
+    },
+    true
+  );
+
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (!keepActionDrawerOpen || !mobileActionQuery.matches) return;
+      if (event.target.closest?.(".altar-object-actions-more-wrap, [data-object-action-modal], [role='dialog']")) return;
+      closePersistentActionDrawer();
+    },
+    true
+  );
+
+  mobileActionQuery.addEventListener?.("change", (event) => {
+    if (!event.matches) closePersistentActionDrawer();
+  });
 })();
