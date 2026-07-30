@@ -727,6 +727,16 @@ async function completeActiveRitualSession(status = "completed") {
     ritualPanelView = "home"; renderRitualHome(); return completed;
   }
 
+  if (!user) {
+    activeRitualSession.session_steps = activeRitualSteps.map((step) => ({ ...step }));
+    const completed = status === "completed"
+      ? getGuestRitualRepository().complete(activeSession.id, { altarSnapshot: finalSnapshot })
+      : getGuestRitualRepository().saveSession({ ...activeRitualSession, status: "abandoned", ended_at: endedAt, altar_snapshot: finalSnapshot }, false);
+    clearRitualIntervals(); activeRitualSession = null; activeRitualSteps = []; storeActiveRitualSession(null);
+    document.dispatchEvent(new CustomEvent("saltRitualSessionCompleted", { detail: { session: completed } }));
+    ritualPanelView = "home"; renderRitualHome(); return completed;
+  }
+
   const { data: existing, error: readError } = await db
     .from("ritual_sessions")
     .select("*")
