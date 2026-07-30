@@ -122,6 +122,7 @@ function createAltarSnapshot(name = "Working Altar") {
       locked: object.dataset.locked || "false",
       glowing: object.dataset.glowing || "false",
       lit: object.dataset.lit || "false",
+      ritualIncluded: object.dataset.ritualIncluded || "false",
       livingState: object.dataset.livingState || "",
       plaqueText: object.dataset.plaqueText || "",
       altarObjectId: object.dataset.altarObjectId || "",
@@ -151,6 +152,7 @@ function persistWorkingAltarDraft(snapshot = null) {
   const draft = snapshot || createAltarSnapshot();
   if (!draft) return false;
 
+  window.SaltAccountData?.markGuestDataChanged?.(localStorage);
   localStorage.setItem(ALTAR_DRAFT_KEY, JSON.stringify({
     ...draft,
     id: "working-draft",
@@ -210,6 +212,7 @@ function getLocalSavedAltars() {
 }
 
 function storeLocalSavedAltars(savedAltars) {
+  window.SaltAccountData?.markGuestDataChanged?.(localStorage);
   localStorage.setItem(ALTAR_STORAGE_KEY, JSON.stringify(savedAltars));
 }
 
@@ -242,36 +245,9 @@ async function getSavedAltars() {
 }
 
 async function migrateLocalAltarsToCloud() {
-  const user = await ensureAltarUser();
-
-  if (!user) return;
-
-  const alreadyMigrated = localStorage.getItem(ALTAR_MIGRATION_KEY);
-  if (alreadyMigrated === "true") return;
-
-  const localAltars = getLocalSavedAltars();
-
-  if (localAltars.length === 0) {
-    localStorage.setItem(ALTAR_MIGRATION_KEY, "true");
-    return;
-  }
-
-  const rows = localAltars.map((altar) => ({
-    user_id: user.id,
-    name: altar.name || "My Altar",
-    altar_data: altar
-  }));
-
-  const { error } = await db.from(ALTAR_CLOUD_TABLE).insert(rows);
-
-  if (error) {
-    console.error(error);
-    showAltarToast("Local altar migration failed");
-    return;
-  }
-
-  localStorage.setItem(ALTAR_MIGRATION_KEY, "true");
-  showAltarToast("Local altars synced");
+  // Guest records are never transferred as a side effect of sign-in. The
+  // Account & Data migration preview owns all review, backup and cloud writes.
+  return { pending: getLocalSavedAltars().length > 0 };
 }
 
 async function saveAltar() {
@@ -345,6 +321,7 @@ function createSavedObject(savedObject) {
   object.dataset.locked = savedObject.locked || "false";
   object.dataset.glowing = savedObject.glowing || "false";
   object.dataset.lit = savedObject.lit || "false";
+  object.dataset.ritualIncluded = savedObject.ritualIncluded || "false";
   // `dressings` is retained only as an import path for saves made before
   // Living Object State became native storage.
   object.dataset.livingState = savedObject.livingState && typeof savedObject.livingState === "object"

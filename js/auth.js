@@ -6,10 +6,9 @@
 let currentUser = null;
 let saltAuthResolved = false;
 window.getCurrentSaltUser = () => currentUser;
-const SALT_COMMUNITY_MODERATOR_IDS = new Set([
-  "ddc5463e-1551-498b-b5af-79ce52ac591c",
-  "5c63e3ac-920c-4980-9aa7-f6f322a67a2e"
-]);
+// Presentation only. TODO: replace with RLS-protected membership/roles or
+// server-authoritative custom claims; database authorization remains decisive.
+const SALT_COMMUNITY_MODERATOR_IDS = new Set(window.SaltEnvironment.moderatorIds);
 window.isSaltCommunityModerator = (user = currentUser) => Boolean(user && SALT_COMMUNITY_MODERATOR_IDS.has(user.id));
 window.getSaltCommunityModeratorState = () => ({ resolved: saltAuthResolved, user: currentUser, canModerate: saltAuthResolved && window.isSaltCommunityModerator(currentUser) });
 function announceModeratorState() {
@@ -29,12 +28,17 @@ function setAuthStatus(message) {
   });
 }
 
+function safeAuthMessage(error, context = "account") {
+  return window.SaltAccountData?.authMessage?.(error, context) || "That request could not be completed. Please try again.";
+}
+
 function announceAuthSuccess(message) {
   document.dispatchEvent(
     new CustomEvent("saltAuthSuccess", {
       detail: { message }
     })
   );
+
 }
 
 function updateAuthUI(user) {
@@ -72,6 +76,7 @@ async function getCurrentUser() {
 }
 
 async function signUpWithEmail(email, password) {
+  window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   const { data, error } = await db.auth.signUp({
     email,
     password
@@ -87,6 +92,7 @@ async function signUpWithEmail(email, password) {
 }
 
 async function signInWithEmail(email, password) {
+  window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   const { data, error } = await db.auth.signInWithPassword({
     email,
     password
@@ -102,10 +108,11 @@ async function signInWithEmail(email, password) {
 }
 
 async function signInWithGoogle() {
+  window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   const { error } = await db.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/`
+      redirectTo: window.SaltEnvironment.oauthReturnUrl("/")
     }
   });
 
@@ -121,15 +128,25 @@ async function signOutUser() {
   saltAuthResolved = true;
   updateAuthUI(null);
   announceModeratorState();
+  window.SaltSyncStatus?.setUser(null);
 
   document.dispatchEvent(
     new CustomEvent("saltAuthSignedOut", {
       detail: { message: "Signed out." }
     })
   );
+  // A clean navigation tears down user-scoped feature caches and listeners so
+  // late cloud responses cannot reveal the previous account in guest mode.
+  window.setTimeout(() => {
+    window.location.assign(window.SaltEnvironment.resolvePath("/"));
+  }, 0);
 }
 
 authForms.forEach((authForm) => {
+  if (!authForm.querySelector("[data-forgot-password]")) {
+    const actions = authForm.querySelector(".sanctuary-auth-actions, .altar-auth-actions") || authForm;
+    actions.insertAdjacentHTML("beforeend", '<button class="button button--ghost button--small" type="button" data-forgot-password>Forgot your password?</button>');
+  }
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -150,7 +167,8 @@ authForms.forEach((authForm) => {
       setAuthStatus("Your sanctuary is open.");
       announceAuthSuccess("Your sanctuary is open.");
     } catch (error) {
-      setAuthStatus(error.message);
+      console.warn("Sign-in failed.", { code: error.code || "auth_error" });
+      setAuthStatus(safeAuthMessage(error));
     }
   });
 });
@@ -180,7 +198,8 @@ document.addEventListener("click", async (event) => {
       setAuthStatus("Your sanctuary has been created.");
       announceAuthSuccess("Your sanctuary has been created.");
     } catch (error) {
-      setAuthStatus(error.message);
+      console.warn("Sign-up failed.", { code: error.code || "auth_error" });
+      setAuthStatus(safeAuthMessage(error));
     }
   }
 
@@ -189,15 +208,30 @@ document.addEventListener("click", async (event) => {
       await signOutUser();
       setAuthStatus("Signed out.");
     } catch (error) {
-      setAuthStatus(error.message);
+      console.warn("Sign-out failed.", { code: error.code || "auth_error" });
+      setAuthStatus(safeAuthMessage(error));
     }
+  }
+
+  const forgotButton = event.target.closest("[data-forgot-password]");
+  if (forgotButton) {
+    const form = forgotButton.closest("form");
+    const email = form?.querySelector('[name="email"]')?.value || "";
+    if (!email) { setAuthStatus("Enter your email address first."); return; }
+    forgotButton.disabled = true;
+    setAuthStatus("Sending a recovery link…");
+    try { setAuthStatus(await window.SaltAccountData.requestRecovery(email)); }
+    catch (error) { setAuthStatus(error.message); }
+    finally { forgotButton.disabled = false; }
   }
 });
 
 db.auth.onAuthStateChange((event, session) => {
+  if (session?.user) window.SaltAccountData?.preserveGuestSnapshotBeforeAuth?.(localStorage);
   currentUser = session?.user || null;
   saltAuthResolved = true;
   updateAuthUI(currentUser);
+  window.SaltSyncStatus?.setUser(currentUser);
 
   document.dispatchEvent(
     new CustomEvent("saltAuthChanged", {

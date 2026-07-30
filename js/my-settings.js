@@ -135,6 +135,7 @@ function getLocalMySettings() {
 }
 
 function saveLocalMySettings(settings) {
+  window.SaltAccountData?.markGuestDataChanged?.(localStorage);
   localStorage.setItem(MY_SETTINGS_LOCAL_KEY, JSON.stringify(normalizeMySettings(settings)));
 }
 

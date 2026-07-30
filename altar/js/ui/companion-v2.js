@@ -127,7 +127,14 @@
   }
 
   function getHeaderDescriptor(object, entity, identity) {
-    const label = object?.dataset.label || entity?.name || "Companion";
+    const persistedLabel = object?.dataset.label || entity?.name || "Companion";
+    const label = identity === "candle" && window.CandleLifecycle
+      ? window.CandleLifecycle.displayTitle({
+        label: persistedLabel,
+        color: object?.dataset.color,
+        customDisplayName: object?.dataset.customDisplayName || object?.dataset.customName || (entity?.metadata?.customCabinetItem ? persistedLabel : "")
+      })
+      : persistedLabel;
     const icon = object && typeof getObjectIcon === "function" ? getObjectIcon(object) : "✦";
     const typeLabel = object && typeof getObjectTypeLabel === "function"
       ? getObjectTypeLabel(object)
@@ -169,7 +176,7 @@
     return { ...header, divider: "alchemy", emphasis: ["Ingredients", "Recipe", "Shelf Life"] };
   }
 
-  function renderLifecycleMarkup(instance) {
+  function renderLifecycleMarkup(instance, options = {}) {
     if (!instance) return "";
 
     const status = String(instance.status || "active").toLowerCase();
@@ -189,7 +196,7 @@
       measures.push(`${instance.remaining_amount}${instance.amount_unit ? ` ${instance.amount_unit}` : ""} remaining`);
     }
 
-    if (instance.remaining_burn_seconds !== null && instance.remaining_burn_seconds !== undefined) {
+    if (!options.suppressBurn && instance.remaining_burn_seconds !== null && instance.remaining_burn_seconds !== undefined) {
       const totalMinutes = Math.max(0, Math.round(Number(instance.remaining_burn_seconds) / 60));
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
@@ -284,7 +291,7 @@
 
     if (instance) {
       const template = document.createElement("template");
-      template.innerHTML = renderLifecycleMarkup(instance);
+      template.innerHTML = renderLifecycleMarkup(instance, { suppressBurn: identity === "candle" });
       if (template.content.firstElementChild) {
         headerHost.appendChild(template.content.firstElementChild);
       }
@@ -772,6 +779,7 @@
     companionContent.innerHTML = `
       <div class="companion-v3-page">
         <div class="companion-v3-knowledge">
+          ${object && typeof renderCandleLifeCompanion === "function" ? renderCandleLifeCompanion(object) : ""}
           ${renderKnowledge(entity, settings)}
           ${renderRelationships(entity, connections)}
           ${renderHistory(object, entity, events, entityEvents, connections)}

@@ -309,7 +309,7 @@ function partitionCabinetForms(item, forms = item.forms || []) {
 }
 
 function renderMissingFormAction(item, form) {
-  return `<button type="button" class="cabinet-missing-form-action" data-upload-cabinet-image data-image="" data-label="${item.name} ${form.label}" data-form-label="${form.label}" data-type="${form.type || ""}" data-form="${form.form || ""}" data-color="${form.color || ""}" data-herb="${form.herb || ""}" data-crystal="${form.crystal || ""}" data-entity-id="${form.entityId || item.entityId || ""}">Add ${form.label} Image</button>`;
+  return `<button type="button" class="button button--tiny button--image-action cabinet-missing-form-action" data-upload-cabinet-image data-image="" data-label="${item.name} ${form.label}" data-form-label="${form.label}" data-type="${form.type || ""}" data-form="${form.form || ""}" data-color="${form.color || ""}" data-herb="${form.herb || ""}" data-crystal="${form.crystal || ""}" data-entity-id="${form.entityId || item.entityId || ""}">Add ${form.label} Image</button>`;
 }
 
 function renderCabinetBackgroundTile(item) {
@@ -540,7 +540,7 @@ if (typeof cabinetContent !== "undefined" && cabinetContent && !cabinetContent.d
     const tile = image?.closest?.(".cabinet-form-tile[data-image]");
     if (!tile) return;
     tile.dataset.image = "";
-    tile.className = "cabinet-missing-form-action";
+    tile.className = "button button--tiny button--image-action cabinet-missing-form-action";
     tile.setAttribute("data-upload-cabinet-image", "");
     tile.textContent = `Add ${tile.dataset.formLabel || "Form"} Image`;
   }, true);

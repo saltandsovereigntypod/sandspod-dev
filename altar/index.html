@@ -21,6 +21,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
     <meta name="theme-color" content="#1b1914">
+      <script src="../js/accessibility.js"></script>
   </head>
 
   <body class="altar-page">
@@ -61,21 +62,12 @@
 
       <section class="altar-workspace" aria-label="Digital altar workspace">
         <div class="altar-workspace-tools" aria-label="Altar tools">
-          <button class="altar-workspace-tool" type="button" data-open-cabinet-overlay>
-            🗄 Cabinet
-          </button>
-      
-          <button class="altar-workspace-tool" type="button" data-open-apothecary-overlay>
-            🧪 My Apothecary
-          </button>
-
-          <button class="altar-workspace-tool" type="button" data-tool-guide="altar">
-            How This Works
-          </button>
-
-          <button class="altar-workspace-tool" type="button" data-open-sanctuary-search>
-            Search the Sanctuary
-          </button>
+          <div class="altar-workspace-tool-group">
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-open-cabinet-overlay>🗄 Cabinet</button>
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-open-apothecary-overlay>🧪 My Apothecary</button>
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-tool-guide="altar">How This Works</button>
+            <button class="button button--small button--pill altar-workspace-tool" type="button" data-open-sanctuary-search>Search the Sanctuary</button>
+          </div>
         </div>
       
         <div class="altar-stage-wrap">
@@ -236,9 +228,11 @@
     </div>
 
   <!-- Supabase -->
+  <script src="../js/environment.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/supabase-config.js"></script>
-  <script src="../js/auth.js"></script>
+  <script src="../js/account-data.js"></script>
+    <script src="../js/auth.js"></script>
   <script src="../js/welcome-discovery.js"></script>
   <script src="../js/sanctuary-modal.js"></script>
   <script src="../js/sanctuary-asset-catalog.js"></script>
@@ -263,6 +257,14 @@
   <script src="../js/sanctuary-search-navigation.js"></script>
   <script src="../js/sanctuary-search-ui.js"></script>
   <script src="../js/my-journey.js"></script>
+  <script src="../js/ritual-legacy-cleanup.js"></script>
+  <script src="../js/sanctuary-backup.js"></script>
+  <script src="../js/sanctuary-backup-ui.js"></script>
+  <script src="../js/guest-account-migration.js"></script>
+  <script src="../js/guest-account-migration-ui.js"></script>
+  <script src="../js/living-library-reconciliation.js"></script>
+  <script src="../js/living-library-reconciliation-ui.js"></script>
+  <script src="../js/account-data-ui.js"></script>
   <script src="../js/settings-view.js"></script>
   <script src="../js/living-sanctuary.js"></script>
   <script src="js/ui/ui.js"></script>
@@ -274,6 +276,7 @@
   <script src="js/ui/selection.js"></script>
   <script src="js/features/objects.js"></script>
   <script src="js/features/cabinet.js"></script>
+  <script src="js/features/cabinet-activation.js"></script>
   <script src="js/features/custom-images.js"></script>
   <script src="js/features/custom-cabinet-items.js"></script>
   <script src="../js/apothecary-normalization.js"></script>
@@ -287,7 +290,9 @@
   <!-- Altar Storage + Events -->
   <script src="js/core/storage.js"></script>
   <script src="js/features/living-object-state.js"></script>
+  <script src="js/features/candle-lifecycle.js"></script>
   <script src="js/features/object-actions.js"></script>
+  <script src="../js/ritual-lifecycle.js"></script>
   <script src="js/features/ritual-system.js"></script>
   <script src="js/features/ritual-automation.js"></script>
   <script src="js/features/ritual-template-editor.js"></script>

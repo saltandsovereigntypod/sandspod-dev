@@ -65,6 +65,16 @@ function extinguishFlame(object) {
 function toggleLight(object) {
   if (!object || object.dataset.type !== "candle") return;
 
+  if (typeof lightCandleObject === "function" && typeof extinguishCandleObject === "function") {
+    if (object.dataset.lit === "true") {
+      extinguishCandleObject(object, "manual_extinguish");
+    } else {
+      lightCandleObject(object);
+    }
+    renderLighting();
+    return;
+  }
+
   const isCurrentlyLit = object.dataset.lit === "true";
 
   if (isCurrentlyLit) {
