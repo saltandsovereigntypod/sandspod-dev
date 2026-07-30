@@ -35,6 +35,9 @@ jobs:
             --exclude='.git/' \
             --exclude='.github/' \
             ./ /tmp/sandspod/
+          # CNAME is a deployment artifact on the mirrored dev branch. Keep the
+          # shared source production-safe while publishing the dev custom domain.
+          printf '%s\n' 'dev.saltandsovereignty.com' > /tmp/sandspod/CNAME
 
       - name: Commit and push sync
         working-directory: /tmp/sandspod

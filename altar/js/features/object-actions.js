@@ -10,6 +10,8 @@
     "poppet", "powder", "tea", "herb-blend"
   ]);
   let overflowOpen = false;
+  let overflowObject = null;
+  let pendingActionAnchor = null;
 
   function currentObject(fallback = null) {
     return (typeof selectedObject !== "undefined" && selectedObject) ? selectedObject : fallback;
@@ -51,6 +53,65 @@
       if (typeof scheduleCompanionV4 === "function") scheduleCompanionV4(object);
       if (typeof scheduleCompanionCurrentState === "function") scheduleCompanionCurrentState(object);
     }
+  }
+
+  function objectIdentity(object) {
+    if (!object) return "";
+    return object.dataset.altarObjectId || object.dataset.instanceId || object.dataset.entityId || "";
+  }
+
+  function sameObject(left, right) {
+    if (!left || !right) return false;
+    if (left === right) return true;
+    const leftId = objectIdentity(left);
+    return Boolean(leftId && leftId === objectIdentity(right));
+  }
+
+  function actionScrollOwner(element) {
+    if (!element || !MOBILE_QUERY.matches) return null;
+    let ancestor = element.parentElement;
+    while (ancestor && ancestor !== document.body && ancestor !== document.documentElement) {
+      const style = window.getComputedStyle(ancestor);
+      if (/(auto|scroll|overlay)/.test(style.overflowY) && ancestor.scrollHeight > ancestor.clientHeight) {
+        return ancestor;
+      }
+      ancestor = ancestor.parentElement;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+
+  function captureActionAnchor(actionId, object) {
+    if (!MOBILE_QUERY.matches || !overflowOpen || !sameObject(object, overflowObject)) return null;
+    const button = Array.from(toolbar?.querySelectorAll("[data-object-action-overflow] [data-action]") || [])
+      .find((candidate) => candidate.dataset.action === actionId);
+    if (!button) return null;
+    const scrollContainer = actionScrollOwner(button);
+    return {
+      object,
+      objectId: objectIdentity(object),
+      actionId,
+      buttonViewportTop: button.getBoundingClientRect().top,
+      scrollContainer,
+      scrollPosition: scrollContainer?.scrollTop || 0
+    };
+  }
+
+  function restoreActionAnchor(anchor, object) {
+    if (!anchor || !overflowOpen || !sameObject(anchor.object, object)) return;
+    const replacement = Array.from(toolbar?.querySelectorAll("[data-object-action-overflow] [data-action]") || [])
+      .find((candidate) => candidate.dataset.action === anchor.actionId);
+    const scrollContainer = anchor.scrollContainer?.isConnected
+      ? anchor.scrollContainer
+      : actionScrollOwner(replacement || toolbar);
+
+    if (replacement) {
+      const offset = replacement.getBoundingClientRect().top - anchor.buttonViewportTop;
+      if (scrollContainer && Math.abs(offset) > 0.5) scrollContainer.scrollTop += offset;
+      try { replacement.focus({ preventScroll: true }); } catch (_) { replacement.focus(); }
+      return;
+    }
+
+    if (scrollContainer) scrollContainer.scrollTop = anchor.scrollPosition;
   }
 
   function closeActionModal() {
@@ -435,7 +496,9 @@
 
   const registry = [
     { id: "edit", label: "Edit", icon: "✎", priority: 10, types: ["*"], handler: openObjectEditDialog },
-    { id: "light", label: (o) => o.dataset.lit === "true" ? "Extinguish" : "Light", icon: "🔥", priority: 12, types: ["candle"], handler: (o) => { snapshot(); toggleLight(o); } },
+    { id: "light", label: (o) => o.dataset.lit === "true" ? "Extinguish" : "Light", icon: "🔥", priority: 12, types: ["candle"], available: (o) => o.dataset.candleStatus !== "spent" && o.dataset.candleStatus !== "archived", handler: (o) => { snapshot(); toggleLight(o); } },
+    { id: "replace-candle", label: "Replace Candle", icon: "♻", priority: 13, types: ["candle"], available: (o) => o.dataset.candleStatus === "spent" && typeof replaceCandleObject === "function", handler: (o) => replaceCandleObject(o) },
+    { id: "ritual-candle", label: (o) => o.dataset.ritualIncluded === "true" ? "Remove from Ritual" : "Include in Ritual", icon: "◉", priority: 16, types: ["candle"], handler: (o) => { o.dataset.ritualIncluded = o.dataset.ritualIncluded === "true" ? "false" : "true"; saveWorkingAltarDraft(); scheduleCompanionV4?.(o); } },
     { id: "dress-candle", label: "Dress", icon: "🌿", priority: 14, types: ["candle"], handler: openCandleDressingDialog },
     { id: "clear-dressings", label: "Undress", icon: "⌫", priority: 15, types: ["candle"], available: (o) => Boolean(livingState(o)?.candle?.dressings?.length), handler: (o) => { snapshot(); clearCandleDressings(o); } },
     { id: "cleanse", label: "Cleanse", icon: "💧", priority: 12, types: ["crystal"], handler: (o) => openCrystalAction(o, "cleanse") },
@@ -496,6 +559,8 @@
 
   function closeObjectActionOverflow() {
     overflowOpen = false;
+    overflowObject = null;
+    pendingActionAnchor = null;
     const popup = toolbar?.querySelector("[data-object-action-overflow]");
     const trigger = toolbar?.querySelector("[data-object-action-more]");
     const backdrop = toolbar?.querySelector("[data-object-action-backdrop]");
@@ -508,7 +573,9 @@
   function renderSelectedObjectActions(object = currentObject()) {
     if (!toolbar || !altarActionBar) return;
     closeActionModal();
-    closeObjectActionOverflow();
+    const preserveOverflow = MOBILE_QUERY.matches && overflowOpen && sameObject(overflowObject, object);
+    const anchor = preserveOverflow ? pendingActionAnchor : null;
+    if (!preserveOverflow) closeObjectActionOverflow();
     altarActionBar.classList.toggle("has-object-selection", Boolean(object));
     if (!object) {
       toolbar.hidden = true;
@@ -525,13 +592,19 @@
       <div class="altar-object-actions-visible">${visible.map((action) => buttonMarkup(action, object)).join("")}</div>
       ${overflow.length || altarActions ? `
         <div class="altar-object-actions-more-wrap">
-          <button type="button" data-object-action-more aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">•••</span><span>See More</span></button>
+          <button type="button" data-object-action-more aria-haspopup="menu" aria-expanded="${preserveOverflow}"><span aria-hidden="true">•••</span><span>See More</span></button>
           <div class="altar-object-actions-backdrop" data-object-action-backdrop hidden></div>
-          <div class="altar-object-actions-overflow" data-object-action-overflow role="menu" hidden>${overflow.length ? `<strong class="altar-object-actions-overflow-title">Object Actions</strong>${overflow.map((action) => buttonMarkup(action, object, true)).join("")}` : ""}${altarActions ? `<strong class="altar-object-actions-overflow-title">Altar Actions</strong>${altarActions}` : ""}</div>
+          <div class="altar-object-actions-overflow" data-object-action-overflow role="menu" aria-label="Selected object actions" ${preserveOverflow ? "" : "hidden"}><button type="button" class="altar-object-actions-close" data-close-object-actions role="menuitem">Close Actions</button>${overflow.length ? `<strong class="altar-object-actions-overflow-title">Object Actions</strong>${overflow.map((action) => buttonMarkup(action, object, true)).join("")}` : ""}${altarActions ? `<strong class="altar-object-actions-overflow-title">Altar Actions</strong>${altarActions}` : ""}</div>
         </div>
       ` : ""}
     `;
     toolbar.hidden = false;
+    if (preserveOverflow) {
+      overflowObject = object;
+      document.body.classList.add("altar-action-sheet-open");
+      window.requestAnimationFrame(() => restoreActionAnchor(anchor, object));
+    }
+    pendingActionAnchor = null;
   }
 
   async function executeSelectedObjectAction(actionId, object = currentObject()) {
@@ -539,7 +612,9 @@
     if (actionId === "more") return false;
     const action = getObjectActions(object).find((candidate) => candidate.id === actionId);
     if (!action) return false;
-    closeObjectActionOverflow();
+    const closesDrawer = actionId === "back-to-altar" || actionId === "delete";
+    pendingActionAnchor = closesDrawer ? null : captureActionAnchor(actionId, object);
+    if (closesDrawer) closeObjectActionOverflow();
     await action.handler(object);
     if (actionId === "back-to-altar") return true;
     if (!document.querySelector("[data-object-action-modal]")) {
@@ -554,13 +629,18 @@
       event.preventDefault();
       event.stopPropagation();
       overflowOpen = !overflowOpen;
+      overflowObject = overflowOpen ? currentObject() : null;
+      pendingActionAnchor = null;
       const popup = toolbar.querySelector("[data-object-action-overflow]");
       popup.hidden = !overflowOpen;
       const backdrop = toolbar.querySelector("[data-object-action-backdrop]");
       if (backdrop) backdrop.hidden = !overflowOpen;
       more.setAttribute("aria-expanded", String(overflowOpen));
       document.body.classList.toggle("altar-action-sheet-open", overflowOpen && MOBILE_QUERY.matches);
-      if (overflowOpen) popup.querySelector("button")?.focus();
+      return;
+    }
+    if (event.target.closest("[data-close-object-actions]")) {
+      closeObjectActionOverflow();
       return;
     }
     if (event.target.closest("[data-object-action-overflow] [data-global-action]")) closeObjectActionOverflow();
@@ -569,15 +649,37 @@
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
-    const modalOpen = Boolean(document.querySelector("[data-object-action-modal], [role=dialog]"));
-    closeObjectActionOverflow();
-    if (document.querySelector("[data-object-action-modal]")) closeActionModal();
-    else if (!modalOpen && currentObject() && typeof deselectObject === "function") deselectObject();
+    const actionModal = document.querySelector("[data-object-action-modal]");
+    if (actionModal) {
+      event.preventDefault();
+      closeActionModal();
+      return;
+    }
+    if (overflowOpen) {
+      event.preventDefault();
+      closeObjectActionOverflow();
+      return;
+    }
+    const modalOpen = Boolean(document.querySelector("[role=dialog]"));
+    if (!modalOpen && currentObject() && typeof deselectObject === "function") deselectObject();
   });
+
+  const resetDrawerForViewport = (event) => {
+    if (!event.matches) closeObjectActionOverflow();
+  };
+  if (typeof MOBILE_QUERY.addEventListener === "function") MOBILE_QUERY.addEventListener("change", resetDrawerForViewport);
+  else MOBILE_QUERY.addListener(resetDrawerForViewport);
 
   window.altarObjectActionRegistry = registry;
   window.getAltarObjectActions = getObjectActions;
   window.renderSelectedObjectActions = renderSelectedObjectActions;
   window.executeSelectedObjectAction = executeSelectedObjectAction;
   window.closeObjectActionOverflow = closeObjectActionOverflow;
+  window.AltarObjectActionDrawer = Object.freeze({
+    objectIdentity,
+    actionScrollOwner,
+    captureActionAnchor,
+    restoreActionAnchor,
+    isOpen: () => overflowOpen
+  });
 })();

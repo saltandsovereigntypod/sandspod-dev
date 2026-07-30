@@ -772,6 +772,7 @@
     companionContent.innerHTML = `
       <div class="companion-v3-page">
         <div class="companion-v3-knowledge">
+          ${object && typeof renderCandleLifeCompanion === "function" ? renderCandleLifeCompanion(object) : ""}
           ${renderKnowledge(entity, settings)}
           ${renderRelationships(entity, connections)}
           ${renderHistory(object, entity, events, entityEvents, connections)}

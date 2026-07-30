@@ -20,7 +20,9 @@ function openAltarCabinetOverlay() {
   const overlay = document.querySelector("[data-altar-cabinet-overlay]");
   if (!overlay) return;
 
+  window.clearTimeout(closeAltarCabinetOverlay.timeout);
   overlay.hidden = false;
+  overlay.classList.remove("is-closing");
   document.body.classList.add("altar-cabinet-overlay-open");
 
   requestAnimationFrame(() => {
@@ -40,11 +42,12 @@ function closeAltarCabinetOverlay() {
   if (!overlay) return;
 
   overlay.classList.remove("is-visible");
+  overlay.classList.add("is-closing");
   document.body.classList.remove("altar-cabinet-overlay-open");
 
-  window.setTimeout(() => {
-    if (params.get("cabinet") && typeof openAltarCabinetOverlay === "function") openAltarCabinetOverlay();
+  closeAltarCabinetOverlay.timeout = window.setTimeout(() => {
     overlay.hidden = true;
+    overlay.classList.remove("is-closing");
   }, 220);
 }
 
@@ -158,29 +161,45 @@ if (altarCabinet) {
       return;
     }
 
-    const itemButton = event.target.closest("[data-image]");
+  });
 
-    if (!itemButton) return;
-    if (!itemButton.dataset.image) {
-      if (typeof promptCustomCabinetImage === "function") promptCustomCabinetImage(itemButton);
-      else showAltarToast("Add a form image before placing this form");
-      return;
+  window.AltarCabinetActivation?.createController({
+    root: altarCabinet,
+    async activate({ item, requestId, pointerId }) {
+      try {
+        if (!item.dataset.image) {
+          if (typeof promptCustomCabinetImage === "function") promptCustomCabinetImage(item);
+          else showAltarToast("Add a form image before placing this form");
+          return false;
+        }
+
+        const placed = placeObject({
+          requestId,
+          imagePath: item.dataset.image || "",
+          fallbackSymbol: item.dataset.object || "",
+          label: item.dataset.label || "",
+          type: item.dataset.type || "",
+          herb: item.dataset.herb || "",
+          form: item.dataset.form || "",
+          color: item.dataset.color || "",
+          crystal: item.dataset.crystal || "",
+          tool: item.dataset.tool || "",
+          vessel: item.dataset.vessel || "",
+          deity: item.dataset.deity || "",
+          entityId: item.dataset.entityId || ""
+        });
+        if (!placed) throw new Error("placement_rejected");
+        closeAltarCabinetOverlay();
+        return true;
+      } catch (error) {
+        console.warn("Cabinet placement failed.", { code: "placement_failed" });
+        showAltarToast("That item could not be placed. Please try again.");
+        return false;
+      } finally {
+        if (pointerId != null && item.hasPointerCapture?.(pointerId)) item.releasePointerCapture(pointerId);
+        if (typeof resetAltarPointerState === "function") resetAltarPointerState();
+      }
     }
-
-    placeObject({
-      imagePath: itemButton.dataset.image || "",
-      fallbackSymbol: itemButton.dataset.object || "",
-      label: itemButton.dataset.label || "",
-      type: itemButton.dataset.type || "",
-      herb: itemButton.dataset.herb || "",
-      form: itemButton.dataset.form || "",
-      color: itemButton.dataset.color || "",
-      crystal: itemButton.dataset.crystal || "",
-      tool: itemButton.dataset.tool || "",
-      vessel: itemButton.dataset.vessel || "",
-      deity: itemButton.dataset.deity || "",
-      entityId: itemButton.dataset.entityId || "",
-    });
   });
 }
 

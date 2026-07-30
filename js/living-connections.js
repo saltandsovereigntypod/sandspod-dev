@@ -224,7 +224,7 @@
         entityId,
         relatedEntityIds: linked,
         label: template.title || "Ritual template",
-        metadata: { templateId: template.id, countsAsUse: true }
+        metadata: { templateId: template.id, referenceType: "template", countsAsUse: false }
       })];
     });
   }
