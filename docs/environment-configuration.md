@@ -1,5 +1,7 @@
 # Environment and deployment configuration
 
+The accessibility loader is environment-independent and reads only explicit browser keys. It does not select Supabase projects, import environment configuration, or delay environment/auth initialization. Guest preferences apply before content paint where the shared head script is present; authenticated device preferences reconcile after the existing auth-ready event.
+
 ## Why this exists
 
 Shared source is deployed unchanged to development and production. `js/environment.js` is the single authority for choosing a deployment; `js/supabase-config.js` only creates one client from that decision. This prevents a merge from silently moving development users, data, storage, OAuth returns, or moderator presentation into production.

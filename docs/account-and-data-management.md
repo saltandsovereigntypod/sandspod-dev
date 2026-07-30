@@ -1,5 +1,7 @@
 # Account and data management
 
+Accessibility preferences use a separate explicit guest or per-user device key. They are not authored Sanctuary records, are not included in guest clearing, and do not migrate automatically between guest and account scopes. See `docs/accessibility-controls.md` for the validated model and current cloud-persistence limitation.
+
 ## Architecture audit
 
 `js/auth.js` remains the single shared browser authentication entry point for email/password, Google OAuth, sign-out, and auth-state announcements. `js/environment.js` remains the only authority for deployment paths and redirect origins. Account controls are mounted inside **Sanctuary Settings → Account & Data** by `js/account-data-ui.js`; pure validation, provider detection, safe error mapping, guest clearing, and sync state live in `js/account-data.js`. No token, provider secret, password, or privileged credential is rendered or persisted by these modules.

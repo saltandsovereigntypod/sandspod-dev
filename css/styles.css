@@ -13,6 +13,7 @@
   --gold: #b9a05d;
   --line: rgba(194, 200, 196, 0.24);
   --shadow: 0 24px 70px rgba(3, 8, 5, 0.42);
+  --accessibility-text-scale: 1;
 }
 
 
@@ -26,6 +27,71 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: calc(100% * var(--accessibility-text-scale));
+}
+
+/* =========================================================
+   ACCESSIBILITY OPTIONS
+   ========================================================= */
+
+.accessibility-trigger {
+  position: fixed;
+  left: max(0.75rem, env(safe-area-inset-left));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 9000;
+  max-width: calc(100vw - 1.5rem);
+  background: rgba(10, 18, 13, 0.96);
+}
+
+.accessibility-panel {
+  width: min(38rem, calc(100vw - 1.5rem));
+  max-height: min(90vh, 52rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid rgba(185, 160, 93, 0.65);
+  border-radius: 1rem;
+  color: var(--cream);
+  background: #10150f;
+  box-shadow: var(--shadow);
+}
+
+.accessibility-panel::backdrop { background: rgba(3, 7, 5, 0.72); }
+.accessibility-panel-card { position: relative; display: grid; gap: 1rem; padding: clamp(1rem, 4vw, 2rem); }
+.accessibility-panel-card section { min-width: 0; padding: 0.85rem; border: 1px solid var(--line); border-radius: 0.8rem; background: rgba(244, 236, 216, 0.035); }
+.accessibility-panel-card h2, .accessibility-panel-card h3 { max-width: none; margin: 0 0 0.65rem; }
+.accessibility-panel-close { position: sticky; top: 0; justify-self: end; z-index: 1; width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--line); border-radius: 999px; color: var(--cream); background: #182019; font: inherit; font-size: 1.4rem; }
+.accessibility-control-row, .accessibility-control-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; }
+.accessibility-panel [aria-pressed="true"], .accessibility-panel .is-active { border-color: var(--gold); color: #fff8df; background: rgba(185, 160, 93, 0.24); box-shadow: inset 0 0 0 1px var(--gold); }
+.accessibility-reading-ruler { position: fixed; left: 0; right: 0; top: calc(var(--reading-ruler-y, 50vh) - 1.5rem); z-index: 8500; height: 3rem; pointer-events: none; border-block: 1px solid rgba(244, 220, 140, 0.42); background: rgba(244, 220, 140, 0.12); }
+.accessibility-reading-ruler[hidden] { display: none; }
+
+.a11y-line-spacing body :where(p, li, label, input, textarea) { line-height: 1.75; }
+.a11y-letter-spacing body :where(p, li, label, input, textarea, button, a) { letter-spacing: 0.04em; word-spacing: 0.08em; }
+.a11y-readable-font body, .a11y-readable-font :where(button, input, textarea, select) { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.a11y-high-contrast { --cream: #fff8e8; --muted: #eee1bd; --silver: #edf2ef; --gold: #e2c36d; --line: rgba(255, 248, 232, 0.58); --charcoal: #070a08; --forest: #08150d; }
+.a11y-high-contrast :where(a, button, input, textarea, select):focus-visible { outline: 3px solid #f2d87d; outline-offset: 3px; }
+.a11y-hide-decoration .is-decorative, .a11y-hide-decoration body::before { display: none !important; }
+.a11y-focus-mode body > :where(header, footer) { opacity: 0.22; transition: opacity 0.15s ease; }
+.a11y-focus-mode body > :where(header, footer):focus-within, .a11y-focus-mode body > :where(header, footer):hover { opacity: 1; }
+.a11y-reduce-motion { scroll-behavior: auto; }
+.a11y-reduce-motion *, .a11y-reduce-motion *::before, .a11y-reduce-motion *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.001ms !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.001ms !important; }
+}
+
+@media (prefers-contrast: more) {
+  :root { --line: rgba(244, 236, 216, 0.55); }
+}
+
+@media (forced-colors: active) {
+  .accessibility-panel, .accessibility-trigger { forced-color-adjust: auto; }
+}
+
+@media (max-width: 420px) {
+  .accessibility-control-row, .accessibility-control-grid { grid-template-columns: 1fr; }
+  .accessibility-trigger { font-size: 0.84rem; }
 }
 
 body {

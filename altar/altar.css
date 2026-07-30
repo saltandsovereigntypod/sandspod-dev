@@ -226,6 +226,7 @@
   gap: 0.55rem;
   align-items: flex-start;
   margin-top: 1rem;
+  touch-action: pan-y;
 }
 
 .cabinet-choice-wrap {
@@ -1447,6 +1448,10 @@ body.altar-modal-open {
 
 .altar-cabinet-overlay[hidden] {
   display: none;
+}
+
+.altar-cabinet-overlay.is-closing {
+  pointer-events: none;
 }
 
 .altar-cabinet-overlay.is-visible {
