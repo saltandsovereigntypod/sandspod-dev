@@ -496,7 +496,9 @@
 
   const registry = [
     { id: "edit", label: "Edit", icon: "✎", priority: 10, types: ["*"], handler: openObjectEditDialog },
-    { id: "light", label: (o) => o.dataset.lit === "true" ? "Extinguish" : "Light", icon: "🔥", priority: 12, types: ["candle"], handler: (o) => { snapshot(); toggleLight(o); } },
+    { id: "light", label: (o) => o.dataset.lit === "true" ? "Extinguish" : "Light", icon: "🔥", priority: 12, types: ["candle"], available: (o) => o.dataset.candleStatus !== "spent" && o.dataset.candleStatus !== "archived", handler: (o) => { snapshot(); toggleLight(o); } },
+    { id: "replace-candle", label: "Replace Candle", icon: "♻", priority: 13, types: ["candle"], available: (o) => o.dataset.candleStatus === "spent" && typeof replaceCandleObject === "function", handler: (o) => replaceCandleObject(o) },
+    { id: "ritual-candle", label: (o) => o.dataset.ritualIncluded === "true" ? "Remove from Ritual" : "Include in Ritual", icon: "◉", priority: 16, types: ["candle"], handler: (o) => { o.dataset.ritualIncluded = o.dataset.ritualIncluded === "true" ? "false" : "true"; saveWorkingAltarDraft(); scheduleCompanionV4?.(o); } },
     { id: "dress-candle", label: "Dress", icon: "🌿", priority: 14, types: ["candle"], handler: openCandleDressingDialog },
     { id: "clear-dressings", label: "Undress", icon: "⌫", priority: 15, types: ["candle"], available: (o) => Boolean(livingState(o)?.candle?.dressings?.length), handler: (o) => { snapshot(); clearCandleDressings(o); } },
     { id: "cleanse", label: "Cleanse", icon: "💧", priority: 12, types: ["crystal"], handler: (o) => openCrystalAction(o, "cleanse") },

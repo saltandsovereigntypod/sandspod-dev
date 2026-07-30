@@ -6,6 +6,8 @@
   const clone = (value) => value == null ? value : JSON.parse(JSON.stringify(value));
   const timestamp = (clock = () => new Date().toISOString()) => clock();
   const randomId = () => global.crypto?.randomUUID?.() || `ritual-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const CANDLE_END_BEHAVIORS = Object.freeze(["keep_burning", "extinguish_at_end", "ask_at_end"]);
+  const normalizeCandleEndBehavior = (value) => CANDLE_END_BEHAVIORS.includes(value) ? value : "ask_at_end";
 
   function eventIdentity(event = {}) {
     return event.idempotencyKey || [event.type, event.stepId || "", event.journalId || "", event.occurredAt || ""].join(":");
@@ -28,6 +30,8 @@
       description: template.description || "",
       intention: template.intention || "",
       linked_altar_id: template.linked_altar_id || null,
+      estimated_duration_seconds: Math.max(0, Number(template.estimated_duration_seconds || 0)),
+      candle_end_behavior: normalizeCandleEndBehavior(template.candle_end_behavior || template.settings?.candle_end_behavior),
       linked_entities: template.linked_entities || [],
       suggested_objects: template.suggested_objects || [],
       suggested_apothecary_items: template.suggested_apothecary_items || [],
@@ -62,6 +66,8 @@
       ended_at: null, completed_at: null, current_step_order: 0,
       template_snapshot: clone(snapshot), session_steps: steps, linked_entities: clone(snapshot.linked_entities),
       prepared_objects: clone(options.preparedObjects || []), altar_snapshot: clone(options.altarSnapshot || {}),
+      candle_end_behavior: normalizeCandleEndBehavior(options.candleEndBehavior || snapshot.candle_end_behavior),
+      candle_end_handled_at: null,
       reflection: "", grimoire_page_id: null, created_at: now, updated_at: now,
       event_log: [{ type: "session_started", occurredAt: now, templateId: snapshot.id, idempotencyKey: `session_started:${id}` }],
       lifecycle_version: VERSION
@@ -141,7 +147,12 @@
     };
   }
 
-  const api = { VERSION, STORAGE_PREFIX, appendEvent, snapshotTemplate, createSession, completeSession, saveReflection, upsertJournal, newestRecord, normalizeRitualLink, ritualLinkIdentity, uniqueRitualLinks, createLocalRepository };
+  function linkedCandleWarnings(candles = [], estimatedDurationSeconds = 0, now = Date.now()) {
+    if (!global.CandleLifecycle) return [];
+    return global.CandleLifecycle.ritualWarnings(candles, Math.max(0, Number(estimatedDurationSeconds) || 0) * 1000, now);
+  }
+
+  const api = { VERSION, STORAGE_PREFIX, CANDLE_END_BEHAVIORS, normalizeCandleEndBehavior, appendEvent, snapshotTemplate, createSession, completeSession, saveReflection, upsertJournal, newestRecord, normalizeRitualLink, ritualLinkIdentity, uniqueRitualLinks, linkedCandleWarnings, createLocalRepository };
   global.RitualLifecycle = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

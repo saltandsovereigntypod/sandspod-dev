@@ -183,6 +183,15 @@ function renderRitualTemplateForm(template = null) {
           Preparation
           <textarea name="preparation" placeholder="Anything to gather, prepare, cleanse, or remember before beginning.">${ritualTemplateEscape(template?.preparation || "")}</textarea>
         </label>
+
+        <label>
+          When this ritual ends
+          <select name="candle_end_behavior">
+            <option value="keep_burning" ${(template?.candle_end_behavior || template?.settings?.candle_end_behavior) === "keep_burning" ? "selected" : ""}>Keep linked ritual candles burning</option>
+            <option value="extinguish_at_end" ${(template?.candle_end_behavior || template?.settings?.candle_end_behavior) === "extinguish_at_end" ? "selected" : ""}>Extinguish linked ritual candles</option>
+            <option value="ask_at_end" ${!["keep_burning", "extinguish_at_end"].includes(template?.candle_end_behavior || template?.settings?.candle_end_behavior) ? "selected" : ""}>Ask when the ritual ends</option>
+          </select>
+        </label>
       </section>
 
       <section class="ritual-template-book-section">
@@ -419,7 +428,10 @@ async function saveRitualTemplateFromEditor(form) {
       return sum + Math.round(Number(step.duration_minutes || 0) * 60);
     }, 0),
     status: "active",
-    settings: {},
+    settings: {
+      ...(ritualTemplateEditorState.templates.find((item) => item.id === templateId)?.settings || {}),
+      candle_end_behavior: window.RitualLifecycle?.normalizeCandleEndBehavior?.(String(formData.get("candle_end_behavior") || "ask_at_end")) || "ask_at_end"
+    },
     metadata: { editorVersion: 1 }
   };
 

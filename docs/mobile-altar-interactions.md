@@ -46,3 +46,6 @@ Each accepted gesture receives a placement request ID. The controller rejects la
 Placement cleanup runs in `finally`: it releases source pointer capture and resets the Altar active object, pointer ID, offsets, drag snapshot, and dragging classes. Successful placement starts Cabinet overlay closing, and the closing overlay stops accepting pointer events before its transition completes. Failure releases the same state and shows a calm retry message.
 
 Manual verification remains required on real touch browsers. Slowly scroll and flick without placing, tap at least ten distinct items, reopen repeatedly, and alternate moving old/new objects after at least ten placements at 320, 375, 390, 430, and 768 pixels.
+# Candle-life mobile verification
+
+The Candle Life Companion card and remaining-life summary use stacked label/value rows below 420px. Verify duration editing, spent labels, replacement confirmation, linked-candle warnings, summary closing, movement of spent candles, and the stable action drawer at 320, 375, 390, 430, and 768 px. Candle timing remains timestamp-based and does not depend on animation or continuous foreground timers. Physical mobile verification remains required when no device browser is available.

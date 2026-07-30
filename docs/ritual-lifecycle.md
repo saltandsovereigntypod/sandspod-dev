@@ -104,3 +104,6 @@ Ritual journal link persistence normalizes every `ritual_links.metadata` value t
 - Deleting completed cloud sessions has no new UI in this pass; existing records are preserved.
 
 Manually verify template reuse, two distinct session IDs, refresh/resume, step completion, linked Altar preparation, completion retry, reflection resave, exact journal/Search destinations, Journey deduplication, Living Connections counts, guest refresh isolation, signed-in cross-device hydration, sign-out isolation, and 320/375/430/768px layouts.
+# Linked candle lifecycle
+
+Ritual templates preserve one of `keep_burning`, `extinguish_at_end`, or `ask_at_end`, with ask as the legacy-safe default. Session snapshots preserve an override independently of the template. Only candle instances explicitly marked `ritualIncluded` participate in pre-start remaining-life checks and ritual-end behavior; mere Altar presence is decorative and never sufficient. See `docs/candle-lifecycle.md` for warning, interval, and completion rules.

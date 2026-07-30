@@ -5,7 +5,7 @@
    ========================================================= */
 
 (function initializeLivingObjectState() {
-  const STATE_VERSION = 1;
+  const STATE_VERSION = 2;
 
   function nowIso() {
     return new Date().toISOString();
@@ -43,10 +43,23 @@
       notes: "",
       lifecycle: { status: "active" },
       candle: {
+        version: 2,
+        form: object?.dataset.form || "",
+        expectedBurnMs: 0,
+        durationLocked: false,
+        firstLitAt: "",
         totalBurnMs: 0,
         currentBurnStartedAt: "",
         lastLitAt: "",
+        estimatedBurnoutAt: "",
+        spentAt: "",
+        status: "unlit",
+        archived: false,
+        replacedByInstanceId: "",
+        replacesInstanceId: "",
         burnHistory: [],
+        durationHistory: [],
+        burnoutNotificationEventId: "",
         dressings: []
       },
       crystal: {
@@ -106,7 +119,11 @@
       state.candle.lastLitAt = object.dataset.lastLitAt || "";
     }
     if (!Array.isArray(state.candle.burnHistory)) state.candle.burnHistory = [];
+    if (!Array.isArray(state.candle.durationHistory)) state.candle.durationHistory = [];
     if (!Array.isArray(state.candle.dressings)) state.candle.dressings = [];
+    if (object.dataset.type === "candle" && window.CandleLifecycle) {
+      state.candle = window.CandleLifecycle.normalize(state.candle, { form: object.dataset.form || "" });
+    }
     if (!Array.isArray(state.crystal.cleansingHistory)) state.crystal.cleansingHistory = [];
     if (!Array.isArray(state.crystal.chargingHistory)) state.crystal.chargingHistory = [];
     if (!Array.isArray(state.deity.offerings)) state.deity.offerings = [];
@@ -199,6 +216,7 @@
 
   function startCandleBurn(object) {
     if (!object || object.dataset.type !== "candle") return null;
+    if (typeof window.lightCandleObject === "function") return window.lightCandleObject(object)?.candle || null;
     const current = getLivingState(object);
     if (current?.candle?.currentBurnStartedAt) return current;
 
@@ -213,6 +231,7 @@
 
   function stopCandleBurn(object) {
     if (!object || object.dataset.type !== "candle") return null;
+    if (typeof window.extinguishCandleObject === "function") return window.extinguishCandleObject(object)?.candle || null;
     const current = getLivingState(object);
     if (!Number.isFinite(Date.parse(current?.candle?.currentBurnStartedAt || ""))) return current;
 

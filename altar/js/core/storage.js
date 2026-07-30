@@ -122,6 +122,7 @@ function createAltarSnapshot(name = "Working Altar") {
       locked: object.dataset.locked || "false",
       glowing: object.dataset.glowing || "false",
       lit: object.dataset.lit || "false",
+      ritualIncluded: object.dataset.ritualIncluded || "false",
       livingState: object.dataset.livingState || "",
       plaqueText: object.dataset.plaqueText || "",
       altarObjectId: object.dataset.altarObjectId || "",
@@ -320,6 +321,7 @@ function createSavedObject(savedObject) {
   object.dataset.locked = savedObject.locked || "false";
   object.dataset.glowing = savedObject.glowing || "false";
   object.dataset.lit = savedObject.lit || "false";
+  object.dataset.ritualIncluded = savedObject.ritualIncluded || "false";
   // `dressings` is retained only as an import path for saves made before
   // Living Object State became native storage.
   object.dataset.livingState = savedObject.livingState && typeof savedObject.livingState === "object"

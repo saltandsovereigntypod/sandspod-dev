@@ -78,6 +78,7 @@ function captureAltarSnapshot() {
       locked: object.dataset.locked || "false",
       glowing: object.dataset.glowing || "false",
       lit: object.dataset.lit || "false",
+      ritualIncluded: object.dataset.ritualIncluded || "false",
       livingState: object.dataset.livingState || "",
       plaqueText: object.dataset.plaqueText || "",
       altarObjectId: object.dataset.altarObjectId || "",
@@ -597,6 +598,9 @@ function deleteObject(object) {
     clearCandleDressingMode();
   }
 
+  if (object.dataset.type === "candle" && object.dataset.lit === "true" && typeof extinguishCandleObject === "function") {
+    extinguishCandleObject(object, "removed_from_altar", { showSummary: true });
+  }
   stopFlame(object);
   object.remove();
   deselectObject();
@@ -615,8 +619,19 @@ function duplicateObject(object) {
   clone.dataset.altarObjectId = crypto.randomUUID
     ? crypto.randomUUID()
     : String(Date.now() + Math.random());
+  delete clone.dataset.instanceId;
 
-  if (typeof getLivingObjectState === "function" && typeof saveLivingObjectState === "function") {
+  if (clone.dataset.type === "candle" && window.CandleLifecycle && typeof getLivingObjectState === "function" && typeof saveLivingObjectState === "function") {
+    const originalState = getLivingObjectState(object);
+    const clonedState = getLivingObjectState(clone);
+    clonedState.candle = window.CandleLifecycle.fresh(clone.dataset.form || originalState?.candle?.form, {
+      expectedBurnMs: window.CandleLifecycle.formDefinition(clone.dataset.form)?.defaultBurnMs,
+      dressings: originalState?.candle?.dressings || []
+    });
+    clone.dataset.lit = "false";
+    clone.classList.remove("is-lit", "is-candle-spent", "is-extinguishing");
+    saveLivingObjectState(clone, clonedState, { silent: true });
+  } else if (typeof getLivingObjectState === "function" && typeof saveLivingObjectState === "function") {
     const clonedState = getLivingObjectState(clone);
     if (clonedState?.candle?.currentBurnStartedAt) {
       const time = new Date().toISOString();
@@ -645,6 +660,22 @@ function duplicateObject(object) {
   makeDraggable(clone);
 
   altarStage.appendChild(clone);
+  if (typeof createObjectInstance === "function") {
+    createObjectInstance({
+      entity_id: clone.dataset.entityId || null,
+      source: "altar_duplicate",
+      instance_type: "placed_object",
+      name: clone.dataset.label || "Altar object",
+      object_type: clone.dataset.type || "",
+      subtype: clone.dataset.form || "",
+      altar_object_key: clone.dataset.altarObjectId || "",
+      metadata: clone.dataset.type === "candle" ? { candleLifecycle: getLivingObjectState?.(clone)?.candle || {} } : {}
+    }).then((instance) => {
+      if (!instance?.id || !clone.isConnected) return;
+      clone.dataset.instanceId = instance.id;
+      saveWorkingAltarDraft();
+    });
+  }
   selectObject(clone);
   updateEmptyMessage();
   renderLighting();
