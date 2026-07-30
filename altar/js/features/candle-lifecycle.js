@@ -150,11 +150,20 @@
     return { candle, changed: true, burnedOut, notificationNeeded, burnoutEventId: burnedOut ? id : "" };
   }
 
+  function effectiveBurnedMs(state, now = Date.now(), context = {}) {
+    const candle = normalize(state, context);
+    if (candle.status === "spent") return candle.expectedBurnMs;
+    const nowMs = Number.isFinite(Number(now)) ? Number(now) : Date.parse(now);
+    const startedMs = Date.parse(candle.currentBurnStartedAt || "");
+    const live = candle.status === "burning" && validTime(candle.currentBurnStartedAt)
+      && Number.isFinite(nowMs) && Number.isFinite(startedMs) && nowMs >= startedMs
+      ? nowMs - startedMs : 0;
+    return clamp(candle.totalBurnMs + live, 0, candle.expectedBurnMs || Number.MAX_SAFE_INTEGER);
+  }
+
   function remainingMs(state, now = Date.now(), context = {}) {
     const candle = normalize(state, context);
-    const live = candle.status === "burning" && validTime(candle.currentBurnStartedAt)
-      ? Math.max(0, Number(now) - Date.parse(candle.currentBurnStartedAt)) : 0;
-    return Math.max(0, candle.expectedBurnMs - candle.totalBurnMs - live);
+    return Math.max(0, candle.expectedBurnMs - effectiveBurnedMs(candle, now, context));
   }
 
   function fresh(form, options = {}) {
@@ -171,12 +180,28 @@
     return candle;
   }
 
-  function formatDuration(milliseconds) {
-    const minutes = Math.max(0, Math.ceil(Number(milliseconds || 0) / 60000));
-    const days = Math.floor(minutes / 1440);
-    const hours = Math.floor((minutes % 1440) / 60);
-    const mins = minutes % 60;
-    return [days && `${days}d`, hours && `${hours}h`, (!days && mins || (!days && !hours)) && `${mins}m`].filter(Boolean).join(" ");
+  function formatDuration(milliseconds, options = {}) {
+    const compact = options.compact === true;
+    const totalSeconds = Math.floor(Math.max(0, Number(milliseconds) || 0) / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const values = [[days, "day", "d"], [hours, "hour", "h"], [minutes, "minute", "m"], [seconds, "second", "s"]];
+    const parts = values.filter(([value]) => value > 0).map(([value, word, suffix]) => compact
+      ? `${value}${suffix}`
+      : `${value} ${word}${value === 1 ? "" : "s"}`);
+    if (!parts.length) return compact ? "0s" : "0 seconds";
+    return compact ? parts.join(" ") : parts.join(", ");
+  }
+
+  function displayTitle(details = {}) {
+    const customName = String(details.customDisplayName || details.customName || "").trim();
+    if (customName) return customName;
+    const color = String(details.color || "").trim();
+    if (color) return `${color.replace(/\b\w/g, (letter) => letter.toUpperCase())} Candle`;
+    const label = String(details.label || "Candle").trim();
+    return label || "Candle";
   }
 
   function ritualWarnings(candles = [], estimatedDurationMs = 0, now = Date.now()) {
@@ -186,13 +211,14 @@
     }).filter(Boolean);
   }
 
-  const api = { VERSION: 2, FORMS, MAX_EXPECTED_MS, END_BEHAVIORS, formDefinition, normalize, setExpectedDuration, light, extinguish, reconcile, remainingMs, fresh, archive, formatDuration, ritualWarnings, eventId };
+  const api = { VERSION: 2, FORMS, MAX_EXPECTED_MS, END_BEHAVIORS, formDefinition, normalize, setExpectedDuration, light, extinguish, reconcile, effectiveBurnedMs, remainingMs, fresh, archive, formatDuration, displayTitle, ritualWarnings, eventId };
   global.CandleLifecycle = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 
   if (typeof document === "undefined") return;
 
   let schedulerId = 0;
+  let companionDisplayTimerId = 0;
   const objectContext = (object) => ({ form: object.dataset.form || "", instanceId: object.dataset.altarObjectId || "", ritualId: global.activeRitualSession?.id || "", altarId: global.currentSavedAltarId || "" });
   const stateFor = (object) => global.getLivingObjectState?.(object)?.candle || {};
   function applyVisual(object, candle) {
@@ -316,7 +342,7 @@
       dialog.dataset.candleLifeSummary = "";
       document.body.appendChild(dialog);
     }
-    dialog.innerHTML = `<h2>Remaining candle life on this Altar</h2><div class="candle-life-summary__rows">${candles.map((object) => { const candle = normalize(stateFor(object), objectContext(object)); return `<div><strong>${String(object.dataset.label || "Candle").replace(/[<>&]/g, "")}</strong><span>${formatDuration(remainingMs(candle))}${candle.status === "spent" ? " · Spent" : ""}</span></div>`; }).join("")}</div><button type="button" class="button button--secondary" data-close-candle-summary>Close</button>`;
+    dialog.innerHTML = `<h2>Remaining candle life on this Altar</h2><div class="candle-life-summary__rows">${candles.map((object) => { const candle = normalize(stateFor(object), objectContext(object)); return `<div><strong>${String(object.dataset.label || "Candle").replace(/[<>&]/g, "")}</strong><span>${candle.status === "spent" ? "Candle life reached" : formatDuration(remainingMs(candle), { compact: true })}</span></div>`; }).join("")}</div><button type="button" class="button button--secondary" data-close-candle-summary>Close</button>`;
     dialog.querySelector("[data-close-candle-summary]").onclick = () => dialog.close();
     if (!dialog.open) dialog.showModal();
   }
@@ -324,7 +350,28 @@
     if (object?.dataset.type !== "candle") return "";
     const result = reconcileObject(object, { silent: true });
     const candle = result?.candle || normalize(stateFor(object), objectContext(object));
-    return `<section class="companion-v3-section candle-life-card"><h3>Candle Life</h3><dl><div><dt>Form</dt><dd>${formDefinition(candle.form)?.label || candle.form || "Custom"}</dd></div><div><dt>Expected life</dt><dd>${formatDuration(candle.expectedBurnMs)}</dd></div><div><dt>Burned</dt><dd>${formatDuration(candle.totalBurnMs)}</dd></div><div><dt>Remaining</dt><dd>${formatDuration(remainingMs(candle))}</dd></div><div><dt>Status</dt><dd>${candle.status === "spent" ? "Spent — Needs replacement" : candle.status}</dd></div><div><dt>Last lit</dt><dd>${candle.lastLitAt ? new Date(candle.lastLitAt).toLocaleString() : "Never"}</dd></div>${candle.status === "burning" ? `<div><dt>Estimated burnout</dt><dd>${new Date(candle.estimatedBurnoutAt).toLocaleString()}</dd></div>` : ""}</dl>${!candle.durationLocked ? `<button type="button" class="button button--tiny" data-edit-candle-duration>Edit expected life</button>` : ""}${candle.status === "spent" ? `<p><strong>Needs replacement</strong></p>` : ""}<details><summary>Burn history (${candle.burnHistory.length})</summary><ul>${candle.burnHistory.map((record) => `<li>${new Date(record.litAt).toLocaleString()} · ${formatDuration(record.durationMs)} · ${String(record.endReason).replaceAll("_", " ")}</li>`).join("") || "<li>No completed burns yet.</li>"}</ul></details></section>`;
+    const now = Date.now();
+    return `<section class="companion-v3-section candle-life-card" data-candle-life-instance="${object.dataset.altarObjectId || ""}"><h3>Candle Life</h3><dl><div><dt>Form</dt><dd>${formDefinition(candle.form)?.label || candle.form || "Custom"}</dd></div><div><dt>Expected life</dt><dd>${formatDuration(candle.expectedBurnMs)}</dd></div><div><dt>Burned</dt><dd data-candle-life-burned>${formatDuration(effectiveBurnedMs(candle, now))}</dd></div><div><dt>Remaining</dt><dd data-candle-life-remaining>${formatDuration(remainingMs(candle, now))}</dd></div><div><dt>Status</dt><dd data-candle-life-status>${candle.status === "spent" ? "Spent — Needs replacement" : candle.status}</dd></div><div><dt>Last lit</dt><dd>${candle.lastLitAt ? new Date(candle.lastLitAt).toLocaleString() : "Never"}</dd></div>${candle.status === "burning" ? `<div data-candle-life-burnout-row><dt>Estimated burnout</dt><dd data-candle-life-burnout>${new Date(candle.estimatedBurnoutAt).toLocaleString()}</dd></div>` : ""}</dl>${!candle.durationLocked ? `<button type="button" class="button button--tiny" data-edit-candle-duration>Edit expected life</button>` : ""}${candle.status === "spent" ? `<p><strong>Needs replacement</strong></p>` : ""}<details><summary>Burn history (${candle.burnHistory.length})</summary><ul>${candle.burnHistory.map((record) => `<li>${new Date(record.litAt).toLocaleString()} · ${formatDuration(record.durationMs)} · ${String(record.endReason).replaceAll("_", " ")}</li>`).join("") || "<li>No completed burns yet.</li>"}</ul></details></section>`;
+  }
+  function stopCompanionDisplayTimer() {
+    clearTimeout(companionDisplayTimerId);
+    companionDisplayTimerId = 0;
+  }
+  function updateCompanionDisplay() {
+    stopCompanionDisplayTimer();
+    const card = document.querySelector(".altar-companion-panel.is-visible .candle-life-card[data-candle-life-instance]");
+    const object = document.querySelector('.altar-object.is-selected[data-type="candle"]');
+    if (!card || !object || card.dataset.candleLifeInstance !== (object.dataset.altarObjectId || "")) return;
+    const candle = normalize(stateFor(object), objectContext(object));
+    if (candle.status !== "burning") return;
+    const now = Date.now();
+    const burned = card.querySelector("[data-candle-life-burned]");
+    const remaining = card.querySelector("[data-candle-life-remaining]");
+    const status = card.querySelector("[data-candle-life-status]");
+    if (burned) burned.textContent = formatDuration(effectiveBurnedMs(candle, now));
+    if (remaining) remaining.textContent = formatDuration(remainingMs(candle, now));
+    if (status) status.textContent = "burning";
+    companionDisplayTimerId = global.setTimeout(updateCompanionDisplay, 1000 - (now % 1000));
   }
   function openDurationEditor(object, trigger) {
     const current = normalize(stateFor(object), objectContext(object));
@@ -359,9 +406,10 @@
   global.replaceCandleObject = replaceObject;
   global.showCandleLifeSummary = showSummary;
   global.renderCandleLifeCompanion = companionMarkup;
+  global.updateCandleLifeCompanionDisplay = updateCompanionDisplay;
   global.getCandleRitualWarnings = (estimatedMs) => ritualWarnings([...document.querySelectorAll('.altar-object[data-type="candle"]')].map((object) => ({ instanceId: object.dataset.altarObjectId, label: object.dataset.label, form: object.dataset.form, ritualIncluded: object.dataset.ritualIncluded === "true", candle: stateFor(object) })), estimatedMs);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) document.querySelectorAll('.altar-object[data-type="candle"]').forEach((object) => reconcileObject(object)); });
-  global.addEventListener("focus", () => document.querySelectorAll('.altar-object[data-type="candle"]').forEach((object) => reconcileObject(object)));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { document.querySelectorAll('.altar-object[data-type="candle"]').forEach((object) => reconcileObject(object)); updateCompanionDisplay(); } });
+  global.addEventListener("focus", () => { document.querySelectorAll('.altar-object[data-type="candle"]').forEach((object) => reconcileObject(object)); updateCompanionDisplay(); });
   document.addEventListener("click", (event) => {
     if (!event.target.closest("[data-edit-candle-duration]")) return;
     const object = document.querySelector('.altar-object.is-selected[data-type="candle"]');
@@ -369,5 +417,8 @@
     openDurationEditor(object, event.target.closest("[data-edit-candle-duration]"));
   });
   document.addEventListener("living-object-state:changed", schedule);
+  document.addEventListener("companion:refreshed", updateCompanionDisplay);
+  document.addEventListener("click", () => global.setTimeout(updateCompanionDisplay, 0));
+  global.addEventListener("beforeunload", stopCompanionDisplayTimer);
   document.addEventListener("DOMContentLoaded", () => { document.querySelectorAll('.altar-object[data-type="candle"]').forEach((object) => reconcileObject(object)); schedule(); }, { once: true });
 })(typeof window !== "undefined" ? window : globalThis);

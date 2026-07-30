@@ -120,3 +120,56 @@ test("ritual warnings include only explicitly linked insufficient candles", () =
 test("ritual candle end behavior values are constrained", () => {
   assert.deepEqual(Candle.END_BEHAVIORS, ["keep_burning", "extinguish_at_end", "ask_at_end"]);
 });
+
+test("precise expanded and compact durations preserve seconds without milliseconds", () => {
+  assert.equal(Candle.formatDuration(30_000), "30 seconds");
+  assert.equal(Candle.formatDuration(90_000), "1 minute, 30 seconds");
+  assert.equal(Candle.formatDuration(7_448_000), "2 hours, 4 minutes, 8 seconds");
+  assert.equal(Candle.formatDuration(30_000, { compact: true }), "30s");
+  assert.equal(Candle.formatDuration(90_000, { compact: true }), "1m 30s");
+  assert.equal(Candle.formatDuration(7_448_999, { compact: true }), "2h 4m 8s");
+  assert.doesNotMatch(Candle.formatDuration(30_999), /\.|millisecond/);
+});
+
+test("duration formatting clamps zero and negative values", () => {
+  assert.equal(Candle.formatDuration(0), "0 seconds");
+  assert.equal(Candle.formatDuration(-30_000), "0 seconds");
+  assert.equal(Candle.formatDuration(0, { compact: true }), "0s");
+});
+
+test("effective display time includes one active interval without mutating state", () => {
+  const candle = {
+    form: "tea-light",
+    expectedBurnMs: 60 * minute,
+    totalBurnMs: 30_000,
+    currentBurnStartedAt: new Date(start).toISOString(),
+    status: "burning"
+  };
+  const original = structuredClone(candle);
+  assert.equal(Candle.effectiveBurnedMs(candle, start + 15_000), 45_000);
+  assert.equal(Candle.remainingMs(candle, start + 15_000), 60 * minute - 45_000);
+  assert.deepEqual(candle, original);
+});
+
+test("remaining display preserves one-minute and seven-day second precision", () => {
+  const oneMinute = { form: "custom", expectedBurnMs: minute, currentBurnStartedAt: new Date(start).toISOString(), status: "burning" };
+  const vigil = { form: "vigil", expectedBurnMs: 7 * 24 * 60 * minute, currentBurnStartedAt: new Date(start).toISOString(), status: "burning" };
+  assert.equal(Candle.formatDuration(Candle.remainingMs(oneMinute, start + 30_000)), "30 seconds");
+  assert.equal(Candle.formatDuration(Candle.remainingMs(vigil, start + 30_000)), "6 days, 23 hours, 59 minutes, 30 seconds");
+  assert.equal(Candle.formatDuration(Candle.remainingMs(vigil, start + 30_000), { compact: true }), "6d 23h 59m 30s");
+});
+
+test("spent display is full burned life with zero remaining", () => {
+  const spent = { form: "tea-light", expectedBurnMs: minute, totalBurnMs: minute, status: "spent", spentAt: new Date(start).toISOString() };
+  assert.equal(Candle.effectiveBurnedMs(spent, start + minute), minute);
+  assert.equal(Candle.remainingMs(spent, start + minute), 0);
+});
+
+test("Companion candle titles are display-only and preserve custom names", () => {
+  const label = "Black Candle Vigil Candle";
+  assert.equal(Candle.displayTitle({ label, color: "black" }), "Black Candle");
+  assert.equal(Candle.displayTitle({ label: "Purple Candle Taper Candle", color: "purple" }), "Purple Candle");
+  assert.equal(Candle.displayTitle({ label: "White Tea Light Candle", color: "white" }), "White Candle");
+  assert.equal(Candle.displayTitle({ label, color: "black", customDisplayName: "Midnight Watch" }), "Midnight Watch");
+  assert.equal(label, "Black Candle Vigil Candle");
+});

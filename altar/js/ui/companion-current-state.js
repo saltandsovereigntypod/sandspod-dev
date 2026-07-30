@@ -48,15 +48,6 @@
     });
   }
 
-  function formatDuration(milliseconds) {
-    const totalMinutes = Math.floor(Math.max(0, Number(milliseconds) || 0) / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (!hours && !minutes) return "Less than 1 minute";
-    if (!hours) return `${minutes} min`;
-    return minutes ? `${hours} hr ${minutes} min` : `${hours} hr`;
-  }
-
   function firstValue(...values) {
     return values.find((value) => value !== "" && value !== null && value !== undefined) ?? "";
   }
@@ -139,14 +130,6 @@
     return object.dataset.groupName || "";
   }
 
-  function getBurnTime(object) {
-    const state = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
-    const saved = Number(state?.candle?.totalBurnMs || 0);
-    if (object?.dataset.lit !== "true") return saved;
-    const started = new Date(state?.candle?.currentBurnStartedAt || "").getTime();
-    return saved + (Number.isFinite(started) ? Math.max(0, Date.now() - started) : 0);
-  }
-
   function getRows(identity, object) {
     const rows = [];
     const livingState = typeof getLivingObjectState === "function" ? getLivingObjectState(object) : null;
@@ -165,8 +148,6 @@
 
     if (identity === "candle") {
       getDressingRows(object).forEach((row) => rows.push(row));
-      add("Burning Time", getBurnTime(object), formatDuration);
-      add("Last Burned", livingState?.candle?.lastLitAt, formatDateTime);
       add("Current Ritual", ritualName);
       add("Group", getGroupName(object));
     } else if (identity === "herb") {
@@ -267,13 +248,5 @@
   document.addEventListener("companion:refreshed", (event) => {
     scheduleCurrentState(event.detail?.entityOnly ? false : event.detail?.object || null);
   });
-  window.setInterval(() => {
-    const target = getSelectedObject();
-    if (target?.dataset.type !== "candle" || target.dataset.lit !== "true") return;
-    const value = document.querySelector(
-      '[data-companion-v4-current-state-body] [data-companion-state-key="burning-time"] span'
-    );
-    if (value) value.textContent = formatDuration(getBurnTime(target));
-  }, 1000);
   scheduleCurrentState();
 })();

@@ -32,7 +32,7 @@ Clock movement backward is treated as ambiguous and does not add time. Cross-dev
 
 ## User behavior
 
-- **Companion:** shows form, expected/burned/remaining time, status, last light, estimated burnout, replacement need, and expandable history. Duration editing is shown only before first light.
+- **Companion:** shows form, expected/burned/remaining time, status, last light, estimated burnout, replacement need, and expandable history. Its shared formatter uses floor-based day/hour/minute/second decomposition, and a single display-only timer previews the active interval once per second without saving or syncing each tick. Duration editing is shown only before first light.
 - **Spent state:** desaturates only the candle art and adds visible `Spent` text. It remains selectable, movable, inspectable, removable, and replaceable.
 - **Replacement:** archives the old history in a device archive record, creates a new object identity at the same placement, and clears burning state, history, dressings, and ritual inclusion. Replacement is not a reset.
 - **Duplication:** creates a fresh unlocked candle identity with default full life and no burn history. Existing dressing-copy behavior is preserved for duplicate, but burn state is never copied.
@@ -55,6 +55,10 @@ Saved-Altar snapshots include `altarObjectId`, Living Object State, and `ritualI
 Spent status includes text, summary and warnings use real buttons/native dialogs, history is expandable, rows reflow at 320px, and reduced motion stops decorative flame animation without changing timestamp correctness. Browser zoom remains unrestricted.
 
 Physical-device, multi-profile cloud, and long-running offline reconciliation tests remain required before treating simultaneous-device conflict behavior as fully proven. Replacement archives are currently device-local in addition to the preserved Living state event history; an authenticated archived-object database view is a future enhancement. No claim of exact physical burn time or full accessibility conformance is made.
+
+### Display precision correction
+
+The original lifecycle display converted milliseconds to minutes with `Math.ceil`, causing any positive sub-minute burn to display as one minute and concealing seconds from long remaining durations. Display formatting now floors only at the second boundary. Effective burned time is the immutable persisted total plus at most one valid active interval; remaining time subtracts that preview from expected life and clamps at zero. These calculations clone/normalize input and never mutate or persist during a visual tick. The generic Current State card suppresses candle burn time and last-burned rows so Candle Life is the sole lifecycle presentation. Companion candle titles are display-only: catalog/persistence labels and the form badge remain unchanged.
 
 ## Manual development checklist
 
