@@ -1834,6 +1834,48 @@ function renderLibraryLayers(entity, settings, layout = getLibraryPageLayout(ent
     .join("");
 }
 
+function formatRitualDuration(seconds) {
+  const totalMinutes = Math.max(0, Math.round(Number(seconds || 0) / 60));
+  if (!totalMinutes) return "Not recorded";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return [hours ? `${hours} hr` : "", minutes ? `${minutes} min` : ""].filter(Boolean).join(" ");
+}
+
+function renderRitualRecord(entity) {
+  const practice = entity.myPractice || {};
+  const section = (title, value) => value ? `<section class="ritual-record-section"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(value)}</p></section>` : "";
+  const altarItems = Array.isArray(practice.AltarItems) ? practice.AltarItems : [];
+  const templateId = practice.RitualTemplateId || entity.metadata?.ritualTemplateId;
+  return `
+    <article class="ritual-record" data-canonical-ritual-record>
+      <dl class="ritual-record-facts">
+        ${practice.Date ? `<div><dt>Date</dt><dd>${escapeHtml(new Date(`${practice.Date}T12:00:00`).toLocaleDateString([], { dateStyle: "long" }))}</dd></div>` : ""}
+        ${practice.TimeOfDay ? `<div><dt>Time of day</dt><dd>${escapeHtml(practice.TimeOfDay)}</dd></div>` : ""}
+        <div><dt>Duration</dt><dd>${escapeHtml(formatRitualDuration(practice.DurationSeconds))}</dd></div>
+        ${templateId ? `<div><dt>Source template</dt><dd><button type="button" class="book-living-connection-link" data-library-entity-id="${escapeHtml(`ritual-template:${templateId}`)}">View template</button></dd></div>` : ""}
+      </dl>
+      ${section("Intention", practice.Intention)}
+      ${altarItems.length ? `<section class="ritual-record-section"><h2>The Altar</h2><div class="ritual-record-chips">${altarItems.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div></section>` : ""}
+      ${section("What Happened", [practice.WhatHappenedDuring, practice.WhatHappenedAfter].filter(Boolean).join("\n\n"))}
+      ${section("Feelings and Impressions", [practice.FeelingsBefore, practice.FeelingsDuring, practice.FeelingsAfter].filter(Boolean).join("\n\n"))}
+      ${section("Signs and Symbols", practice.SignsAndSymbols)}
+      ${section("Results and Follow-Up", [practice.Results, practice.DreamsAndFollowUp, practice.ChangesForNextTime].filter(Boolean).join("\n\n"))}
+      ${section("Private Notes", practice.Notes)}
+      <details class="ritual-record-details"><summary>Record details</summary><p>Canonical record: ${escapeHtml(entity.id)}</p></details>
+    </article>`;
+}
+
+function renderRitualTemplateRecord(entity) {
+  const practice = entity.myPractice || {};
+  const templateId = practice.RitualTemplateId || entity.metadata?.ritualTemplateId;
+  const rows = [["Purpose and Intention", practice.Purpose], ["Preparation", practice.Preparation], ["Estimated Duration", formatRitualDuration(practice.EstimatedDurationSeconds)], ["Closing", practice.Closing]];
+  return `<article class="ritual-record ritual-template-record" data-canonical-ritual-template-record>
+    ${rows.filter(([, value]) => value).map(([label, value]) => `<section class="ritual-record-section"><h2>${escapeHtml(label)}</h2><p>${escapeHtml(value)}</p></section>`).join("")}
+    ${templateId ? `<a class="button button--primary" href="../altar/?editRitualTemplate=${encodeURIComponent(templateId)}">Begin or Edit Ritual</a>` : ""}
+  </article>`;
+}
+
 function getLibrarySearchText(entity) {
   return [
     entity.name,
@@ -1999,7 +2041,11 @@ async function renderLibraryEntity(entityId) {
 
   const settings = await getLibraryPageSettings();
   const layout = getLibraryPageLayout(entity.id);
-  const renderedLayers = renderLibraryLayers(entity, settings, layout);
+  const renderedLayers = !libraryEditMode && entity.type === "ritual"
+    ? renderRitualRecord(entity)
+    : !libraryEditMode && entity.type === "ritual_template"
+      ? renderRitualTemplateRecord(entity)
+      : renderLibraryLayers(entity, settings, layout);
   const entityImage = getLibraryDisplayImage(entity);
 
   const journeyRequestId = ++livingJourneyRequestId;

@@ -32,6 +32,20 @@ function getObjectImagePath(object) {
 const altarUndoStack = [];
 const altarRedoStack = [];
 let dragStartSnapshot = null;
+let activeObjectPointerId = null;
+const completedPlacementRequests = new Set();
+
+function resetAltarPointerState() {
+  if (activeObject && activeObjectPointerId != null && activeObject.hasPointerCapture?.(activeObjectPointerId)) {
+    activeObject.releasePointerCapture(activeObjectPointerId);
+  }
+  document.querySelectorAll(".altar-object.is-dragging").forEach((object) => object.classList.remove("is-dragging"));
+  activeObject = null;
+  activeObjectPointerId = null;
+  offsetX = 0;
+  offsetY = 0;
+  dragStartSnapshot = null;
+}
 
 function captureAltarSnapshot() {
   if (!altarStage) return null;
@@ -316,6 +330,7 @@ function makeDraggable(object) {
     dragStartSnapshot = captureAltarSnapshot();
      
     activeObject = object;
+    activeObjectPointerId = event.pointerId;
 
     const stageRect = altarStage.getBoundingClientRect();
 
@@ -388,7 +403,7 @@ function makeDraggable(object) {
     }
   });
 
-  object.addEventListener("pointerup", () => {
+  object.addEventListener("pointerup", (event) => {
     object.classList.remove("is-dragging");
 
     if (dragStartSnapshot) {
@@ -398,9 +413,11 @@ function makeDraggable(object) {
 
     saveWorkingAltarDraft();
     activeObject = null;
+    activeObjectPointerId = null;
+    if (object.hasPointerCapture?.(event.pointerId)) object.releasePointerCapture(event.pointerId);
   });
 
-  object.addEventListener("pointercancel", () => {
+  object.addEventListener("pointercancel", (event) => {
     object.classList.remove("is-dragging");
 
     if (dragStartSnapshot) {
@@ -410,6 +427,8 @@ function makeDraggable(object) {
 
     saveWorkingAltarDraft();
     activeObject = null;
+    activeObjectPointerId = null;
+    if (object.hasPointerCapture?.(event.pointerId)) object.releasePointerCapture(event.pointerId);
   });
 
   object.addEventListener("wheel", (event) => {
@@ -430,8 +449,10 @@ function makeDraggable(object) {
 }
 
 function placeObject(options) {
-   pushAltarUndoSnapshot();
-  if (!altarStage) return;
+  if (!altarStage) return null;
+  const requestId = String(options?.requestId || "");
+  if (requestId && completedPlacementRequests.has(requestId)) return null;
+  pushAltarUndoSnapshot();
 
   const {
      imagePath,
@@ -560,6 +581,11 @@ function placeObject(options) {
   updateEmptyMessage();
   renderLighting();
   saveWorkingAltarDraft();
+  if (requestId) {
+    completedPlacementRequests.add(requestId);
+    if (completedPlacementRequests.size > 100) completedPlacementRequests.delete(completedPlacementRequests.values().next().value);
+  }
+  return object;
 }
 
 function deleteObject(object) {

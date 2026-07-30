@@ -32,6 +32,23 @@ function storeActiveRitualSession(session) {
   localStorage.setItem(ACTIVE_RITUAL_SESSION_KEY, JSON.stringify(session));
 }
 
+function getGuestRitualRepository() {
+  return window.RitualLifecycle.createLocalRepository(localStorage, "guest");
+}
+
+function persistGuestActiveRitual() {
+  if (!activeRitualSession?.id) return;
+  activeRitualSession.session_steps = activeRitualSteps.map((step) => ({ ...step }));
+  activeRitualSession.updated_at = new Date().toISOString();
+  getGuestRitualRepository().saveSession(activeRitualSession, ["active", "paused"].includes(activeRitualSession.status));
+}
+
+function hasStoredRitualForCurrentScope() {
+  const stored = getStoredActiveRitualSession();
+  if (!stored?.id) return false;
+  return typeof currentUser !== "undefined" && currentUser ? stored.scope !== "guest" : stored.scope === "guest";
+}
+
 function getRitualTimeOfDay(date = new Date()) {
   const hour = date.getHours();
 
@@ -199,18 +216,27 @@ async function getRitualTemplates() {
 
 async function fetchActiveRitualSession() {
   const stored = getStoredActiveRitualSession();
-  if (!stored?.id) return null;
-
   const user = await getRitualUser();
-  if (!user) return null;
-
-  const { data: session, error: sessionError } = await db
+  if (!user) {
+    if (activeRitualSession?.user_id) { activeRitualSession = null; activeRitualSteps = []; }
+    const session = getGuestRitualRepository().getActive();
+    if (!session) return null;
+    activeRitualSession = session;
+    activeRitualSteps = session.session_steps || [];
+    storeActiveRitualSession({ id: session.id, title: session.title, startedAt: session.started_at, scope: "guest" });
+    return session;
+  }
+  if (activeRitualSession?.scope === "guest") { activeRitualSession = null; activeRitualSteps = []; }
+  const storedId = stored?.scope === "guest" ? null : stored?.id;
+  let sessionQuery = db
     .from("ritual_sessions")
     .select("*")
-    .eq("id", stored.id)
     .eq("user_id", user.id)
-    .in("status", ["active", "paused"])
-    .maybeSingle();
+    .in("status", ["active", "paused"]);
+  sessionQuery = storedId
+    ? sessionQuery.eq("id", storedId)
+    : sessionQuery.order("updated_at", { ascending: false }).limit(1);
+  const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
 
   if (sessionError) throw sessionError;
 
@@ -230,23 +256,28 @@ async function fetchActiveRitualSession() {
 
   activeRitualSession = session;
   activeRitualSteps = steps || [];
+  storeActiveRitualSession({ id: session.id, title: session.title || "Untitled Ritual", startedAt: session.started_at, scope: `user:${user.id}` });
 
   return session;
 }
 
 async function createFreeRitualSession({ title = "", intention = "" } = {}) {
-  if (activeRitualSession?.id || getStoredActiveRitualSession()?.id) {
-    throw new Error("A ritual session is already active.");
-  }
   const user = await getRitualUser();
-
-  if (!user) {
-    throw new Error("Sign in to begin a saved ritual session.");
-  }
+  const stored = getStoredActiveRitualSession();
+  if (activeRitualSession?.id || (stored?.id && (user ? stored.scope !== "guest" : stored.scope === "guest"))) throw new Error("A ritual session is already active.");
 
   const altarSnapshot = typeof createAltarSnapshot === "function"
     ? createAltarSnapshot(title || "Ritual Session")
     : {};
+
+  if (!user) {
+    const session = getGuestRitualRepository().start({ title: title || "Untitled Ritual", intention }, { altarSnapshot });
+    activeRitualSession = session;
+    activeRitualSteps = session.session_steps || [];
+    storeActiveRitualSession({ id: session.id, title: session.title, startedAt: session.started_at, scope: "guest" });
+    document.dispatchEvent(new CustomEvent("saltRitualSessionStarted", { detail: { session } }));
+    return session;
+  }
 
   const { data, error } = await db
     .from("ritual_sessions")
@@ -276,7 +307,8 @@ async function createFreeRitualSession({ title = "", intention = "" } = {}) {
   storeActiveRitualSession({
     id: data.id,
     title: data.title || "Untitled Ritual",
-    startedAt: data.started_at
+    startedAt: data.started_at,
+    scope: `user:${user.id}`
   });
 
   document.dispatchEvent(new CustomEvent("saltRitualSessionStarted", {
@@ -287,16 +319,23 @@ async function createFreeRitualSession({ title = "", intention = "" } = {}) {
 }
 
 async function createTemplateRitualSession(template) {
-  if (activeRitualSession?.id || getStoredActiveRitualSession()?.id) {
-    throw new Error("A ritual session is already active.");
-  }
   const user = await getRitualUser();
-
-  if (!user) throw new Error("Sign in to begin a ritual.");
+  const stored = getStoredActiveRitualSession();
+  if (activeRitualSession?.id || (stored?.id && (user ? stored.scope !== "guest" : stored.scope === "guest"))) throw new Error("A ritual session is already active.");
 
   const altarSnapshot = typeof createAltarSnapshot === "function"
     ? createAltarSnapshot(template.title || "Ritual Session")
     : {};
+  const templateSnapshot = window.RitualLifecycle.snapshotTemplate(template);
+
+  if (!user) {
+    const session = getGuestRitualRepository().start(template, { altarSnapshot });
+    activeRitualSession = session;
+    activeRitualSteps = session.session_steps || [];
+    storeActiveRitualSession({ id: session.id, title: session.title, startedAt: session.started_at, scope: "guest" });
+    document.dispatchEvent(new CustomEvent("saltRitualSessionStarted", { detail: { session } }));
+    return session;
+  }
 
   const { data: session, error: sessionError } = await db
     .from("ritual_sessions")
@@ -311,6 +350,7 @@ async function createTemplateRitualSession(template) {
       current_step_order: 0,
       altar_snapshot: altarSnapshot || {},
       context_snapshot: createRitualContextSnapshot(),
+      metadata: { lifecycleVersion: window.RitualLifecycle.VERSION, templateSnapshot },
       event_log: [{
         type: "template_session_started",
         templateId: template.id,
@@ -322,14 +362,14 @@ async function createTemplateRitualSession(template) {
 
   if (sessionError) throw sessionError;
 
-  const templateSteps = template.ritual_template_steps || [];
+  const templateSteps = templateSnapshot.steps;
   let sessionSteps = [];
 
   if (templateSteps.length) {
     const rows = templateSteps.map((step, index) => ({
       user_id: user.id,
       session_id: session.id,
-      template_step_id: step.id,
+      template_step_id: step.template_step_id,
       sort_order: step.sort_order,
       title: step.title,
       instructions: step.instructions,
@@ -359,7 +399,8 @@ async function createTemplateRitualSession(template) {
   storeActiveRitualSession({
     id: session.id,
     title: session.title || "Untitled Ritual",
-    startedAt: session.started_at
+    startedAt: session.started_at,
+    scope: `user:${user.id}`
   });
 
   document.dispatchEvent(new CustomEvent("saltRitualSessionStarted", {
@@ -373,7 +414,11 @@ async function appendRitualEvent(type, metadata = {}) {
   if (!activeRitualSession?.id) return;
 
   const user = await getRitualUser();
-  if (!user) return;
+  if (!user) {
+    activeRitualSession = window.RitualLifecycle.appendEvent(activeRitualSession, { type, ...metadata });
+    persistGuestActiveRitual();
+    return;
+  }
 
   const { data, error } = await db
     .from("ritual_sessions")
@@ -385,14 +430,17 @@ async function appendRitualEvent(type, metadata = {}) {
   if (error) throw error;
 
   const eventLog = Array.isArray(data?.event_log) ? data.event_log : [];
+  const event = {
+    type,
+    occurredAt: new Date().toISOString(),
+    ...metadata
+  };
+  const normalized = window.RitualLifecycle.appendEvent({ event_log: eventLog }, event);
 
   const { error: updateError } = await db
     .from("ritual_sessions")
     .update({
-      event_log: [
-        ...eventLog,
-        { type, occurredAt: new Date().toISOString(), ...metadata }
-      ]
+      event_log: normalized.event_log
     })
     .eq("id", activeRitualSession.id)
     .eq("user_id", user.id);
@@ -406,6 +454,15 @@ async function pauseActiveRitualSession() {
   const pausedAt = new Date().toISOString();
   const user = await getRitualUser();
   const currentStep = getCurrentRitualStep();
+
+  if (!user) {
+    if (currentStep?.started_at) { currentStep.elapsed_seconds = getStepElapsedSeconds(currentStep); currentStep.started_at = null; }
+    activeRitualSession.status = "paused";
+    activeRitualSession.paused_at = pausedAt;
+    await appendRitualEvent("session_paused", { idempotencyKey: `session_paused:${activeRitualSession.id}:${pausedAt}` });
+    renderActiveRitualPanel();
+    return;
+  }
 
   if (currentStep?.started_at) {
     const elapsedSeconds = getStepElapsedSeconds(currentStep);
@@ -441,6 +498,17 @@ async function resumeActiveRitualSession() {
   const now = Date.now();
   const pausedAt = new Date(activeRitualSession.paused_at || now).getTime();
   const addedPause = Math.max(0, Math.floor((now - pausedAt) / 1000));
+
+  if (!user) {
+    activeRitualSession.status = "active";
+    activeRitualSession.paused_at = null;
+    activeRitualSession.paused_seconds = Number(activeRitualSession.paused_seconds || 0) + addedPause;
+    const currentStep = getCurrentRitualStep();
+    if (currentStep && !currentStep.started_at) currentStep.started_at = new Date().toISOString();
+    await appendRitualEvent("session_resumed", { idempotencyKey: `session_resumed:${activeRitualSession.id}:${now}` });
+    renderActiveRitualPanel();
+    return;
+  }
 
   const { data, error } = await db
     .from("ritual_sessions")
@@ -483,6 +551,15 @@ async function completeCurrentRitualStep() {
   const user = await getRitualUser();
   const completedAt = new Date().toISOString();
 
+  if (!user) {
+    step.status = "completed"; step.completed_at = completedAt; step.elapsed_seconds = getStepElapsedSeconds(step);
+    const nextStep = activeRitualSteps.find((item) => item.sort_order > step.sort_order && item.status === "pending");
+    if (nextStep) { nextStep.status = "active"; nextStep.started_at = completedAt; activeRitualSession.current_step_order = nextStep.sort_order; }
+    await appendRitualEvent("step_completed", { stepId: step.id, stepTitle: step.title, idempotencyKey: `step_completed:${activeRitualSession.id}:${step.id}` });
+    renderActiveRitualPanel();
+    return;
+  }
+
   const { error } = await db
     .from("ritual_session_steps")
     .update({
@@ -517,7 +594,8 @@ async function completeCurrentRitualStep() {
 
   await appendRitualEvent("step_completed", {
     stepId: step.id,
-    stepTitle: step.title
+    stepTitle: step.title,
+    idempotencyKey: `step_completed:${activeRitualSession.id}:${step.id}`
   });
 
   await fetchActiveRitualSession();
@@ -536,6 +614,15 @@ async function skipCurrentRitualStep() {
   try {
   const user = await getRitualUser();
 
+  if (!user) {
+    step.status = "skipped"; step.completed_at = new Date().toISOString(); step.elapsed_seconds = getStepElapsedSeconds(step);
+    const nextStep = activeRitualSteps.find((item) => item.status === "pending");
+    if (nextStep) { nextStep.status = "active"; nextStep.started_at = new Date().toISOString(); }
+    await appendRitualEvent("step_skipped", { stepId: step.id, stepTitle: step.title, idempotencyKey: `step_skipped:${activeRitualSession.id}:${step.id}` });
+    renderActiveRitualPanel();
+    return;
+  }
+
   const { error } = await db
     .from("ritual_session_steps")
     .update({
@@ -550,7 +637,8 @@ async function skipCurrentRitualStep() {
 
   await appendRitualEvent("step_skipped", {
     stepId: step.id,
-    stepTitle: step.title
+    stepTitle: step.title,
+    idempotencyKey: `step_skipped:${activeRitualSession.id}:${step.id}`
   });
 
   await fetchActiveRitualSession();
@@ -583,23 +671,47 @@ async function completeActiveRitualSession(status = "completed") {
 
   try {
   const user = await getRitualUser();
-  if (!user) throw new Error("Sign in to complete this ritual session.");
-
   const endedAt = new Date().toISOString();
   const finalSnapshot = typeof createAltarSnapshot === "function"
     ? createAltarSnapshot(activeSession.title || "Ritual Session")
     : {};
 
+  if (!user) {
+    activeRitualSession.session_steps = activeRitualSteps.map((step) => ({ ...step }));
+    const completed = status === "completed"
+      ? getGuestRitualRepository().complete(activeSession.id, { altarSnapshot: finalSnapshot })
+      : getGuestRitualRepository().saveSession({ ...activeRitualSession, status: "abandoned", ended_at: endedAt, altar_snapshot: finalSnapshot }, false);
+    clearRitualIntervals(); activeRitualSession = null; activeRitualSteps = []; storeActiveRitualSession(null);
+    document.dispatchEvent(new CustomEvent("saltRitualSessionCompleted", { detail: { session: completed } }));
+    ritualPanelView = "home"; renderRitualHome(); return completed;
+  }
+
   const { data: existing, error: readError } = await db
     .from("ritual_sessions")
-    .select("event_log, metadata")
+    .select("*")
     .eq("id", activeSession.id)
     .eq("user_id", user.id)
     .single();
 
   if (readError) throw readError;
 
-  const eventLog = Array.isArray(existing?.event_log) ? existing.event_log : [];
+  if (existing.status === status && existing.ended_at) {
+    clearRitualIntervals();
+    activeRitualSession = null;
+    activeRitualSteps = [];
+    storeActiveRitualSession(null);
+    return existing;
+  }
+
+  const eventLog = window.RitualLifecycle.appendEvent(
+    { event_log: Array.isArray(existing?.event_log) ? existing.event_log : [] },
+    {
+      type: status === "completed" ? "session_completed" : "session_abandoned",
+      occurredAt: endedAt,
+      source: "digital_altar",
+      idempotencyKey: `${status === "completed" ? "session_completed" : "session_abandoned"}:${activeSession.id}`
+    }
+  ).event_log;
 
   const { data, error } = await db
     .from("ritual_sessions")
@@ -607,14 +719,7 @@ async function completeActiveRitualSession(status = "completed") {
       status,
       ended_at: endedAt,
       altar_snapshot: finalSnapshot || {},
-      event_log: [
-        ...eventLog,
-        {
-          type: status === "completed" ? "session_completed" : "session_abandoned",
-          occurredAt: endedAt,
-          source: "digital_altar"
-        }
-      ],
+      event_log: eventLog,
       metadata: {
         ...(existing?.metadata || {}),
         companionRunnerVersion: 1
@@ -920,7 +1025,7 @@ document.addEventListener(
 
     try {
       if (startButton) {
-        if (activeRitualSession || getStoredActiveRitualSession()?.id) {
+        if (activeRitualSession || hasStoredRitualForCurrentScope()) {
           await fetchActiveRitualSession();
           renderActiveRitualPanel();
         } else {
