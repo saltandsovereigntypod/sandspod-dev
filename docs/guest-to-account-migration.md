@@ -54,3 +54,7 @@ On failure, keep the downloaded backup and guest copy, restore connectivity or r
 ## Known limitations
 
 Guest Book of Shadows table records, working Altar drafts, community data, browser-only image upload, import-as-copy, field-level settings merging, selective post-migration cleanup, and migration of independently persisted object-instance events are not supported in version 1. Unsupported data remains local and in the safety backup. Production and development schemas must be reviewed independently before enabling migration for real accounts.
+
+## Saved Altar modes
+
+Migration stages saved Altars by ID, so same-name views remain separate. Shared object-instance IDs remain coherent between views, while fresh duplicates remain independent. See [Saved Altar modes](altar-save-modes.md).

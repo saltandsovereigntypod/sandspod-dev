@@ -148,7 +148,7 @@
     const data = preview.data; const rows = {}; const warnings = []; const maps = {};
     if (selected.includes("settings") && hasValue(data.settings)) rows.user_settings = [{ user_id: userId, preferred_name: data.settings.preferred_name || "", pronouns: data.settings.pronouns || "", magical_name: data.settings.magical_name || "", default_mundane_mode: Boolean(data.settings.default_mundane_mode), default_altar_background: data.settings.default_altar_background || "", settings: clone(data.settings), updated_at: new Date().toISOString() }];
     if (selected.includes("livingLibrary")) { const library = libraryRows(data.livingLibrary, userId, warnings); rows.living_library_entries = library.entities; rows.library_relations = library.relations; }
-    if (selected.includes("altars")) rows.saved_altars = (data.altars || []).map((altar) => ({ id: altar.id, user_id: userId, name: altar.name || "Guest Altar", altar_data: stripBrowserAssets(altar, warnings) }));
+    if (selected.includes("altars")) rows.saved_altars = (data.altars || []).map((altar) => ({ id: altar.id, user_id: userId, name: altar.name || "Guest Altar", altar_data: { ...stripBrowserAssets(altar, warnings), favorite: altar.favorite === true } }));
     if (selected.includes("apothecary")) rows.apothecary_items = (data.apothecary || []).map((item) => apothecaryRow(item, userId, warnings));
     if (selected.includes("custom")) rows.custom_cabinet_items = (data.customCabinet || []).map((item) => ({ id: item.id, user_id: userId, category: item.category || "custom", name: item.name || "Untitled", icon: item.icon || "✦", keywords: item.keywords || [], entity_id: item.entityId || "", image_url: "", item_type: item.forms?.[0]?.type || item.category || "", form_label: item.forms?.[0]?.form || "standard", forms: stripBrowserAssets(item.forms || [], warnings), storage_paths: [], metadata: { source: "guest-migration" } }));
     if (selected.includes("rituals")) {
@@ -240,6 +240,7 @@
     if (!verified) { global.SaltSyncStatus?.failure(plan.userId); return { ...plan, complete: false, completedStages: [...completed], message: "Migration verification did not finish. Guest data is unchanged." }; }
     global.SaltSyncStatus?.success(plan.userId);
     storage.removeItem(checkpointKey(plan));
+    if (completed.has("saved_altars") && typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") global.dispatchEvent(new global.CustomEvent("savedAltarsChanged", { detail: { source: "guest-migration" } }));
     return { ...plan, complete: true, verified: true, completedStages: [...completed], guestDataPreserved: true };
   }
 

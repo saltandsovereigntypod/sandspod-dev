@@ -99,3 +99,7 @@ Account deletion and Living Library reconciliation require distinct fresh Comple
 # Candle lifecycle records
 
 Complete backups preserve candle version-2 Living Object State as part of each object record: expected life and lock, timestamps, total, status, spent/archive and replacement links, append-only history, duration history, dressings, and burnout notification marker. `altarObjectId` must remain paired with the state. Merge-only restore must not revive a spent instance or replace a richer/newer burn history; event identities are deduplicated during lifecycle normalization. Existing version-1 backup documents remain readable.
+
+## Saved Altar identity
+
+Complete backup and merge restore preserve saved-record, placement, object-instance, group, background, and candle lifecycle fields by ID. Shared views therefore remain shared and fresh duplicates remain separate; records are not merged by name. See [Saved Altar modes](altar-save-modes.md).

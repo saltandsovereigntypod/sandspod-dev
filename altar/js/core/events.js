@@ -485,13 +485,7 @@ altarActionBar.addEventListener("click", (event) => {
       return;
 
     case "save-altar":
-      if (!isUserSignedIn()) {
-        shouldSaveAfterAuth = true;
-        openSanctuaryModal();
-        return;
-      }
-
-      saveAltar();
+      saveAltar(button);
       return;
 
     case "load-altar":
@@ -726,7 +720,59 @@ savedAltarsManager.addEventListener("click", (event) => {
     case "delete":
       deleteSavedAltar(altarId);
       break;
+
+    case "duplicate":
+      duplicateSavedAltarFromLibrary(altarId, button);
+      break;
+
+    case "favorite": {
+      const nextFavorite = button.getAttribute("aria-pressed") !== "true";
+      button.disabled = true;
+      setSavedAltarFavorite(altarId, nextFavorite)
+        .then(async (saved) => {
+          if (!saved) return;
+          await renderSavedAltarsManager();
+          showAltarToast(nextFavorite ? "Added to favorites" : "Removed from favorites");
+        })
+        .catch((error) => {
+          console.error("Saved Altar favorite update failed:", error?.message || error);
+          button.disabled = false;
+          showAltarToast("Favorite could not be updated. Please try again.");
+        });
+      break;
+    }
   }
+});
+
+savedAltarsManager.addEventListener("change", (event) => {
+  if (event.target === savedAltarsFilterControl) savedAltarsFilter = event.target.value;
+  else if (event.target === savedAltarsSortControl) savedAltarsSort = event.target.value;
+  else return;
+  renderSavedAltarsManager().catch((error) => {
+    console.error("Saved Altars organization update failed:", error?.message || error);
+    showAltarToast("My Altars could not be reorganized.");
+  });
+});
+
+document.addEventListener("saltAuthChanged", () => {
+  if (savedAltarsManager.hidden) return;
+  renderSavedAltarsManager().catch((error) => {
+    console.error("My Altars refresh after account change failed:", error?.message || error);
+    showAltarToast("My Altars could not be refreshed.");
+  });
+});
+
+window.addEventListener("savedAltarsChanged", () => {
+  if (savedAltarsManager.hidden) return;
+  renderSavedAltarsManager().catch((error) => {
+    console.error("My Altars refresh after data import failed:", error?.message || error);
+    showAltarToast("My Altars could not be refreshed after the data update.");
+  });
+});
+
+window.addEventListener("storage", (event) => {
+  if (event.key !== ALTAR_STORAGE_KEY || savedAltarsManager.hidden) return;
+  renderSavedAltarsManager().catch((error) => console.error("My Altars refresh after local change failed:", error?.message || error));
 });
 
 

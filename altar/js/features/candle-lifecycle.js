@@ -400,6 +400,7 @@
     dialog.querySelector("input")?.focus();
   }
   global.reconcileCandleObject = reconcileObject;
+  global.createFreshCandleLifecycle = (form) => normalize({}, { form });
   global.lightCandleObject = lightObject;
   global.extinguishCandleObject = extinguishObject;
   global.setCandleExpectedDuration = setObjectDuration;
