@@ -87,6 +87,16 @@ test("guest merge planning performs no writes, preserves collisions, and applies
   assert.equal(JSON.parse(storage.getItem("saltAndSovereigntySavedAltars")).length, 2);
 });
 
+test("saved Altar favorites survive guest backup merge and default safely", async () => {
+  const storage = memoryStorage();
+  const backup = await Backup.createBackup({ altars: [{ id: "favorite", favorite: true }, { id: "legacy" }] }, { createdAt: "2026-01-01T00:00:00Z" });
+  const plan = Backup.buildGuestMergePlan(backup, storage);
+  Backup.applyGuestMergePlan(plan, storage);
+  const restored = JSON.parse(storage.getItem("saltAndSovereigntySavedAltars"));
+  assert.equal(restored.find((altar) => altar.id === "favorite").favorite, true);
+  assert.equal(restored.find((altar) => altar.id === "legacy").favorite, false);
+});
+
 test("sanitization removes ownership, credentials, and signed URL secrets", () => {
   const clean = Backup.sanitize({ user_id: "other", password: "bad", image: "https://example.com/a.png?token=secret&width=20", nested: { title: "kept" } });
   assert.equal(clean.user_id, undefined); assert.equal(clean.password, undefined);

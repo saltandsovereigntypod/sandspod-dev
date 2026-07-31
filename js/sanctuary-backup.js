@@ -231,6 +231,7 @@
       if (!(section in (backup.data || {}))) continue;
       let existing = null; try { existing = JSON.parse(storage.getItem(key)); } catch { existing = storage.getItem(key); }
       const incoming = clone(backup.data[section]);
+      if (section === "altars" && Array.isArray(incoming)) incoming.forEach((altar) => { altar.favorite = altar.favorite === true; });
       if (Array.isArray(existing) && Array.isArray(incoming)) {
         const byId = new Map(existing.map((record) => [String(record?.id), record]));
         incoming.forEach((record) => { const id = String(record?.id || ""); if (id && byId.has(id)) conflicts.push({ section, id, resolution: "kept-existing" }); else if (id) byId.set(id, record); else existing.push(record); });
@@ -245,6 +246,7 @@
   function applyGuestMergePlan(plan, storage) {
     if (plan.writesApplied) return plan;
     plan.operations.forEach((operation) => storage.setItem(operation.key, typeof operation.value === "string" ? operation.value : JSON.stringify(operation.value)));
+    if (plan.operations.some((operation) => operation.section === "altars") && typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") global.dispatchEvent(new global.CustomEvent("savedAltarsChanged", { detail: { source: "backup-restore" } }));
     return { ...plan, writesApplied: true, completedStages: plan.operations.map((operation) => operation.section) };
   }
 
@@ -258,7 +260,8 @@
     if (!userId) throw new Error("A current account is required for cloud restore.");
     const tables = flattenCloudData(backup.data); const operations = []; const conflicts = [];
     for (const table of RESTORE_ORDER) {
-      const rows = tables[table] || []; if (!rows.length) continue;
+      const rows = clone(tables[table] || []); if (!rows.length) continue;
+      if (table === "saved_altars") rows.forEach((row) => { row.altar_data = { ...(row.altar_data || {}), favorite: row.altar_data?.favorite === true }; });
       const ids = rows.map((row) => row.id).filter(Boolean);
       const existingIds = new Set();
       for (let index = 0; index < ids.length; index += 200) {
@@ -283,6 +286,7 @@
       completed.add(operation.table);
       options.onStageComplete?.(operation.table, [...completed]);
     }
+    if (completed.has("saved_altars") && typeof global.dispatchEvent === "function" && typeof global.CustomEvent === "function") global.dispatchEvent(new global.CustomEvent("savedAltarsChanged", { detail: { source: "backup-restore" } }));
     return { ...plan, writesApplied: true, completedStages: [...completed], failedStage: null, error: null };
   }
 

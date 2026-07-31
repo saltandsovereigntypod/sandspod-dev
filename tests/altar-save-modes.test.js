@@ -1,8 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 
 global.createFreshCandleLifecycle = (form) => ({ version: 2, form, expectedBurnMs: form === "taper" ? 28_800_000 : 0, durationLocked: false, totalBurnMs: 0, currentBurnStartedAt: "", status: "unlit", burnHistory: [], dressings: [] });
-const { buildFreshAltarDuplicate } = require("../altar/js/features/altar-save-modes.js");
+const { buildFreshAltarDuplicate, isFavorite, organizeSavedAltars } = require("../altar/js/features/altar-save-modes.js");
 
 test("fresh duplicate preserves layout and entity links while replacing identities", () => {
   const source = { groups: [{ id: "g1", name: "Working" }], activeGroupId: "g1", objects: [{ altarObjectId: "placed-1", instanceId: "instance-1", entityId: "entity-1", apothecaryItemId: "recipe-1", groupId: "g1", leftPercent: .2, rotation: "15", type: "crystal", livingState: JSON.stringify({ crystal: { cleansingHistory: ["old"] } }) }] };
@@ -31,4 +32,30 @@ test("fresh duplicate resets a spent dressed burning candle", () => {
   assert.equal(living.candle.totalBurnMs, 0);
   assert.deepEqual(living.candle.burnHistory, []);
   assert.deepEqual(living.candle.dressings, []);
+});
+
+test("My Altars favorites filter and stable sorting are ID-safe", () => {
+  const rows = [
+    { id: "same-a", name: "Same", favorite: false, savedAt: "2025-01-01T00:00:00Z", updatedAt: "invalid" },
+    { id: "favorite", name: "zeta", favorite: true, savedAt: "2024-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" },
+    { id: "same-b", name: "same", metadata: { favorite: true }, savedAt: "", updatedAt: "2025-06-01T00:00:00Z" }
+  ];
+  assert.deepEqual(organizeSavedAltars(rows).map((row) => row.id), ["favorite", "same-b", "same-a"]);
+  assert.deepEqual(organizeSavedAltars(rows, { filter: "favorites" }).map((row) => row.id), ["favorite", "same-b"]);
+  assert.deepEqual(organizeSavedAltars(rows, { sort: "newest" }).map((row) => row.id), ["same-a", "favorite", "same-b"]);
+  assert.deepEqual(organizeSavedAltars(rows, { sort: "oldest" }).map((row) => row.id), ["same-b", "favorite", "same-a"]);
+  assert.deepEqual(organizeSavedAltars(rows, { sort: "updated" }).map((row) => row.id), ["favorite", "same-b", "same-a"]);
+  assert.deepEqual(organizeSavedAltars(rows, { sort: "name" }).map((row) => row.id), ["same-a", "same-b", "favorite"]);
+  assert.equal(isFavorite({}), false);
+});
+
+test("My Altars exposes accessible library actions while Share stays inert", () => {
+  const storage = fs.readFileSync("altar/js/core/storage.js", "utf8");
+  assert.match(storage, /data-saved-altars-filter/);
+  assert.match(storage, /Newest created/);
+  assert.match(storage, /Recently updated/);
+  assert.match(storage, /data-saved-action="duplicate"/);
+  assert.match(storage, /data-saved-action="favorite" aria-pressed=/);
+  assert.match(storage, /disabled aria-disabled="true"[^>]+Share coming soon/);
+  assert.doesNotMatch(storage, /data-saved-action="share"/);
 });

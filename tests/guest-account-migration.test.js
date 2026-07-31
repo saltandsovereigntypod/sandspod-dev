@@ -93,6 +93,17 @@ test("planning keeps cloud conflicts and preserves canonical Library identity", 
   assert.equal(plan.stages.find((stage) => stage.table === "user_rituals").rows[0].user_id, "user-a");
 });
 
+test("saved Altar favorite metadata is carried through canonical guest migration", async () => {
+  const local = guestStorage({ saltAndSovereigntySavedAltars: JSON.stringify([
+    { id: "44444444-4444-4444-8444-444444444444", name: "Favorite", favorite: true },
+    { id: "55555555-5555-4555-8555-555555555555", name: "Legacy" }
+  ]) });
+  const preview = await Migration.createPreview(local);
+  const transformed = await Migration.rowsByTable(preview, ["altars"], "user-a");
+  assert.equal(transformed.rows.saved_altars[0].altar_data.favorite, true);
+  assert.equal(transformed.rows.saved_altars[1].altar_data.favorite, false);
+});
+
 test("deterministic remapping is stable and known child references follow parents", async () => {
   const first = await Migration.deterministicUuid("ritual_sessions", "legacy-session");
   const second = await Migration.deterministicUuid("ritual_sessions", "legacy-session");

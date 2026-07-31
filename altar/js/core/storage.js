@@ -9,6 +9,10 @@ let altarDraftSaveTimeout = null;
 let altarDraftDirty = false;
 let altarSaveInFlight = false;
 let altarContentDirty = false;
+let savedAltarsFilter = "all";
+let savedAltarsSort = "default";
+const favoriteUpdatesInFlight = new Set();
+const duplicateAltarsInFlight = new Set();
 let activeSavedAltar = {
   savedAltarId: "", savedAltarName: "", source: "new", loadedAt: "",
   lastSavedAt: "", ownerScope: "guest", ownerId: ""
@@ -266,6 +270,7 @@ async function getSavedAltars() {
 
   return data.map((row) => ({
     ...(row.altar_data || {}),
+    _altarData: row.altar_data || {},
     id: row.id,
     name: row.name,
     savedAt: row.created_at,
@@ -313,7 +318,8 @@ async function updateSavedAltar(savedAltarId, altarData, user) {
     storeLocalSavedAltars(rows);
     return rows[index];
   }
-  const { data, error } = await db.from(ALTAR_CLOUD_TABLE).update({ name: existing.name, altar_data: { ...altarData, name: existing.name }, updated_at: now }).eq("id", savedAltarId).eq("user_id", user.id).select().single();
+  const updatedAltarData = { ...(existing._altarData || {}), ...altarData, name: existing.name };
+  const { data, error } = await db.from(ALTAR_CLOUD_TABLE).update({ name: existing.name, altar_data: updatedAltarData, updated_at: now }).eq("id", savedAltarId).eq("user_id", user.id).select().single();
   if (error || !data) throw error || new Error("The saved Altar could not be updated.");
   return { ...altarData, id: savedAltarId, name: existing.name, savedAt: data.created_at || existing.savedAt, updatedAt: data.updated_at || now };
 }
@@ -352,12 +358,78 @@ async function rollbackFreshObjectInstances(ids, user) {
   }
 }
 
+async function duplicateSavedAltar(source, mode, name, user) {
+  if (!source?.id || !["new-view", "fresh"].includes(mode)) throw new Error("Choose a valid saved Altar and duplicate mode.");
+  const sourceData = JSON.parse(JSON.stringify(source._altarData || source));
+  delete sourceData.id;
+  delete sourceData._altarData;
+  delete sourceData.updatedAt;
+  sourceData.name = name;
+  sourceData.favorite = false;
+  let snapshot = sourceData;
+  let createdIds = [];
+  let completed = false;
+  try {
+    if (mode === "fresh") {
+      snapshot = window.AltarSaveModes.buildFreshAltarDuplicate(sourceData);
+      snapshot.name = name;
+      snapshot.favorite = false;
+      const materialized = await materializeFreshObjectInstances(snapshot, user);
+      snapshot = materialized.snapshot;
+      createdIds = materialized.createdIds;
+    }
+    const saved = await createSavedAltar(snapshot, user);
+    completed = true;
+    return saved;
+  } finally {
+    if (!completed && createdIds.length) await rollbackFreshObjectInstances(createdIds, user);
+  }
+}
+
+async function setSavedAltarFavorite(altarId, favorite) {
+  if (!altarId || favoriteUpdatesInFlight.has(altarId)) return false;
+  favoriteUpdatesInFlight.add(altarId);
+  try {
+    const user = await ensureAltarUser();
+    const savedAltars = await getSavedAltars();
+    const currentUser = await ensureAltarUser();
+    if ((user?.id || "guest") !== (currentUser?.id || "guest")) throw new Error("Your account changed before the favorite was saved.");
+    const altar = savedAltars.find((item) => item.id === altarId);
+    if (!altar) throw new Error("That saved Altar is no longer available.");
+    if (!user) {
+      const localRows = getLocalSavedAltars();
+      const index = localRows.findIndex((item) => item.id === altarId);
+      if (index < 0) throw new Error("That guest Altar is no longer available.");
+      localRows[index] = { ...localRows[index], favorite: Boolean(favorite), updatedAt: new Date().toISOString() };
+      storeLocalSavedAltars(localRows);
+    } else {
+      const now = new Date().toISOString();
+      const altarData = { ...(altar._altarData || {}), favorite: Boolean(favorite) };
+      const { data, error } = await db.from(ALTAR_CLOUD_TABLE).update({ altar_data: altarData, updated_at: now }).eq("id", altarId).eq("user_id", user.id).select("id").single();
+      if (error || !data) throw error || new Error("Favorite could not be saved.");
+    }
+    return true;
+  } finally {
+    favoriteUpdatesInFlight.delete(altarId);
+  }
+}
+
 function closeSaveDialog(dialog, restoreFocus = true) {
   if (!dialog) return;
   const returnTarget = dialog._returnTarget;
   dialog.remove();
   document.body.classList.remove("altar-save-dialog-open");
   if (restoreFocus) returnTarget?.focus?.();
+}
+
+function keepFocusInsideDialog(dialog, event) {
+  if (event.key !== "Tab") return;
+  const controls = [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+  if (!controls.length) return;
+  const first = controls[0];
+  const last = controls.at(-1);
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
 
 function requestAltarName(title, suggestedName, returnTarget) {
@@ -371,7 +443,7 @@ function requestAltarName(title, suggestedName, returnTarget) {
     const finish = (value) => { closeSaveDialog(dialog); resolve(value); };
     dialog.querySelector("form").addEventListener("submit", (event) => { event.preventDefault(); const value = input.value.trim(); if (!value) { dialog.querySelector("[role=alert]").textContent = "Enter a name for this Altar."; input.focus(); return; } finish(value); });
     dialog.querySelector("[data-save-cancel]").addEventListener("click", () => finish(null));
-    dialog.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.preventDefault(); finish(null); } });
+    dialog.addEventListener("keydown", (event) => { keepFocusInsideDialog(dialog, event); if (event.key === "Escape") { event.preventDefault(); finish(null); } });
     document.body.appendChild(dialog); document.body.classList.add("altar-save-dialog-open"); input.focus(); input.select();
   });
 }
@@ -383,9 +455,50 @@ function requestSaveMode(returnTarget) {
     dialog.querySelector("h2").textContent = `Save changes to “${activeSavedAltar.savedAltarName}”`;
     const finish = (value) => { closeSaveDialog(dialog); resolve(value); };
     dialog.addEventListener("click", (event) => { const button = event.target.closest("[data-save-mode]"); if (button) finish(button.dataset.saveMode === "cancel" ? null : button.dataset.saveMode); });
-    dialog.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.preventDefault(); finish(null); } });
+    dialog.addEventListener("keydown", (event) => { keepFocusInsideDialog(dialog, event); if (event.key === "Escape") { event.preventDefault(); finish(null); } });
     document.body.appendChild(dialog); document.body.classList.add("altar-save-dialog-open"); dialog.querySelector("[data-save-mode]").focus();
   });
+}
+
+function requestDuplicateMode(altar, returnTarget) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("div");
+    dialog.className = "altar-save-dialog";
+    dialog._returnTarget = returnTarget;
+    dialog.innerHTML = `<section class="altar-save-card" role="dialog" aria-modal="true" aria-labelledby="altar-duplicate-title"><p class="eyebrow">Duplicate saved Altar</p><h2 id="altar-duplicate-title"></h2><p>Choose whether the copy shares these living objects or begins with fresh instances.</p><div class="altar-save-choices"><button type="button" data-duplicate-mode="new-view"><strong>Save as New View</strong><span>Create another saved arrangement with the same living-object identities and histories.</span></button><button type="button" data-duplicate-mode="fresh"><strong>Duplicate as Fresh Altar</strong><span>Create a separate Altar with fresh instances and no inherited candle or tending history.</span></button></div><button class="button button--ghost" type="button" data-duplicate-mode="cancel">Cancel</button></section>`;
+    dialog.querySelector("h2").textContent = `Duplicate “${altar.name || "Untitled Altar"}”`;
+    const finish = (value) => { closeSaveDialog(dialog); resolve(value); };
+    dialog.addEventListener("click", (event) => { const button = event.target.closest("[data-duplicate-mode]"); if (button) finish(button.dataset.duplicateMode === "cancel" ? null : button.dataset.duplicateMode); });
+    dialog.addEventListener("keydown", (event) => { keepFocusInsideDialog(dialog, event); if (event.key === "Escape") { event.preventDefault(); finish(null); } });
+    document.body.appendChild(dialog);
+    document.body.classList.add("altar-save-dialog-open");
+    dialog.querySelector("[data-duplicate-mode]").focus();
+  });
+}
+
+async function duplicateSavedAltarFromLibrary(altarId, trigger) {
+  if (!altarId || duplicateAltarsInFlight.has(altarId)) return;
+  duplicateAltarsInFlight.add(altarId);
+  try {
+    const startingUser = await ensureAltarUser();
+    const source = (await getSavedAltars()).find((altar) => altar.id === altarId);
+    if (!source) throw new Error("That saved Altar is no longer available.");
+    const mode = await requestDuplicateMode(source, trigger);
+    if (!mode) return;
+    const suffix = mode === "new-view" ? " – New View" : " – Fresh Altar";
+    const name = await requestAltarName(mode === "new-view" ? "Name the new view" : "Name the fresh Altar", `${source.name || "Untitled Altar"}${suffix}`, trigger);
+    if (!name) return;
+    const user = await ensureAltarUser();
+    if ((startingUser?.id || "guest") !== (user?.id || "guest")) throw new Error("Your account changed. Open My Altars and try again.");
+    await duplicateSavedAltar(source, mode, name, user);
+    await renderSavedAltarsManager();
+    showAltarToast(mode === "new-view" ? `Saved as a new view: “${name}.”` : `Fresh Altar saved: “${name}.”`);
+  } catch (error) {
+    console.error("Saved Altar duplicate failed:", error?.message || error);
+    showAltarToast("The saved Altar could not be duplicated. Please try again.");
+  } finally {
+    duplicateAltarsInFlight.delete(altarId);
+  }
 }
 
 async function saveAltar(returnTarget = document.activeElement) {
@@ -422,6 +535,7 @@ async function saveAltar(returnTarget = document.activeElement) {
     saveWorkingAltarDraft({ immediate: true, snapshot: saved });
     setActiveSavedAltar(saved, { source: mode === "new-view" ? "new-view" : mode === "fresh" ? "fresh-duplicate" : mode === "update" ? startingContext.source : "created", ownerScope, ownerId: user?.id || "", lastSavedAt: saved.updatedAt });
     markAltarClean();
+    if (!savedAltarsManager.hidden) await renderSavedAltarsManager();
     showAltarToast(mode === "update" ? `“${saved.name}” has been updated.` : mode === "new-view" ? `Saved as a new view: “${saved.name}.”` : mode === "fresh" ? `Fresh Altar saved: “${saved.name}.”` : `Saved: ${saved.name}`);
   } catch (error) {
     if (!saveCompleted && freshInstanceIds.length) await rollbackFreshObjectInstances(freshInstanceIds, persistenceUser);
@@ -741,6 +855,24 @@ savedAltarsManager.innerHTML = `
       </p>
     </div>
 
+    <div class="saved-altars-library-controls" aria-label="Filter and sort saved Altars">
+      <label>Show
+        <select data-saved-altars-filter>
+          <option value="all">All Altars</option>
+          <option value="favorites">Favorites</option>
+        </select>
+      </label>
+      <label>Sort by
+        <select data-saved-altars-sort>
+          <option value="default">Favorites first</option>
+          <option value="newest">Newest created</option>
+          <option value="oldest">Oldest created</option>
+          <option value="updated">Recently updated</option>
+          <option value="name">Name</option>
+        </select>
+      </label>
+    </div>
+
     <div class="saved-altars-list saved-altars-grid" data-saved-altars-list></div>
   </div>
 `;
@@ -749,13 +881,19 @@ document.body.appendChild(savedAltarsManager);
 
 const savedAltarsList = savedAltarsManager.querySelector("[data-saved-altars-list]");
 const savedAltarsClose = savedAltarsManager.querySelector("[data-saved-altars-close]");
+const savedAltarsFilterControl = savedAltarsManager.querySelector("[data-saved-altars-filter]");
+const savedAltarsSortControl = savedAltarsManager.querySelector("[data-saved-altars-sort]");
 
-function formatSavedAltarDate(altar) {
-  const rawDate = altar.updatedAt || altar.savedAt;
+function escapeAltarText(value) {
+  const element = document.createElement("span");
+  element.textContent = String(value ?? "");
+  return element.innerHTML;
+}
 
-  if (!rawDate) return "No date saved";
-
-  return new Date(rawDate).toLocaleDateString(undefined, {
+function formatSavedAltarDate(rawDate) {
+  const parsed = new Date(rawDate || "");
+  if (!Number.isFinite(parsed.getTime())) return "Unavailable";
+  return parsed.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric"
@@ -779,7 +917,8 @@ function getSavedAltarSummary(altar) {
 }
 
 async function renderSavedAltarsManager() {
-  const savedAltars = await getSavedAltars();
+  const allSavedAltars = await getSavedAltars();
+  const savedAltars = window.AltarSaveModes.organizeSavedAltars(allSavedAltars, { filter: savedAltarsFilter, sort: savedAltarsSort });
 
   if (!savedAltarsList) return;
 
@@ -787,7 +926,7 @@ async function renderSavedAltarsManager() {
     savedAltarsList.innerHTML = `
       <div class="saved-altars-empty">
         <p class="book-divider">✦ ☽ ✦ ☾ ✦</p>
-        <h3>No saved altars yet.</h3>
+        <h3>${savedAltarsFilter === "favorites" && allSavedAltars.length ? "No favorite Altars yet." : "No saved altars yet."}</h3>
         <p>
           Build an altar, then use Save to keep it in your Sanctuary.
         </p>
@@ -798,28 +937,36 @@ async function renderSavedAltarsManager() {
 
   savedAltarsList.innerHTML = savedAltars
     .map((altar) => {
-      const date = formatSavedAltarDate(altar);
+      const createdDate = formatSavedAltarDate(altar.savedAt);
+      const modifiedDate = formatSavedAltarDate(altar.updatedAt || altar.savedAt);
       const summary = getSavedAltarSummary(altar);
-      const backgroundName = altar.backgroundName || "Custom altar";
+      const backgroundName = escapeAltarText(altar.backgroundName || "Custom altar");
+      const name = escapeAltarText(altar.name || "Untitled Altar");
+      const id = escapeAltarText(altar.id);
+      const favorite = window.AltarSaveModes.isFavorite(altar);
+      const active = activeSavedAltar.savedAltarId === altar.id;
+      const favoriteLabel = `${favorite ? "Remove" : "Add"} ${altar.name || "Untitled Altar"} ${favorite ? "from" : "to"} favorites`;
 
       return `
-        <article class="saved-altar-row saved-altar-card" data-saved-altar-id="${altar.id}">
-          <div class="saved-altar-symbol" aria-hidden="true">🕯</div>
+        <article class="saved-altar-row saved-altar-card${favorite ? " is-favorite" : ""}" data-saved-altar-id="${id}">
+          <div class="saved-altar-symbol" aria-hidden="true">${favorite ? "★" : "🕯"}</div>
 
           <div class="saved-altar-body">
             <p class="eyebrow">${backgroundName}</p>
-            <h3>${altar.name || "Untitled Altar"}</h3>
+            <h3>${name}${favorite ? '<span class="saved-altar-favorite-marker"><span aria-hidden="true">★</span> Favorite</span>' : ""}</h3>
+            ${active ? '<p class="saved-altar-active" role="status">Currently Active</p>' : ""}
             <p>${summary}</p>
-            <p class="saved-altar-date">Saved ${date}</p>
+            <p class="saved-altar-date">Created: ${createdDate}</p>
+            <p class="saved-altar-date">Last modified: ${modifiedDate}</p>
           </div>
 
           <div class="saved-altar-actions">
             <button type="button" data-saved-action="load">Load</button>
             <button type="button" data-saved-action="rename">Rename</button>
             <button type="button" data-saved-action="delete">Delete</button>
-            <button type="button" disabled title="Coming soon">Duplicate</button>
-            <button type="button" disabled title="Coming soon">Favorite</button>
-            <button type="button" disabled title="Coming soon">Share</button>
+            <button type="button" data-saved-action="duplicate">Duplicate</button>
+            <button type="button" data-saved-action="favorite" aria-pressed="${favorite}" aria-label="${escapeAltarText(favoriteLabel)}">${favorite ? "Remove Favorite" : "Add Favorite"}</button>
+            <button type="button" disabled aria-disabled="true" title="Sharing is not yet available" aria-label="Share coming soon. Sharing is not yet available.">Share coming soon</button>
           </div>
         </article>
       `;

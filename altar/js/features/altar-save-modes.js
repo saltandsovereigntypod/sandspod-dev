@@ -50,6 +50,33 @@
     return data;
   }
 
-  global.AltarSaveModes = Object.freeze({ buildFreshAltarDuplicate, freshLivingState });
+  function isFavorite(altar) {
+    return altar?.favorite === true || altar?.metadata?.favorite === true;
+  }
+
+  function safeTime(value) {
+    const time = Date.parse(value || "");
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function organizeSavedAltars(altars, options = {}) {
+    const filter = options.filter === "favorites" ? "favorites" : "all";
+    const sort = ["newest", "oldest", "updated", "name"].includes(options.sort) ? options.sort : "default";
+    const rows = (Array.isArray(altars) ? altars : []).map((altar, index) => ({ altar, index }));
+    const filtered = filter === "favorites" ? rows.filter(({ altar }) => isFavorite(altar)) : rows;
+    const compare = (left, right) => {
+      if (sort === "default") {
+        const favoriteDifference = Number(isFavorite(right.altar)) - Number(isFavorite(left.altar));
+        return favoriteDifference || left.index - right.index;
+      }
+      if (sort === "name") return String(left.altar.name || "").localeCompare(String(right.altar.name || ""), undefined, { sensitivity: "base" }) || left.index - right.index;
+      const leftTime = sort === "updated" ? safeTime(left.altar.updatedAt || left.altar.savedAt) : safeTime(left.altar.savedAt);
+      const rightTime = sort === "updated" ? safeTime(right.altar.updatedAt || right.altar.savedAt) : safeTime(right.altar.savedAt);
+      return (sort === "oldest" ? leftTime - rightTime : rightTime - leftTime) || left.index - right.index;
+    };
+    return filtered.sort(compare).map(({ altar }) => altar);
+  }
+
+  global.AltarSaveModes = Object.freeze({ buildFreshAltarDuplicate, freshLivingState, isFavorite, organizeSavedAltars });
   if (typeof module !== "undefined") module.exports = global.AltarSaveModes;
 })(typeof window !== "undefined" ? window : globalThis);
