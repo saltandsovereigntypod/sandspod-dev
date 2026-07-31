@@ -3353,3 +3353,17 @@ body.mundane-mode [data-mundane-label="ritual"]::after {
 @media (prefers-reduced-motion: reduce) {
   .altar-object.is-lit .candle-flame { animation: none !important; }
 }
+
+.altar-save-dialog { position: fixed; inset: 0; z-index: 10020; display: grid; place-items: center; padding: 1rem; overflow-y: auto; background: rgb(8 5 5 / .78); }
+.altar-save-card { box-sizing: border-box; width: min(34rem, 100%); max-height: calc(100dvh - 2rem); overflow-y: auto; padding: clamp(1rem, 4vw, 2rem); border: 1px solid var(--gold, #b89a58); border-radius: .75rem; color: #f3e8cf; background: #241b19; box-shadow: 0 1rem 3rem rgb(0 0 0 / .45); }
+.altar-save-card h2 { margin-block: .25rem 1rem; font-size: clamp(1.35rem, 5vw, 2rem); line-height: 1.15; overflow-wrap: anywhere; }
+.altar-save-card label { display: block; margin-block: 1rem .35rem; font-weight: 700; }
+.altar-save-card input { box-sizing: border-box; width: 100%; min-width: 0; padding: .7rem; font: inherit; }
+.altar-save-choices { display: grid; gap: .75rem; }
+.altar-save-choices button { display: grid; gap: .25rem; width: 100%; padding: .8rem; border: 1px solid rgb(185 160 93 / .65); border-radius: .5rem; color: inherit; background: rgb(255 255 255 / .04); font: inherit; text-align: left; cursor: pointer; }
+.altar-save-choices button:hover, .altar-save-choices button:focus-visible { outline: 2px solid #f3e8cf; outline-offset: 2px; background: rgb(185 160 93 / .14); }
+.altar-save-choices span { line-height: 1.4; opacity: .88; }
+.altar-save-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+.altar-save-error { min-height: 1.5em; color: #ffd6c9; }
+@media (max-width: 340px) { .altar-save-dialog { padding: .5rem; } .altar-save-card { max-height: calc(100dvh - 1rem); padding: .85rem; } }
+@media (prefers-reduced-motion: reduce) { .altar-save-dialog, .altar-save-card { scroll-behavior: auto; } }

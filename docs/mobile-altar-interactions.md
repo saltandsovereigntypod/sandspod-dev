@@ -49,3 +49,7 @@ Manual verification remains required on real touch browsers. Slowly scroll and f
 # Candle-life mobile verification
 
 The Candle Life Companion card and remaining-life summary use stacked label/value rows below 420px. Verify duration editing, spent labels, replacement confirmation, linked-candle warnings, summary closing, movement of spent candles, and the stable action drawer at 320, 375, 390, 430, and 768 px. Candle timing remains timestamp-based and does not depend on animation or continuous foreground timers. Physical mobile verification remains required when no device browser is available.
+
+## Save dialogs
+
+Save dialogs fit a 320px viewport, wrap actions, avoid horizontal overflow, support scaled text and high contrast, respect reduced motion, and restore keyboard focus. They do not alter the Cabinet or action drawer. See [Saved Altar modes](altar-save-modes.md).

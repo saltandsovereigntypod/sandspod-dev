@@ -485,13 +485,7 @@ altarActionBar.addEventListener("click", (event) => {
       return;
 
     case "save-altar":
-      if (!isUserSignedIn()) {
-        shouldSaveAfterAuth = true;
-        openSanctuaryModal();
-        return;
-      }
-
-      saveAltar();
+      saveAltar(button);
       return;
 
     case "load-altar":

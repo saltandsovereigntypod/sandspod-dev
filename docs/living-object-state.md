@@ -5,3 +5,7 @@ Living Object State is the canonical mutable history attached to an Altar object
 Candle intervals are append-only and deduplicated by event identity. Expected life locks on first light, spent state is irreversible, and archive state remains distinct from spent state. Replacement preserves the retired instance history while a new instance starts fresh. Saved Altars, guest persistence, cloud object state, backups, restores, and guest migration must preserve the opaque `livingState` value and `altarObjectId` together.
 
 See [Candle lifecycle](candle-lifecycle.md) for the full shape, reconciliation rules, accessibility behavior, conflict policy, and test checklist.
+
+## Saved Altar views and duplication
+
+New views retain canonical instance IDs and histories. Fresh Altar duplication retains entity references but assigns fresh placement and instance IDs and clears lifecycle, tending, crystal, deity, archive, usage, and ritual history. See [Saved Altar modes](altar-save-modes.md).

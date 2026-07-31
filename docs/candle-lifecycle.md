@@ -63,3 +63,6 @@ The original lifecycle display converted milliseconds to minutes with `Math.ceil
 ## Manual development checklist
 
 Use disposable data and a two-minute custom duration: light for 30 seconds, extinguish, relight, close, return after burnout, verify one notification/history interval and no relight. Then verify lock persistence, replacement, saved-Altar identity, another browser profile, the three ritual-end settings, linked-versus-decorative warnings, summary contents, and widths 320/375/390/430/768 px.
+# Saved Altar modes
+
+Update and New View preserve the same candle instance, active timestamp, remaining life, histories, dressings, and spent state. Fresh Altar duplication uses the canonical form default and creates an unlit, full-life, duration-unlocked candle with no history, dressings, ritual inclusion, spent state, or replacement links. See [Saved Altar modes](altar-save-modes.md).
